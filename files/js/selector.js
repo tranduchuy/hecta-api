@@ -1,8 +1,8 @@
-var type = [
+var cateList = [
     {
         "id": 1,
         "name": "Nhà đất bán",
-        "type": [
+        "children": [
             {
                 "id": 1,
                 "name": "Bán căn hộ chung cư"

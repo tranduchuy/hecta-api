@@ -26,6 +26,7 @@ var ImageController = {
                 return res.json({
                     status: 1,
                     data: image,
+                    success : true,
                     message: 'request success !'
                 });
 
@@ -74,7 +75,7 @@ var ImageController = {
 
             }
 
-            res.sendFile(file);
+            res.sendFile(file,{ root : global.ROOT_DIR});
 
         }
         catch (e) {
