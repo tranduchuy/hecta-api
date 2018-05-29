@@ -1,7 +1,7 @@
-var SaleModel = require('../models/SaleModel');
 var PostModel = require('../models/PostModel');
+var BuyModel = require('../models/BuyModel');
 
-var OrderController = {
+var BuyController = {
     test: async function (req, res, next) {
         return res.json({
             status: 0,
@@ -24,15 +24,8 @@ var OrderController = {
         var price = req.body.price;
         var unit = req.body.unit;
         var address = req.body.address;
-        var description = req.body.description;
-        var street_width = req.body.streetWidth;
-        var front_size = req.body.frontSize;
-        var direction = req.body.direction;
-        var balcony_direction = req.body.balconyDirection;
-        var floor_count = req.body.floorCount;
-        var bedroom_count = req.body.bedroomCount;
-        var toilet_count = req.body.toiletCount;
-        var furniture = req.body.furniture;
+        var content = req.body.content;
+
         var images = req.body.images;
         var contact_name = req.body.contactName;
         var contact_address = req.body.contactAddress;
@@ -87,7 +80,7 @@ var OrderController = {
                 });
             }
 
-            if (!description || description.length == 0) {
+            if (!content || content.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -104,43 +97,36 @@ var OrderController = {
             }
 
 
-            var sale = new SaleModel();
+            var buy = new BuyModel();
 
-            sale.title = title;
-            sale.formality = formality;
-            sale.type = type;
-            sale.city = city;
-            sale.district = district;
-            sale.ward = ward;
-            sale.street = street;
-            sale.project = project;
-            sale.area = area;
-            sale.price = price;
-            sale.unit = unit;
-            sale.address = address;
-            sale.description = description;
-            sale.front_size = front_size;
-            sale.street_width = street_width;
-            sale.direction = direction;
-            sale.balcony_direction = balcony_direction;
-            sale.floor_count = floor_count;
-            sale.bedroom_count = bedroom_count;
-            sale.toilet_count = toilet_count;
-            sale.furniture = furniture;
-            sale.images = images;
-            sale.contact_name = contact_name;
-            sale.contact_address = contact_address;
-            sale.contact_phone = contact_phone;
-            sale.contact_mobile = contact_mobile;
-            sale.contact_email = contact_email;
+            buy.title = title;
+            buy.formality = formality;
+            buy.type = type;
+            buy.city = city;
+            buy.district = district;
+            buy.ward = ward;
+            buy.street = street;
+            buy.project = project;
+            buy.area = area;
+            buy.price = price;
+            buy.unit = unit;
+            buy.address = address;
+            buy.content = content;
+
+            buy.images = images;
+            buy.contact_name = contact_name;
+            buy.contact_address = contact_address;
+            buy.contact_phone = contact_phone;
+            buy.contact_mobile = contact_mobile;
+            buy.contact_email = contact_email;
 
 
-             sale = await sale.save();
+             buy = await buy.save();
 
             var post = new PostModel();
 
-            post.type = global.POST_TYPE_SALE;
-            post.content_id = sale._id;
+            post.type = global.POST_TYPE_BUY;
+            post.content_id = buy._id;
             post.priority = priority;
             post.from = from;
             post.to = to;
@@ -168,4 +154,4 @@ var OrderController = {
     }
 
 }
-module.exports = OrderController
+module.exports = BuyController

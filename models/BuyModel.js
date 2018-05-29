@@ -4,9 +4,10 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var saleSchema = new Schema({
+var buySchema = new Schema({
 
     title: String,
+    content : String,
     formality : Number,
     type: Number,
     city: String,
@@ -18,15 +19,8 @@ var saleSchema = new Schema({
     price: Number,
     unit: Number,
     address : String,
-    description : String,
-    front_size: Number,
-    street_width : Number,
-    direction : Number,
-    balcony_direction : Number,
-    floor_count : Number,
-    bedroom_count : Number,
-    toilet_count : Number,
-    furniture : String,
+
+
     images : Array,
 
     contact_name : String,
@@ -55,6 +49,6 @@ var saleSchema = new Schema({
 //     }
 // );
 
-var SaleModel = mongoose.model('Sale', saleSchema);
-module.exports = SaleModel;
-module.exports.Model = saleSchema;
+var BuyModel = mongoose.model('Buy', buySchema);
+module.exports = BuyModel;
+module.exports.Model = buySchema;

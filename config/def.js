@@ -14,3 +14,4 @@ global.IMAGE_DIR = 'files/image';
 global.ROOT_DIR = '/var/nodejs/bds/';
 
 
+
