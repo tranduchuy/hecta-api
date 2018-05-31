@@ -24,11 +24,12 @@ var BuyController = {
 
         var images = req.body.images;
 
-        var contact_name = req.body.contactName;
-        var contact_address = req.body.contactAddress;
-        var contact_phone = req.body.contactPhone;
-        var contact_mobile = req.body.contactMobile;
-        var contact_email = req.body.contactEmail;
+        var contactName = req.body.contactName;
+        var contactAddress = req.body.contactAddress;
+        var contactPhone = req.body.contactPhone;
+        var contactMobile = req.body.contactMobile;
+        var contactEmail = req.body.contactEmail;
+        var receiveMail = req.body.receiveMail;
 
         var from = req.body.from;
         var to = req.body.to;
@@ -87,7 +88,7 @@ var BuyController = {
                 });
             }
 
-            if (!contact_phone || contact_phone.length == 9) {
+            if (!contactMobile || contactMobile.length == 9) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -126,12 +127,12 @@ var BuyController = {
 
             buy.images = images;
 
-            buy.contact_name = contact_name;
-            buy.contact_address = contact_address;
-            buy.contact_phone = contact_phone;
-            buy.contact_mobile = contact_mobile;
-            buy.contact_email = contact_email;
-
+            buy.contactName = contactName;
+            buy.contactAddress = contactAddress;
+            buy.contactPhone = contactPhone;
+            buy.contactMobile = contactMobile;
+            buy.contactEmail = contactEmail;
+            buy.receiveMail = receiveMail;
 
             buy = await buy.save();
 

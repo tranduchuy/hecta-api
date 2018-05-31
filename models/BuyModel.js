@@ -31,6 +31,7 @@ var buySchema = new Schema({
     contactPhone : String,
     contactMobile : String,
     contactEmail : String,
+    receiveMail: Boolean,
 
     date: {type: Number, default: Date.now},
 });
