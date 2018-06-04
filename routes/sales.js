@@ -9,7 +9,6 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/add', SaleController.add);
-router.post('/test', SaleController.test);
 
 
 module.exports = router;

@@ -1,18 +1,12 @@
 var SaleModel = require('../models/SaleModel');
 var PostModel = require('../models/PostModel');
 
-var OrderController = {
-    test: async function (req, res, next) {
-        return res.json({
-            status: 0,
-            data: {},
-            message: 'test run'
-        });
+var SaleController = {
 
-    },
     add: async function (req, res, next) {
 
         var title = req.body.title;
+
         var formality = req.body.formality;
         var type = req.body.type;
         var city = req.body.city;
@@ -24,30 +18,37 @@ var OrderController = {
         var price = req.body.price;
         var unit = req.body.unit;
         var address = req.body.address;
+
+        var keywordList = req.body.keywordList;
+
         var description = req.body.description;
-        var street_width = req.body.streetWidth;
-        var front_size = req.body.frontSize;
+
+        var streetWidth = req.body.streetWidth;
+        var frontSize = req.body.frontSize;
         var direction = req.body.direction;
-        var balcony_direction = req.body.balconyDirection;
-        var floor_count = req.body.floorCount;
-        var bedroom_count = req.body.bedroomCount;
-        var toilet_count = req.body.toiletCount;
+        var balconyDirection = req.body.balconyDirection;
+        var floorCount = req.body.floorCount;
+        var bedroomCount = req.body.bedroomCount;
+        var toiletCount = req.body.toiletCount;
         var furniture = req.body.furniture;
+
         var images = req.body.images;
-        var contact_name = req.body.contactName;
-        var contact_address = req.body.contactAddress;
-        var contact_phone = req.body.contactPhone;
-        var contact_mobile = req.body.contactMobile;
-        var contact_email = req.body.contactEmail;
+
+        var contactName = req.body.contactName;
+        var contactAddress = req.body.contactAddress;
+        var contactPhone = req.body.contactPhone;
+        var contactMobile = req.body.contactMobile;
+        var contactEmail = req.body.contactEmail;
+
         var priority = req.body.priority;
+
         var from = req.body.from;
         var to = req.body.to;
 
+        var captchaToken = req.body.captchaToken;
 
         try {
-
-
-            if (!title || title.length < 30 || title.length > 90) {
+            if (!title || title.length < 30 || title.length > 99) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -55,7 +56,7 @@ var OrderController = {
                 });
             }
 
-            if (!formality || formality == 0) {
+            if (!formality || formality.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -63,7 +64,7 @@ var OrderController = {
                 });
             }
 
-            if (!type || type == 0) {
+            if (!type || type.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -79,7 +80,7 @@ var OrderController = {
                 });
             }
 
-            if (!district || district == 0) {
+            if (!district || district.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -87,7 +88,7 @@ var OrderController = {
                 });
             }
 
-            if (!description || description.length == 0) {
+            if (!description || description.length < 30 || description.length > 3000) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -95,11 +96,19 @@ var OrderController = {
                 });
             }
 
-            if (!contact_phone || contact_phone.length == 0) {
+            if (!contactMobile || contactMobile.length < 8 || contactMobile.length > 11) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: 'contact_phone : "' + contact_phone + '" is invalid'
+                    message: 'contactMobile : "' + contactMobile + '" is invalid'
+                });
+            }
+
+            if (!captchaToken || captchaToken.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'captchaToken : "' + captchaToken + '" is invalid'
                 });
             }
 
@@ -107,6 +116,7 @@ var OrderController = {
             var sale = new SaleModel();
 
             sale.title = title;
+
             sale.formality = formality;
             sale.type = type;
             sale.city = city;
@@ -118,24 +128,28 @@ var OrderController = {
             sale.price = price;
             sale.unit = unit;
             sale.address = address;
+
+            sale.keywordList = keywordList;
+
             sale.description = description;
-            sale.front_size = front_size;
-            sale.street_width = street_width;
+
+            sale.frontSize = frontSize;
+            sale.streetWidth = streetWidth;
             sale.direction = direction;
-            sale.balcony_direction = balcony_direction;
-            sale.floor_count = floor_count;
-            sale.bedroom_count = bedroom_count;
-            sale.toilet_count = toilet_count;
+            sale.balconyDirection = balconyDirection;
+            sale.floorCount = floorCount;
+            sale.bedroomCount = bedroomCount;
+            sale.toiletCount = toiletCount;
             sale.furniture = furniture;
+
             sale.images = images;
-            sale.contact_name = contact_name;
-            sale.contact_address = contact_address;
-            sale.contact_phone = contact_phone;
-            sale.contact_mobile = contact_mobile;
-            sale.contact_email = contact_email;
+            sale.contactName = contactName;
+            sale.contactAddress = contactAddress;
+            sale.contactPhone = contactPhone;
+            sale.contactMobile = contactMobile;
+            sale.contactEmail = contactEmail;
 
-
-             sale = await sale.save();
+            sale = await sale.save();
 
             var post = new PostModel();
 
@@ -145,13 +159,13 @@ var OrderController = {
             post.from = from;
             post.to = to;
 
-             post =await post.save();
+            post = await post.save();
 
 
             return res.json({
                 status: 1,
                 data: post,
-                message: 'request success !'
+                message: 'request  post sale success !'
             });
 
 
@@ -168,4 +182,4 @@ var OrderController = {
     }
 
 }
-module.exports = OrderController
+module.exports = SaleController

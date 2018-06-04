@@ -41,7 +41,7 @@ var BuyController = {
         try {
 
 
-            if (!title || title.length < 30 || title.length > 90) {
+            if (!title || title.length < 30 || title.length > 99) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -164,7 +164,6 @@ var BuyController = {
                 message: 'unknown error : ' + e.message
             });
         }
-
 
     }
 

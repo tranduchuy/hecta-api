@@ -7,7 +7,8 @@ var Schema = mongoose.Schema;
 var saleSchema = new Schema({
 
     title: String,
-    formality : Number,
+
+    formality: Number,
     type: Number,
     city: String,
     district: Number,
@@ -17,43 +18,33 @@ var saleSchema = new Schema({
     area: Number,
     price: Number,
     unit: Number,
-    address : String,
-    description : String,
-    front_size: Number,
-    street_width : Number,
-    direction : Number,
-    balcony_direction : Number,
-    floor_count : Number,
-    bedroom_count : Number,
-    toilet_count : Number,
-    furniture : String,
-    images : Array,
+    address: String,
 
-    contact_name : String,
-    contact_address : String,
-    contact_phone : String,
-    contact_mobile : String,
-    contact_email: String,
+    keywordList: Array,
+
+    description: String,
+
+    streetWidth: Number,
+    frontSize: Number,
+    direction: Number,
+    balconyDirection: Number,
+    floorCount: Number,
+    bedroomCount: Number,
+    toiletCount: Number,
+    furniture: String,
+
+    images: Array,
+
+    contactName: String,
+    contactAddress: String,
+    contactPhone: String,
+    contactMobile: String,
+    contactEmail: String,
 
     date: {type: Number, default: Date.now}
 
 
 });
-
-// saleSchema.index(
-//     {
-//         "source_": "text",
-//         "destination_": "text",
-//         "title_": "text"
-//     },
-//     {
-//         "weights": {
-//             "title_": 1,
-//             "destination_": 1,
-//             "source_": 1
-//         }
-//     }
-// );
 
 var SaleModel = mongoose.model('Sale', saleSchema);
 module.exports = SaleModel;

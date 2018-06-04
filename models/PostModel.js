@@ -16,21 +16,6 @@ var postSchema = new Schema({
 
 });
 
-// saleSchema.index(
-//     {
-//         "source_": "text",
-//         "destination_": "text",
-//         "title_": "text"
-//     },
-//     {
-//         "weights": {
-//             "title_": 1,
-//             "destination_": 1,
-//             "source_": 1
-//         }
-//     }
-// );
-
 var PostModel = mongoose.model('Post', postSchema);
 module.exports = PostModel;
 module.exports.Model = postSchema;
