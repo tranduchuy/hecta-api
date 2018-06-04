@@ -6,48 +6,37 @@ var Schema = mongoose.Schema;
 
 var buySchema = new Schema({
 
-    title: String,
-    content : String,
-    formality : Number,
-    type: Number,
-    city: String,
-    district: Number,
-    ward: Number,
-    street: Number,
-    project: String,
-    area: Number,
-    price: Number,
-    unit: Number,
-    address : String,
+    title : String,
+    description : String,
 
+    formality : Number,
+    type : Number,
+    city : String,
+    district : Number,
+    ward : Number,
+    street : Number,
+    project : String,
+    areaMin : Number,
+    areaMax : Number,
+    priceMin : Number,
+    priceMax : Number,
+    unit : Number,
+
+    address : String,
 
     images : Array,
 
-    contact_name : String,
-    contact_address : String,
-    contact_phone : String,
-    contact_mobile : String,
-    contact_email: String,
+    contactName : String,
+    contactAddress : String,
+    contactPhone : String,
+    contactMobile : String,
+    contactEmail : String,
+    receiveMail: Boolean,
 
-    date: {type: Number, default: Date.now}
-
-
+    date: {type: Number, default: Date.now},
 });
 
-// saleSchema.index(
-//     {
-//         "source_": "text",
-//         "destination_": "text",
-//         "title_": "text"
-//     },
-//     {
-//         "weights": {
-//             "title_": 1,
-//             "destination_": 1,
-//             "source_": 1
-//         }
-//     }
-// );
+
 
 var BuyModel = mongoose.model('Buy', buySchema);
 module.exports = BuyModel;

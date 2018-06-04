@@ -2,17 +2,11 @@ var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
 
 var BuyController = {
-    test: async function (req, res, next) {
-        return res.json({
-            status: 0,
-            data: {},
-            message: 'test run'
-        });
-
-    },
     add: async function (req, res, next) {
 
         var title = req.body.title;
+        var description = req.body.description;
+
         var formality = req.body.formality;
         var type = req.body.type;
         var city = req.body.city;
@@ -20,21 +14,27 @@ var BuyController = {
         var ward = req.body.ward;
         var street = req.body.street;
         var project = req.body.project;
-        var area = req.body.area;
-        var price = req.body.price;
+        var areaMin = req.body.areaMin;
+        var areaMax = req.body.areaMax;
+        var priceMin = req.bodypriceMin;
+        var priceMax = req.body.priceMax;
         var unit = req.body.unit;
+
         var address = req.body.address;
-        var content = req.body.content;
 
         var images = req.body.images;
-        var contact_name = req.body.contactName;
-        var contact_address = req.body.contactAddress;
-        var contact_phone = req.body.contactPhone;
-        var contact_mobile = req.body.contactMobile;
-        var contact_email = req.body.contactEmail;
-        var priority = req.body.priority;
+
+        var contactName = req.body.contactName;
+        var contactAddress = req.body.contactAddress;
+        var contactPhone = req.body.contactPhone;
+        var contactMobile = req.body.contactMobile;
+        var contactEmail = req.body.contactEmail;
+        var receiveMail = req.body.receiveMail;
+
         var from = req.body.from;
         var to = req.body.to;
+
+        var captchaToken = req.body.captchaToken;
 
 
         try {
@@ -48,7 +48,7 @@ var BuyController = {
                 });
             }
 
-            if (!formality || formality == 0) {
+            if (!formality || formality.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -56,7 +56,7 @@ var BuyController = {
                 });
             }
 
-            if (!type || type == 0) {
+            if (!type || type.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -72,7 +72,7 @@ var BuyController = {
                 });
             }
 
-            if (!district || district == 0) {
+            if (!district || district.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -80,7 +80,7 @@ var BuyController = {
                 });
             }
 
-            if (!content || content.length == 0) {
+            if (!description || description.length < 30 || description.length > 3000) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -88,7 +88,7 @@ var BuyController = {
                 });
             }
 
-            if (!contact_phone || contact_phone.length == 0) {
+            if (!contactMobile || contactMobile.length == 9) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -96,10 +96,20 @@ var BuyController = {
                 });
             }
 
+            if (!captchaToken || captchaToken.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'captchaToken : "' + captchaToken + '" is invalid'
+                });
+            }
+
 
             var buy = new BuyModel();
 
             buy.title = title;
+            buy.description = description;
+
             buy.formality = formality;
             buy.type = type;
             buy.city = city;
@@ -107,31 +117,34 @@ var BuyController = {
             buy.ward = ward;
             buy.street = street;
             buy.project = project;
-            buy.area = area;
-            buy.price = price;
+            buy.areaMin = areaMin;
+            buy.areaMax = areaMax;
+            buy.priceMin = priceMin;
+            buy.priceMax = priceMax;
             buy.unit = unit;
             buy.address = address;
-            buy.content = content;
+
 
             buy.images = images;
-            buy.contact_name = contact_name;
-            buy.contact_address = contact_address;
-            buy.contact_phone = contact_phone;
-            buy.contact_mobile = contact_mobile;
-            buy.contact_email = contact_email;
 
+            buy.contactName = contactName;
+            buy.contactAddress = contactAddress;
+            buy.contactPhone = contactPhone;
+            buy.contactMobile = contactMobile;
+            buy.contactEmail = contactEmail;
+            buy.receiveMail = receiveMail;
 
-             buy = await buy.save();
+            buy = await buy.save();
 
             var post = new PostModel();
 
             post.type = global.POST_TYPE_BUY;
             post.content_id = buy._id;
-            post.priority = priority;
+            post.priority = 0;
             post.from = from;
             post.to = to;
 
-             post =await post.save();
+            post = await post.save();
 
 
             return res.json({
