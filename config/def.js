@@ -13,5 +13,8 @@ global.POST_TYPE_BUY = 2;
 global.IMAGE_DIR = 'files/image';
 global.ROOT_DIR = '/var/nodejs/bds/';
 
+global.USER_TYPE_COMPANY = 1;
+global.USER_TYPE_PERSONAL = 2;
+
 
 
