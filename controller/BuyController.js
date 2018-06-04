@@ -6,6 +6,7 @@ var BuyController = {
 
         var title = req.body.title;
         var description = req.body.description;
+        var keywordList = req.body.keywordList;
 
         var formality = req.body.formality;
         var type = req.body.type;
@@ -16,7 +17,7 @@ var BuyController = {
         var project = req.body.project;
         var areaMin = req.body.areaMin;
         var areaMax = req.body.areaMax;
-        var priceMin = req.bodypriceMin;
+        var priceMin = req.body.priceMin;
         var priceMax = req.body.priceMax;
         var unit = req.body.unit;
 
@@ -88,11 +89,11 @@ var BuyController = {
                 });
             }
 
-            if (!contactMobile || contactMobile.length == 9) {
+            if (!contactMobile || contactMobile.length < 8 || contactMobile.length > 11) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: 'contact_phone : "' + contact_phone + '" is invalid'
+                    message: 'contactMobile : "' + contactMobile + '" is invalid'
                 });
             }
 
@@ -109,6 +110,7 @@ var BuyController = {
 
             buy.title = title;
             buy.description = description;
+            buy.keywordList = keywordList;
 
             buy.formality = formality;
             buy.type = type;
@@ -150,7 +152,7 @@ var BuyController = {
             return res.json({
                 status: 1,
                 data: post,
-                message: 'request success !'
+                message: 'request post buys success!'
             });
 
 

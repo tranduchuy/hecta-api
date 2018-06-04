@@ -8,6 +8,7 @@ var buySchema = new Schema({
 
     title : String,
     description : String,
+    keywordList: Array,
 
     formality : Number,
     type : Number,
