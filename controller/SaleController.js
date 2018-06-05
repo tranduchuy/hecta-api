@@ -111,8 +111,11 @@ var SaleController = {
                 let sale = await SaleModel.findOne({_id: post.content_id});
 
 
-                return await {
+                return await
+                    // {sale, post};
+                    {
                     id: sale._id,
+                    formality: sale.formality,
                     title: sale.title,
                     description: sale.description,
                     city: sale.city,
@@ -120,7 +123,10 @@ var SaleController = {
                     price: sale.price,
                     unit: sale.unit,
                     area: sale.area,
-                    date: sale.date
+                    date: sale.date,
+                    priority: post.priority,
+                    images: sale.images,
+                    address: sale.address,
                 };
 
 

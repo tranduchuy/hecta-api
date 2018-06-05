@@ -111,13 +111,19 @@ var BuyController = {
                 return await {
                     id: buy._id,
                     title: buy.title,
+                    formality: buy.formality,
                     description: buy.description,
                     city: buy.city,
                     district: buy.district,
                     priceMin: buy.priceMin,
                     priceMax: buy.priceMax,
+                    areaMin: buy.areaMin,
+                    areaMax: buy.areaMax,
                     unit: buy.unit,
-                    date: buy.date
+                    date: buy.date,
+                    priority: post.priority,
+                    images: buy.images,
+                    address: buy.address,
                 };
 
 
