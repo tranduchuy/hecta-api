@@ -1,8 +1,163 @@
 var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
+var TokenModel = require('../models/TokenModel');
+var _ = require('lodash');
 
 var BuyController = {
+
+
+    detail: async function (req, res, next) {
+
+
+        let id = req.params.id;
+        try {
+
+            if(!id || id.length == 0)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id null error'
+                });
+
+            }
+
+            let buy =await BuyModel.findOne({_id : id});
+
+            if(!buy)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'data not exist'
+                });
+            }
+
+
+            return res.json({
+                status: 1,
+                data: {
+                    id : buy._id,
+                    title : buy.title,
+                    description: buy.description,
+                    keywordList : buy.keywordList,
+                    formality : buy.formality,
+                    type : buy.type,
+                    city: buy.city,
+                    district: buy.district,
+                    ward : buy.ward,
+                    street : buy.street,
+                    project : buy.project,
+                    areaMin : buy.areaMin,
+                    areaMax : buy.areaMax,
+                    priceMin : buy.priceMin,
+                    priceMax : buy.priceMax,
+                    unit : buy.unit,
+                    address : buy.address,
+                    images : buy.images,
+                    contactName : buy.contactName,
+                    contactAddress : buy.contactAddress,
+                    contactPhone : buy.contactPhone,
+                    contactMobile : buy.contactMobile,
+                    contactEmail : buy.contactEmail,
+                    receiveMail : buy.receiveMail,
+                    date : buy.date
+                },
+                message: 'request success'
+            });
+
+
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    }
+    ,
+    list: async function (req, res, next) {
+
+
+        var page = req.query.page;
+
+        if (!page || page < 1) {
+            page = 1;
+        }
+
+        try {
+
+            let date = Date.now();
+
+            let posts = await PostModel.find({
+                type: global.POST_TYPE_BUY
+                , to: {$gt: date}
+                , from: {$lt: date}
+            }).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+
+
+            let results = await Promise.all(posts.map(async post => {
+
+
+                let buy = await BuyModel.findOne({_id: post.content_id});
+
+
+                return await {
+                    id: buy._id,
+                    title: buy.title,
+                    description: buy.description,
+                    city: buy.city,
+                    district: buy.district,
+                    priceMin: buy.priceMin,
+                    priceMax: buy.priceMax,
+                    unit: buy.unit,
+                    date: buy.date
+                };
+
+
+            }));
+
+
+            let count = await PostModel.count({
+                type: global.POST_TYPE_BUY
+                , to: {$gt: date}
+                , from: {$lt: date}
+            });
+
+            return res.json({
+                status: 1,
+                data: {
+                    items: results,
+                    page: page,
+                    total: _.ceil(count / global.PAGE_SIZE)
+                },
+                message: 'request success '
+            });
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
+
     add: async function (req, res, next) {
+
+        var token = req.headers.access_token;
+
 
         var title = req.body.title;
         var description = req.body.description;
@@ -126,7 +281,6 @@ var BuyController = {
             buy.unit = unit;
             buy.address = address;
 
-
             buy.images = images;
 
             buy.contactName = contactName;
@@ -136,15 +290,37 @@ var BuyController = {
             buy.contactEmail = contactEmail;
             buy.receiveMail = receiveMail;
 
+
             buy = await buy.save();
 
             var post = new PostModel();
+
+
+            if (token) {
+
+                var accessToken = await  TokenModel.findOne({token: token});
+
+                if (!accessToken) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'access token invalid'
+                    });
+
+                }
+
+                post.user = accessToken.user;
+
+
+            }
 
             post.type = global.POST_TYPE_BUY;
             post.content_id = buy._id;
             post.priority = 0;
             post.from = from;
             post.to = to;
+            post.status = global.STATUS_POST_PENDING;
+            post.payment = global.STATUS_POST_UNPAID;
 
             post = await post.save();
 

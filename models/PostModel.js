@@ -11,7 +11,13 @@ var postSchema = new Schema({
     priority: Number,
     from: Number,
     to: Number,
+    user : String,
+
+    status : Number,
+    payment : Number,
+
     date: {type: Number, default: Date.now}
+
 
 
 });

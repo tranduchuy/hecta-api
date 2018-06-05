@@ -34,7 +34,8 @@ var buySchema = new Schema({
     contactEmail : String,
     receiveMail: Boolean,
 
-    date: {type: Number, default: Date.now},
+
+    date: {type: Number, default: Date.now}
 });
 
 

@@ -17,7 +17,6 @@ var userSchema = new Schema({
     district: Number,
     ward: Number,
     type: Number,
-
     date: {type: Number, default: Date.now}
 
 

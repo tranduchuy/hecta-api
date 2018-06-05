@@ -1,9 +1,166 @@
 var SaleModel = require('../models/SaleModel');
 var PostModel = require('../models/PostModel');
+var _ = require('lodash');
+var TokenModel = require('../models/TokenModel');
 
 var SaleController = {
 
+
+    detail: async function (req, res, next) {
+        let id = req.params.id;
+        try {
+
+            if(!id || id.length == 0)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id null error'
+                });
+
+            }
+
+            let sale =await SaleModel.findOne({_id : id});
+
+            if(!sale)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'data not exist'
+                });
+            }
+
+
+
+            return res.json({
+                status: 1,
+                data: {
+                    id : sale._id,
+                    title : sale.title,
+                    formality : sale.formality,
+                    type : sale.type,
+                    city : sale.city,
+                    district : sale.district,
+                    ward : sale.ward,
+                    street : sale.street,
+                    project : sale.project,
+                    area : sale.area,
+                    price : sale.price,
+                    unit : sale.unit,
+                    address : sale.address,
+                    keywordList : sale.keywordList,
+                    description : sale.description,
+                    streetWidth : sale.streetWidth,
+                    frontSize : sale.frontSize,
+                    direction : sale.direction,
+                    balconyDirection : sale.balconyDirection,
+                    floorCount : sale.floorCount,
+                    bedroomCount : sale.bedroomCount,
+                    toiletCount : sale.toiletCount,
+                    furniture : sale.furniture,
+                    images : sale.images,
+                    contactName : sale.contactName,
+                    contactAddress : sale.contactAddress,
+                    contactPhone : sale.contactPhone,
+                    contactMobile : sale.contactMobile,
+                    contactEmail : sale.contactEmail,
+                    date : sale.date
+                },
+                message: 'request success'
+            });
+
+
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    }
+    ,
+    list: async function (req, res, next) {
+
+        var page = req.query.page;
+
+        if (!page || page < 1) {
+            page = 1;
+        }
+
+        try {
+
+            let date = Date.now();
+
+            let posts = await PostModel.find({
+                type: global.POST_TYPE_SALE
+                , to: {$gt: date}
+                , from: {$lt: date}
+            }).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+
+
+            let results = await Promise.all(posts.map(async post => {
+
+
+                let sale = await SaleModel.findOne({_id: post.content_id});
+
+
+                return await {
+                    id: sale._id,
+                    title: sale.title,
+                    description: sale.description,
+                    city: sale.city,
+                    district: sale.district,
+                    price: sale.price,
+                    unit: sale.unit,
+                    area: sale.area,
+                    date: sale.date
+                };
+
+
+            }));
+
+
+            let count = await PostModel.count({
+                type: global.POST_TYPE_SALE
+                , to: {$gt: date}
+                , from: {$lt: date}
+            });
+
+            return res.json({
+                status: 1,
+                data: {
+                    items: results,
+                    page: page,
+                    total: _.ceil(count / global.PAGE_SIZE)
+                },
+                message: 'request success '
+            });
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
+
     add: async function (req, res, next) {
+
+        var token = req.headers.access_token;
+
 
         var title = req.body.title;
 
@@ -158,6 +315,24 @@ var SaleController = {
             post.priority = priority;
             post.from = from;
             post.to = to;
+
+            if (token) {
+
+                var accessToken = await  TokenModel.findOne({token: token});
+
+                if (!accessToken) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'access token invalid'
+                    });
+
+                }
+
+                post.user = accessToken.user;
+
+
+            }
 
             post = await post.save();
 
