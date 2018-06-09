@@ -114,7 +114,7 @@ var SaleController = {
                 return await
                     // {sale, post};
                     {
-                    id: sale._id,
+                    id: post._id,
                     formality: sale.formality,
                     title: sale.title,
                     description: sale.description,

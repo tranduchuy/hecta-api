@@ -109,7 +109,7 @@ var BuyController = {
 
 
                 return await {
-                    id: buy._id,
+                    id: post._id,
                     title: buy.title,
                     formality: buy.formality,
                     description: buy.description,
