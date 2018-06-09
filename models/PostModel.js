@@ -11,6 +11,7 @@ var postSchema = new Schema({
     priority: Number,
     from: Number,
     to: Number,
+    formality: Number,
     user : String,
 
     status : Number,

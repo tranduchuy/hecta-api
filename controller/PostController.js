@@ -6,6 +6,24 @@ var _ = require('lodash');
 var PostController = {
 
 
+    list : async function ( req,res, next)
+    {
+
+        // var page = req.query.page;
+        // var page = req.query.page;
+        // var page = req.query.page;
+        // var page = req.query.page;
+
+
+
+
+
+
+
+
+
+    },
+
     detail: async function (req, res, next) {
         let id = req.params.id;
 
@@ -81,7 +99,10 @@ var PostController = {
                         contactPhone: content.contactPhone,
                         contactMobile: content.contactMobile,
                         contactEmail: content.contactEmail,
-                        date: content.date
+                        date: content.date,
+                        to : post.to,
+                        from : post.from,
+                        priority : post.priority
                     },
                     message: 'request success'
                 });
@@ -115,7 +136,10 @@ var PostController = {
                         contactMobile: content.contactMobile,
                         contactEmail: content.contactEmail,
                         receiveMail: content.receiveMail,
-                        date: content.date
+                        date: content.date,
+                        to : post.to,
+                        from : post.from,
+                        priority : post.priority
                     },
                     message: 'request success'
                 });
