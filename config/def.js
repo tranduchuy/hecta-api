@@ -15,7 +15,7 @@ global.POST_TYPE_SALE = 1;
 global.POST_TYPE_BUY = 2;
 
 
-global.IMAGE_DIR = 'files/image';
+global.IMAGE_DIR = 'files/image/';
 global.ROOT_DIR = '/var/hecta/';
 
 global.USER_TYPE_COMPANY = 1;

@@ -74,8 +74,11 @@ var ImageController = {
                 });
 
             }
-
-            res.sendFile(file,{ root : global.ROOT_DIR});
+            
+            console.log('file', file);
+  
+          var path = require('path');
+          res.sendFile(path.resolve(file));
 
         }
         catch (e) {
