@@ -10,8 +10,7 @@ var SaleController = {
         let id = req.params.id;
         try {
 
-            if(!id || id.length == 0)
-            {
+            if (!id || id.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -20,10 +19,9 @@ var SaleController = {
 
             }
 
-            let sale =await SaleModel.findOne({_id : id});
+            let sale = await SaleModel.findOne({_id: id});
 
-            if(!sale)
-            {
+            if (!sale) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -32,45 +30,42 @@ var SaleController = {
             }
 
 
-
             return res.json({
                 status: 1,
                 data: {
-                    id : sale._id,
-                    title : sale.title,
-                    formality : sale.formality,
-                    type : sale.type,
-                    city : sale.city,
-                    district : sale.district,
-                    ward : sale.ward,
-                    street : sale.street,
-                    project : sale.project,
-                    area : sale.area,
-                    price : sale.price,
-                    unit : sale.unit,
-                    address : sale.address,
-                    keywordList : sale.keywordList,
-                    description : sale.description,
-                    streetWidth : sale.streetWidth,
-                    frontSize : sale.frontSize,
-                    direction : sale.direction,
-                    balconyDirection : sale.balconyDirection,
-                    floorCount : sale.floorCount,
-                    bedroomCount : sale.bedroomCount,
-                    toiletCount : sale.toiletCount,
-                    furniture : sale.furniture,
-                    images : sale.images,
-                    contactName : sale.contactName,
-                    contactAddress : sale.contactAddress,
-                    contactPhone : sale.contactPhone,
-                    contactMobile : sale.contactMobile,
-                    contactEmail : sale.contactEmail,
-                    date : sale.date
+                    id: sale._id,
+                    title: sale.title,
+                    formality: sale.formality,
+                    type: sale.type,
+                    city: sale.city,
+                    district: sale.district,
+                    ward: sale.ward,
+                    street: sale.street,
+                    project: sale.project,
+                    area: sale.area,
+                    price: sale.price,
+                    unit: sale.unit,
+                    address: sale.address,
+                    keywordList: sale.keywordList,
+                    description: sale.description,
+                    streetWidth: sale.streetWidth,
+                    frontSize: sale.frontSize,
+                    direction: sale.direction,
+                    balconyDirection: sale.balconyDirection,
+                    floorCount: sale.floorCount,
+                    bedroomCount: sale.bedroomCount,
+                    toiletCount: sale.toiletCount,
+                    furniture: sale.furniture,
+                    images: sale.images,
+                    contactName: sale.contactName,
+                    contactAddress: sale.contactAddress,
+                    contactPhone: sale.contactPhone,
+                    contactMobile: sale.contactMobile,
+                    contactEmail: sale.contactEmail,
+                    date: sale.date
                 },
                 message: 'request success'
             });
-
-
 
 
         }
@@ -114,20 +109,20 @@ var SaleController = {
                 return await
                     // {sale, post};
                     {
-                    id: post._id,
-                    formality: sale.formality,
-                    title: sale.title,
-                    description: sale.description,
-                    city: sale.city,
-                    district: sale.district,
-                    price: sale.price,
-                    unit: sale.unit,
-                    area: sale.area,
-                    date: sale.date,
-                    priority: post.priority,
-                    images: sale.images,
-                    address: sale.address,
-                };
+                        id: post._id,
+                        formality: sale.formality,
+                        title: sale.title,
+                        description: sale.description,
+                        city: sale.city,
+                        district: sale.district,
+                        price: sale.price,
+                        unit: sale.unit,
+                        area: sale.area,
+                        date: sale.date,
+                        priority: post.priority,
+                        images: sale.images,
+                        address: sale.address,
+                    };
 
 
             }));
@@ -316,11 +311,13 @@ var SaleController = {
 
             var post = new PostModel();
 
-            post.type = global.POST_TYPE_SALE;
+            post.postType = global.POST_TYPE_SALE;
+            post.type = sale.type;
             post.content_id = sale._id;
             post.priority = priority;
             post.from = from;
             post.to = to;
+            post.formality = sale.formality;
 
             if (token) {
 

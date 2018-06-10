@@ -6,7 +6,8 @@ var Schema = mongoose.Schema;
 
 var postSchema = new Schema({
 
-    type: String,
+    postType: Number,
+    type: Number,
     content_id : String,
     priority: Number,
     from: Number,

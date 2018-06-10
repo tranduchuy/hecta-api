@@ -6,20 +6,128 @@ var _ = require('lodash');
 var PostController = {
 
 
-    list : async function ( req,res, next)
-    {
+    list: async function (req, res, next) {
 
-        // var page = req.query.page;
-        // var page = req.query.page;
-        // var page = req.query.page;
-        // var page = req.query.page;
-
+        var page = req.query.page;
+        var type = req.query.type;
+        var formality = req.query.formality;
+        var postType = req.query.postType;
 
 
+        console.log('postType : ',postType);
+
+        try {
+
+            if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY)) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'postType : ' + postType + ' invalid'
+                });
+            }
+
+            if (!page || page < 1) {
+                page = 1;
+            }
+
+            let date = Date.now();
+
+            var query = {
+                postType: postType
+                , to: {$gt: date}
+                , from: {$lt: date}
+            };
+
+            if (type) {
+                query.type = type;
+            }
+
+            if (formality) {
+                query.formality = formality;
+            }
+
+            console.log('query : ',query);
 
 
+            let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
 
 
+            let results = await Promise.all(posts.map(async post => {
+
+
+                if (postType == global.POST_TYPE_SALE) {
+
+                    let sale = await SaleModel.findOne({_id: post.content_id});
+
+
+                    return await
+                        // {sale, post};
+                        {
+                            id: post._id,
+                            formality: sale.formality,
+                            title: sale.title,
+                            description: sale.description,
+                            city: sale.city,
+                            district: sale.district,
+                            price: sale.price,
+                            unit: sale.unit,
+                            area: sale.area,
+                            date: sale.date,
+                            priority: post.priority,
+                            images: sale.images,
+                            address: sale.address,
+                        };
+                }
+                else {
+
+
+                    let buy = await BuyModel.findOne({_id: post.content_id});
+
+
+                    return await {
+                        id: post._id,
+                        title: buy.title,
+                        formality: buy.formality,
+                        description: buy.description,
+                        city: buy.city,
+                        district: buy.district,
+                        priceMin: buy.priceMin,
+                        priceMax: buy.priceMax,
+                        areaMin: buy.areaMin,
+                        areaMax: buy.areaMax,
+                        unit: buy.unit,
+                        date: buy.date,
+                        priority: post.priority,
+                        images: buy.images,
+                        address: buy.address,
+                    };
+                }
+
+
+            }));
+
+
+            let count = await PostModel.count(query);
+
+            return res.json({
+                status: 1,
+                data: {
+                    items: results,
+                    page: page,
+                    total: _.ceil(count / global.PAGE_SIZE)
+                },
+                message: 'request success '
+            });
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
 
 
     },
@@ -27,7 +135,7 @@ var PostController = {
     detail: async function (req, res, next) {
         let id = req.params.id;
 
-        console.log('id ',id);
+        console.log('id ', id);
         try {
 
             if (!id || id.length == 0) {
@@ -100,9 +208,9 @@ var PostController = {
                         contactMobile: content.contactMobile,
                         contactEmail: content.contactEmail,
                         date: content.date,
-                        to : post.to,
-                        from : post.from,
-                        priority : post.priority
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority
                     },
                     message: 'request success'
                 });
@@ -137,9 +245,9 @@ var PostController = {
                         contactEmail: content.contactEmail,
                         receiveMail: content.receiveMail,
                         date: content.date,
-                        to : post.to,
-                        from : post.from,
-                        priority : post.priority
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority
                     },
                     message: 'request success'
                 });

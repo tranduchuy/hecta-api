@@ -320,7 +320,9 @@ var BuyController = {
 
             }
 
-            post.type = global.POST_TYPE_BUY;
+            post.postType = global.POST_TYPE_BUY;
+            post.formality = buy.formality;
+            post.type = buy.type;
             post.content_id = buy._id;
             post.priority = 0;
             post.from = from;
