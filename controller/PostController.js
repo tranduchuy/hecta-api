@@ -157,7 +157,7 @@ var PostController = {
                 });
             }
 
-            let model = post.type == global.POST_TYPE_SALE ? SaleModel : BuyModel;
+            let model = post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
 
             let content = await model.findOne({_id: post.content_id});
 
@@ -173,7 +173,7 @@ var PostController = {
 
             }
 
-            if (post.type == global.POST_TYPE_SALE) {
+            if (post.postType == global.POST_TYPE_SALE) {
 
                 return res.json({
                     status: 1,
@@ -210,7 +210,8 @@ var PostController = {
                         date: content.date,
                         to: post.to,
                         from: post.from,
-                        priority: post.priority
+                        priority: post.priority,
+                        postType : post.postType
                     },
                     message: 'request success'
                 });
@@ -247,7 +248,8 @@ var PostController = {
                         date: content.date,
                         to: post.to,
                         from: post.from,
-                        priority: post.priority
+                        priority: post.priority,
+                        postType : post.postType
                     },
                     message: 'request success'
                 });
