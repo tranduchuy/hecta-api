@@ -14,7 +14,6 @@ var PostController = {
         var postType = req.query.postType;
 
 
-        console.log('postType : ',postType);
 
         try {
 

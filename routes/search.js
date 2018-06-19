@@ -6,6 +6,7 @@ var SearchController = require('../controller/SearchController');
 
 
 router.get('/', SearchController.search);
+router.post('/add', SearchController.addParamUrl);
 
 
 module.exports = router;
