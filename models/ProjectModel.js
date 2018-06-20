@@ -1,0 +1,54 @@
+/**
+ * Created by duong_000 on 10/18/2016.
+ */
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+
+var projectSchema = new Schema({
+  
+    isShowOverview: Boolean,
+    type: String,
+    introImages: Array,
+    title: String,
+    address: String,
+    area: Number,
+    projectScale: String,
+    price: Number,
+    deliveryHouseDate: Number,
+    constructionArea: Number,
+    descriptionInvestor: String,
+    description: String,
+    
+    isShowLocationAndDesign: Boolean,
+    location: String,
+    infrastructure: String,
+    
+    isShowGround: Boolean,
+    overallSchema: Array,
+    groundImages: Array,
+    
+    isShowImageLibs: Boolean,
+    imageAlbums: Array,
+    
+    isShowProjectProgress: Boolean,
+    projectProgressTitle: String,
+    projectProgressStartDate: Number,
+    projectProgressEndDate: Number,
+    projectProgressDate: Number,
+    projectProgressImages: Array,
+    
+    isShowTabVideo: Boolean,
+    video: String,
+    
+    isShowFinancialSupport: Boolean,
+    finalcialSupport: String,
+    
+    isShowInvestor: Boolean,
+    detailInvestor: String,
+  
+    date: {type: Number, default: Date.now}
+});
+
+var projectModel = mongoose.model('project', projectSchema);
+module.exports = projectModel;
+module.exports.Model = projectSchema;
