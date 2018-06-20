@@ -14,7 +14,6 @@ var PostController = {
         var postType = req.query.postType;
 
 
-
         try {
 
             if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY)) {
@@ -45,9 +44,6 @@ var PostController = {
                 query.formality = formality;
             }
 
-            console.log('query : ',query);
-
-
             let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
 
 
@@ -62,6 +58,7 @@ var PostController = {
                     return await
                         // {sale, post};
                         {
+                            url: post.url,
                             id: post._id,
                             formality: sale.formality,
                             title: sale.title,
@@ -84,6 +81,7 @@ var PostController = {
 
 
                     return await {
+                        url: post.url,
                         id: post._id,
                         title: buy.title,
                         formality: buy.formality,
@@ -177,6 +175,7 @@ var PostController = {
                 return res.json({
                     status: 1,
                     data: {
+                        url: post.url,
                         id: content._id,
                         title: content.title,
                         formality: content.formality,
@@ -210,7 +209,7 @@ var PostController = {
                         to: post.to,
                         from: post.from,
                         priority: post.priority,
-                        postType : post.postType
+                        postType: post.postType
                     },
                     message: 'request success'
                 });
@@ -220,6 +219,7 @@ var PostController = {
                 return res.json({
                     status: 1,
                     data: {
+                        url: post.url,
                         id: content._id,
                         title: content.title,
                         description: content.description,
@@ -248,7 +248,7 @@ var PostController = {
                         to: post.to,
                         from: post.from,
                         priority: post.priority,
-                        postType : post.postType
+                        postType: post.postType
                     },
                     message: 'request success'
                 });

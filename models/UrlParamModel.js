@@ -8,9 +8,7 @@ var urlParamSchema = new Schema({
 
 
     param : String,
-    paramType : Number,
     postType : Number,
-    parent : String,
 
     formality : Number,
     type : Number,

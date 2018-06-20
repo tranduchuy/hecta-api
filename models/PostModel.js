@@ -17,7 +17,7 @@ var postSchema = new Schema({
 
     status : Number,
     payment : Number,
-    param : {type : String, unique: true},
+    url : String,
 
     date: {type: Number, default: Date.now}
 

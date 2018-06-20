@@ -1,8 +1,8 @@
-var fs = require('fs');
 var UrlParamModel = require('../models/UrlParamModel');
 var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
 var SaleModel = require('../models/SaleModel');
+var _ = require('lodash');
 
 var SearchController = {
 
@@ -92,10 +92,10 @@ var SearchController = {
             }
 
 
-            let cat = await await UrlParamModel.findOne({paramType: global.URL_PARAM_CAT, param: params[0]});
+            let cat = await await UrlParamModel.findOne({param: params[0]});
 
 
-            if (!cat) {
+            if (!cat && params[0] != global.PARAM_NOT_FOUND_SALE) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -103,50 +103,51 @@ var SearchController = {
                 });
             }
 
-            let postType = cat.postType;
+            let postType = cat ? cat.postType : global.POST_TYPE_SALE;
 
             let query = {};
 
-
-            if (!cat.formality) {
-                query.formality = formality;
-            }
-            if (!cat.type) {
-                query.type = type;
-            }
-            if (!cat.city) {
-                query.city = city;
-            }
-            if (!cat.district) {
-                query.district = district;
-            }
-            if (!cat.ward) {
-                query.ward = ward;
-            }
-            if (!cat.street) {
-                query.street = street;
-            }
-            if (!cat.project) {
-                query.project = project;
-            }
-            if (!cat.balconyDirection) {
-                query.balconyDirection = balconyDirection;
-            }
-            if (!cat.bedroomCount) {
-                query.bedroomCount = bedroomCount;
-            }
-            if (!cat.area) {
-                query.area = area;
-            }
-            if (!cat.price) {
-                query.price = price;
+            if (cat) {
+                if (cat.formality) {
+                    query.formality = cat.formality;
+                }
+                if (cat.type) {
+                    query.type = cat.type;
+                }
+                if (cat.city) {
+                    query.city = cat.city;
+                }
+                if (cat.district) {
+                    query.district = cat.district;
+                }
+                if (cat.ward) {
+                    query.ward = cat.ward;
+                }
+                if (cat.street) {
+                    query.street = cat.street;
+                }
+                if (cat.project) {
+                    query.project = cat.project;
+                }
+                if (cat.balconyDirection) {
+                    query.balconyDirection = cat.balconyDirection;
+                }
+                if (cat.bedroomCount) {
+                    query.bedroomCount = cat.bedroomCount;
+                }
+                if (cat.area) {
+                    query.area = cat.area;
+                }
+                if (cat.price) {
+                    query.price = cat.price;
+                }
             }
 
             if (params.length == 1) {
 
                 let model;
 
-                switch (cat.postType) {
+                switch (postType) {
                     case global.POST_TYPE_SALE :
                         model = SaleModel;
                         break;
@@ -168,6 +169,8 @@ var SearchController = {
 
 
                         return {
+                            url: post.url,
+                            type: post.type,
                             id: post._id,
                             formality: sale.formality,
                             title: sale.title,
@@ -189,6 +192,8 @@ var SearchController = {
                         let buy = post;
 
                         return {
+                            url: post.url,
+                            type: post.type,
                             id: post._id,
                             title: buy.title,
                             formality: buy.formality,
@@ -229,14 +234,8 @@ var SearchController = {
 
             }
 
-            // let detail = await UrlParamModel.findOne({
-            //     paramType: global.URL_PARAM_DETAIL,
-            //     param: params[1],
-            //     parent: cat._id
-            // });
 
-
-            let post = await PostModel.findOne({param: params[1]});
+            let post = await PostModel.findOne({url: url});
             if (!post) {
                 return res.json({
                     status: 0,
@@ -247,7 +246,7 @@ var SearchController = {
 
             let model;
 
-            switch (cat.postType) {
+            switch (postType) {
                 case global.POST_TYPE_SALE :
                     model = SaleModel;
                     break;
@@ -273,7 +272,7 @@ var SearchController = {
 
             }
 
-            if (post.postType == global.POST_TYPE_SALE) {
+            if (postType == global.POST_TYPE_SALE) {
 
                 return res.json({
                     type: postType,
@@ -281,6 +280,7 @@ var SearchController = {
                     params: query,
                     status: 1,
                     data: {
+                        url: post.url,
                         id: content._id,
                         title: content.title,
                         formality: content.formality,
@@ -327,6 +327,7 @@ var SearchController = {
                     isList: false,
                     params: query,
                     data: {
+                        url: post.url,
                         id: content._id,
                         title: content.title,
                         description: content.description,

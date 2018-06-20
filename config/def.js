@@ -16,7 +16,7 @@ global.POST_TYPE_BUY = 2;
 global.POST_TYPE_PROJECT = 3;
 global.POST_TYPE_NEWS = 4;
 
-global.IMAGE_DIR = 'files/image/';
+global.IMAGE_DIR = '../files/image';
 global.ROOT_DIR = '/var/hecta/';
 
 global.USER_TYPE_COMPANY = 1;
@@ -32,6 +32,10 @@ global.PAGE_SIZE = 20;
 
 global.URL_PARAM_CAT = 1;
 global.URL_PARAM_DETAIL = 2;
+
+
+global.PARAM_NOT_FOUND_SALE = 'param-not-found-for-sale';
+global.PARAM_NOT_FOUND_BUY = 'param-not-found-for-buy';
 
 
 
