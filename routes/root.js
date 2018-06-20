@@ -8,6 +8,7 @@ var images = require('../routes/images');
 var buys = require('../routes/buys');
 var search = require('../routes/search');
 var posts = require('../routes/posts');
+var projects = require('../routes/projects');
 
 
 
@@ -22,6 +23,7 @@ router.use('/api/v1/images', images);
 router.use('/api/v1/buys', buys);
 router.use('/api/v1/search', search);
 router.use('/api/v1/posts', posts);
+router.use('/api/v1/projects', projects);
 
 
 

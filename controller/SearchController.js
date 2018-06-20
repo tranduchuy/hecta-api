@@ -2,6 +2,7 @@ var UrlParamModel = require('../models/UrlParamModel');
 var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
 var SaleModel = require('../models/SaleModel');
+var ProjectModel = require('../models/ProjectModel');
 var _ = require('lodash');
 
 var SearchController = {
@@ -93,9 +94,23 @@ var SearchController = {
 
 
             let cat = await await UrlParamModel.findOne({param: params[0]});
+            let postType;
 
+            console.log("params[0] == global.PARAM_NOT_FOUND_PROJECT ",params[0] == global.PARAM_NOT_FOUND_PROJECT);
 
-            if (!cat && params[0] != global.PARAM_NOT_FOUND_SALE) {
+            if (params[0] == global.PARAM_NOT_FOUND_SALE) {
+                postType = global.POST_TYPE_SALE;
+            }
+            else if (params[0] == global.PARAM_NOT_FOUND_BUY) {
+                postType = global.POST_TYPE_BUY;
+            }
+            else if (params[0] == global.PARAM_NOT_FOUND_PROJECT) {
+                postType = global.POST_TYPE_PROJECT;
+            }
+            else if (!cat) {
+                postType = cat.postType;
+            }
+            else {
                 return res.json({
                     status: 0,
                     data: {},
@@ -103,7 +118,6 @@ var SearchController = {
                 });
             }
 
-            let postType = cat ? cat.postType : global.POST_TYPE_SALE;
 
             let query = {};
 
@@ -153,6 +167,9 @@ var SearchController = {
                         break;
                     case global.POST_TYPE_BUY :
                         model = BuyModel;
+
+                    case global.POST_TYPE_PROJECT :
+                        model = ProjectModel;
                         break;
                     default :
                         model = SaleModel;
@@ -186,7 +203,7 @@ var SearchController = {
                             address: sale.address,
                         };
                     }
-                    else {
+                    else if (postType == global.POST_TYPE_SALE) {
 
 
                         let buy = post;
@@ -210,6 +227,21 @@ var SearchController = {
                             images: buy.images,
                             address: buy.address,
                         };
+                    }
+                    else {
+
+                        let project = post;
+
+                        return {
+                            title: project.title,
+                            address: project.address,
+                            price: project.price,
+                            area: project.area,
+                            descriptionInvestor: project.descriptionInvestor,
+                            projectProgressTitle: project.projectProgressTitle,
+                            introImages : project.introImages
+                        };
+
                     }
 
 
@@ -252,6 +284,8 @@ var SearchController = {
                     break;
                 case global.POST_TYPE_BUY :
                     model = BuyModel;
+                case global.POST_TYPE_PROJECT :
+                    model = ProjectModel;
                     break;
                 default :
                     model = SaleModel;
@@ -319,7 +353,7 @@ var SearchController = {
                     message: 'request success'
                 });
             }
-            else {
+            else if (postType == global.POST_TYPE_BUY) {
 
                 return res.json({
                     status: 1,
@@ -360,6 +394,65 @@ var SearchController = {
                     },
                     message: 'request success'
                 });
+            }
+            else {
+                return res.json({
+                    status: 1,
+                    type: postType,
+                    isList: false,
+                    params: query,
+                    data: {
+                        url: post.url,
+                        id: content._id,
+                        postType: post.postType,
+
+                        isShowOverview: content.isShowOverview,
+                        type: content.type,
+                        introImages: content.introImages,
+                        title: content.title,
+                        address: content.address,
+                        area: content.area,
+                        projectScale: content.projectScale,
+                        price: content.price,
+                        deliveryHouseDate: content.deliveryHouseDate,
+                        constructionArea: content.constructionArea,
+                        descriptionInvestor: content.descriptionInvestor,
+                        description: content.description,
+
+                        isShowLocationAndDesign: content.isShowLocationAndDesign,
+                        location: content.location,
+                        infrastructure: content.infrastructure,
+
+                        isShowGround: content.isShowGround,
+                        overallSchema: content.overallSchema,
+                        groundImages: content.groundImages,
+
+                        isShowImageLibs: content.isShowImageLibs,
+                        imageAlbums: content.imageAlbums,
+
+                        isShowProjectProgress: content.isShowProjectProgress,
+                        projectProgressTitle: content.projectProgressTitle,
+                        projectProgressStartDate: content.projectProgressStartDate,
+                        projectProgressEndDate: content.projectProgressEndDate,
+                        projectProgressDate: content.projectProgressDate,
+                        projectProgressImages: content.projectProgressImages,
+
+                        isShowTabVideo: content.isShowTabVideo,
+                        video: content.video,
+
+                        isShowFinancialSupport: content.isShowFinancialSupport,
+                        financialSupport: content.financialSupport,
+
+                        isShowInvestor: content.isShowInvestor,
+                        detailInvestor: content.detailInvestor,
+
+                        district: content.district,
+                        city: content.city
+                    },
+                    message: 'request success'
+                });
+
+
             }
 
         }

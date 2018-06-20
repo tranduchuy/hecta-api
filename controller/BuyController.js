@@ -2,6 +2,8 @@ var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
 var TokenModel = require('../models/TokenModel');
 var _ = require('lodash');
+var urlSlug = require('url-slug');
+var UrlParamModel = require('../models/UrlParamModel');
 
 var BuyController = {
 
@@ -319,6 +321,27 @@ var BuyController = {
 
 
             }
+
+            let param = await UrlParamModel.findOne({
+                postType: global.POST_TYPE_BUY,
+
+                formality: formality,
+                type: type,
+                city: city,
+                district: district,
+                ward: ward,
+                street: street,
+                project: project,
+                balconyDirection: balconyDirection,
+                bedroomCount: bedroomCount,
+                area: area,
+                price: price
+            });
+
+
+            let mainUrl = !param ? global.PARAM_NOT_FOUND_BUY : param.param;
+
+            post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
 
             post.postType = global.POST_TYPE_BUY;
             post.formality = buy.formality;

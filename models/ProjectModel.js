@@ -41,10 +41,13 @@ var projectSchema = new Schema({
     video: String,
     
     isShowFinancialSupport: Boolean,
-    finalcialSupport: String,
+    financialSupport: String,
     
     isShowInvestor: Boolean,
     detailInvestor: String,
+
+    district : Number,
+    city : String,
   
     date: {type: Number, default: Date.now}
 });
