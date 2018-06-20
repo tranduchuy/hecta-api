@@ -8,6 +8,224 @@ var urlSlug = require('url-slug');
 var ProjectController = {
 
 
+    update: async function (req, res, next) {
+
+
+        try {
+
+            var token = req.headers.access_token;
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+            let id = req.params.id;
+
+            if (!id || id.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id invalid '
+                });
+            }
+
+            console.log('id : ',id);
+
+            let project = await ProjectModel.findOne({_id: id});
+
+            if (!project) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'project not exist '
+                });
+            }
+
+            var isShowOverview = req.body.isShowOverview;
+
+            var type = req.body.type;
+            var introImages = req.body.introImages;
+            var title = req.body.title;
+            var address = req.body.address;
+            var area = req.body.area;
+            var projectScale = req.body.projectScale;
+            var price = req.body.price;
+            var deliveryHouseDate = req.body.deliveryHouseDate;
+            var constructionArea = req.body.constructionArea;
+            var descriptionInvestor = req.body.descriptionInvestor;
+            var description = req.body.description;
+
+            var isShowLocationAndDesign = req.body.isShowLocationAndDesign;
+            var infrastructure = req.body.infrastructure;
+            var location = req.body.location;
+
+            var isShowGround = req.body.isShowGround;
+            var overallSchema = req.body.overallSchema;
+            var groundImages = req.body.groundImages;
+
+            var isShowImageLibs = req.body.isShowImageLibs;
+            var imageAlbums = req.body.imageAlbums;
+
+
+            var isShowProjectProgress = req.body.isShowProjectProgress;
+            var projectProgressTitle = req.body.projectProgressTitle;
+            var projectProgressStartDate = req.body.projectProgressStartDate;
+            var projectProgressEndDate = req.body.projectProgressEndDate;
+            var projectProgressDate = req.body.projectProgressDate;
+            var projectProgressImages = req.body.projectProgressImages;
+
+
+            var isShowTabVideo = req.body.isShowTabVideo;
+            var video = req.body.video;
+
+            var isShowFinancialSupport = req.body.isShowFinancialSupport;
+            var financialSupport = req.body.financialSupport;
+
+            var isShowInvestor = req.body.isShowInvestor;
+            var detailInvestor = req.body.detailInvestor;
+
+            var district = req.body.district;
+            var city = req.body.city;
+            var status = req.body.status;
+
+            if (district)
+                project.district = district;
+            if (city)
+                project.city = city;
+            if (isShowOverview)
+                project.isShowOverview = isShowOverview;
+
+            if (type)
+                project.type = type;
+            if (introImages)
+                project.introImages = introImages;
+            if (title)
+                project.title = title;
+            if (address)
+                project.address = address;
+            if (area)
+                project.area = area;
+            if (projectScale)
+                project.projectScale = projectScale;
+            if (price)
+                project.price = price;
+            if (deliveryHouseDate)
+                project.deliveryHouseDate = deliveryHouseDate;
+            if (constructionArea)
+                project.constructionArea = constructionArea;
+            if (descriptionInvestor)
+                project.descriptionInvestor = descriptionInvestor;
+            if (description)
+                project.description = description;
+
+            if (isShowLocationAndDesign)
+                project.isShowLocationAndDesign = isShowLocationAndDesign;
+            if (infrastructure)
+                project.infrastructure = infrastructure;
+            if (location)
+                project.location = location;
+
+            if (isShowGround)
+                project.isShowGround = isShowGround;
+            if (overallSchema)
+                project.overallSchema = overallSchema;
+            if (groundImages)
+                project.groundImages = groundImages;
+
+            if (isShowImageLibs)
+                project.isShowImageLibs = isShowImageLibs;
+            if (imageAlbums)
+                project.imageAlbums = imageAlbums;
+
+            if (isShowProjectProgress)
+                project.isShowProjectProgress = isShowProjectProgress;
+            if (projectProgressTitle)
+                project.projectProgressTitle = projectProgressTitle;
+            if (projectProgressStartDate)
+                project.projectProgressStartDate = projectProgressStartDate;
+            if (projectProgressEndDate)
+                project.projectProgressEndDate = projectProgressEndDate;
+            if (projectProgressDate)
+                project.projectProgressDate = projectProgressDate;
+            if (projectProgressImages)
+                project.projectProgressImages = projectProgressImages;
+
+
+            if (isShowTabVideo)
+                project.isShowTabVideo = isShowTabVideo;
+            if (video)
+                project.video = video;
+
+            if (isShowFinancialSupport)
+                project.isShowFinancialSupport = isShowFinancialSupport;
+            if (financialSupport)
+                project.financialSupport = financialSupport;
+
+            if (isShowInvestor)
+                project.isShowInvestor = isShowInvestor;
+            if (detailInvestor)
+                project.detailInvestor = detailInvestor;
+            if (status)
+                project.status = 1;
+
+            project = await project.save();
+
+            return res.json({
+                status: 0,
+                data: project,
+                message: 'update success'
+            });
+        }
+
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    },
+
+    list: async function (req, res, next) {
+
+        try {
+            var page = req.query.page;
+
+            if (!page || page < 1) {
+                page = 1;
+            }
+
+            let projects = await ProjectModel.find().sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            let count = await ProjectModel.count();
+
+            return res.json({
+                status: 1,
+                data: {
+                    items: projects,
+                    page: page,
+                    total: _.ceil(count / global.PAGE_SIZE)
+                },
+                message: 'request success '
+            });
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    },
+
     add: async function (req, res, next) {
 
         try {
@@ -108,7 +326,7 @@ var ProjectController = {
 
             project.isShowInvestor = isShowInvestor;
             project.detailInvestor = detailInvestor;
-
+            project.status = 1;
 
             project = await project.save();
 

@@ -5,7 +5,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var projectSchema = new Schema({
-  
+
+    status: Number,
     isShowOverview: Boolean,
     type: String,
     introImages: Array,
@@ -18,37 +19,37 @@ var projectSchema = new Schema({
     constructionArea: Number,
     descriptionInvestor: String,
     description: String,
-    
+
     isShowLocationAndDesign: Boolean,
     location: String,
     infrastructure: String,
-    
+
     isShowGround: Boolean,
     overallSchema: Array,
     groundImages: Array,
-    
+
     isShowImageLibs: Boolean,
     imageAlbums: Array,
-    
+
     isShowProjectProgress: Boolean,
     projectProgressTitle: String,
     projectProgressStartDate: Number,
     projectProgressEndDate: Number,
     projectProgressDate: Number,
     projectProgressImages: Array,
-    
+
     isShowTabVideo: Boolean,
     video: String,
-    
+
     isShowFinancialSupport: Boolean,
     financialSupport: String,
-    
+
     isShowInvestor: Boolean,
     detailInvestor: String,
 
-    district : Number,
-    city : String,
-  
+    district: Number,
+    city: String,
+
     date: {type: Number, default: Date.now}
 });
 
