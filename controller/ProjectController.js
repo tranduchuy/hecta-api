@@ -8,6 +8,33 @@ var urlSlug = require('url-slug');
 var ProjectController = {
 
 
+    typeList: async function (req, res, next) {
+        try {
+            var types = await UrlParamModel.find({postType: 3});
+
+
+            let results = types.map(type => {
+
+                return {text: type.text, id: type.type, url: type.param};
+
+            });
+
+            return res.json({
+                status: 1,
+                data: results,
+                message: 'success !'
+            });
+        }
+
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    },
     update: async function (req, res, next) {
 
 

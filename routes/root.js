@@ -11,6 +11,7 @@ var posts = require('../routes/posts');
 var projects = require('../routes/projects');
 var script = require('../routes/script');
 var news = require('../routes/news');
+var admin = require('../routes/admin');
 
 
 router.use('/', index);
@@ -26,6 +27,7 @@ router.use('/api/v1/posts', posts);
 router.use('/api/v1/projects', projects);
 router.use('/api/v1/script', script);
 router.use('/api/v1/news', news);
+router.use('/admin/v1/', admin);
 
 
 module.exports = router;

@@ -4,43 +4,41 @@ var BuyModel = require('../models/BuyModel');
 var SaleModel = require('../models/SaleModel');
 var ProjectModel = require('../models/ProjectModel');
 var _ = require('lodash');
+var urlSlug = require('url-slug');
 
 var SearchController = {
 
 
     addParamUrl: async function (req, res, next) {
         try {
-            var param = req.body.param;
+            var text = req.body.text;
+            var id = req.body.id;
             var postType = req.body.postType;
-            var formality = req.body.formality;
-            var type = req.body.type;
-            var city = req.body.city;
-            var district = req.body.district;
-            var ward = req.body.ward;
-            var street = req.body.street;
-            var project = req.body.project;
-            var balconyDirection = req.body.balconyDirection;
-            var bedroomCount = req.body.bedroomCount;
-            var area = req.body.area;
-            var price = req.body.price;
+            var selectable = req.body.selectable;
+            var level = req.body.level;
+
+
+            var extra;
+            if (selectable || level) {
+                extra = {};
+                if (selectable) {
+                    extra.selectable = selectable  == 'true';
+                }
+                if (level) {
+                    extra.level = level;
+                }
+            }
 
 
             var urlParam = new UrlParamModel();
 
-            urlParam.param = param;
+            urlParam.param = urlSlug(text);
             urlParam.postType = postType;
-            urlParam.formality = formality;
-            urlParam.type = type;
-            urlParam.city = city;
-            urlParam.district = district;
-            urlParam.ward = ward;
-            urlParam.street = street;
-            urlParam.project = project;
-            urlParam.balconyDirection = balconyDirection;
-            urlParam.bedroomCount = bedroomCount;
-            urlParam.area = area;
-            urlParam.price = price;
-
+            urlParam.text = text;
+            urlParam.type = id;
+            if (extra) {
+                urlParam.extra = extra;
+            }
             urlParam = await urlParam.save();
 
             return res.json({
@@ -237,8 +235,8 @@ var SearchController = {
                             area: project.area,
                             descriptionInvestor: project.descriptionInvestor,
                             projectProgressTitle: project.projectProgressTitle,
-                            introImages : project.introImages,
-                            url : post.url
+                            introImages: project.introImages,
+                            url: post.url
                         };
 
                     }

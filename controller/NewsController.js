@@ -7,6 +7,34 @@ var urlSlug = require('url-slug');
 
 var NewsController = {
 
+
+    catList: async function (req, res, next) {
+        try {
+            var cats = await UrlParamModel.find({postType: 4});
+
+
+            let results = cats.map(cat => {
+
+                return {text: cat.text, id: cat.type, url: cat.param, extra: cat.extra};
+
+            });
+
+            return res.json({
+                status: 1,
+                data: results,
+                message: 'success !'
+            });
+        }
+
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    },
     update: async function (req, res, next) {
 
 
