@@ -93,10 +93,8 @@ var SearchController = {
             }
 
 
-            let cat = await await UrlParamModel.findOne({param: params[0]});
+            let cat = await UrlParamModel.findOne({param: params[0]});
             let postType;
-
-            console.log("params[0] == global.PARAM_NOT_FOUND_PROJECT ",params[0] == global.PARAM_NOT_FOUND_PROJECT);
 
             if (params[0] == global.PARAM_NOT_FOUND_SALE) {
                 postType = global.POST_TYPE_SALE;
@@ -107,7 +105,7 @@ var SearchController = {
             else if (params[0] == global.PARAM_NOT_FOUND_PROJECT) {
                 postType = global.POST_TYPE_PROJECT;
             }
-            else if (!cat) {
+            else if (cat) {
                 postType = cat.postType;
             }
             else {
@@ -239,7 +237,8 @@ var SearchController = {
                             area: project.area,
                             descriptionInvestor: project.descriptionInvestor,
                             projectProgressTitle: project.projectProgressTitle,
-                            introImages : project.introImages
+                            introImages : project.introImages,
+                            url : post.url
                         };
 
                     }
@@ -284,6 +283,7 @@ var SearchController = {
                     break;
                 case global.POST_TYPE_BUY :
                     model = BuyModel;
+                    break;
                 case global.POST_TYPE_PROJECT :
                     model = ProjectModel;
                     break;

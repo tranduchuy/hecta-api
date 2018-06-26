@@ -14,8 +14,7 @@ var BuyController = {
         let id = req.params.id;
         try {
 
-            if(!id || id.length == 0)
-            {
+            if (!id || id.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -24,10 +23,9 @@ var BuyController = {
 
             }
 
-            let buy =await BuyModel.findOne({_id : id});
+            let buy = await BuyModel.findOne({_id: id});
 
-            if(!buy)
-            {
+            if (!buy) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -39,36 +37,34 @@ var BuyController = {
             return res.json({
                 status: 1,
                 data: {
-                    id : buy._id,
-                    title : buy.title,
+                    id: buy._id,
+                    title: buy.title,
                     description: buy.description,
-                    keywordList : buy.keywordList,
-                    formality : buy.formality,
-                    type : buy.type,
+                    keywordList: buy.keywordList,
+                    formality: buy.formality,
+                    type: buy.type,
                     city: buy.city,
                     district: buy.district,
-                    ward : buy.ward,
-                    street : buy.street,
-                    project : buy.project,
-                    areaMin : buy.areaMin,
-                    areaMax : buy.areaMax,
-                    priceMin : buy.priceMin,
-                    priceMax : buy.priceMax,
-                    unit : buy.unit,
-                    address : buy.address,
-                    images : buy.images,
-                    contactName : buy.contactName,
-                    contactAddress : buy.contactAddress,
-                    contactPhone : buy.contactPhone,
-                    contactMobile : buy.contactMobile,
-                    contactEmail : buy.contactEmail,
-                    receiveMail : buy.receiveMail,
-                    date : buy.date
+                    ward: buy.ward,
+                    street: buy.street,
+                    project: buy.project,
+                    areaMin: buy.areaMin,
+                    areaMax: buy.areaMax,
+                    priceMin: buy.priceMin,
+                    priceMax: buy.priceMax,
+                    unit: buy.unit,
+                    address: buy.address,
+                    images: buy.images,
+                    contactName: buy.contactName,
+                    contactAddress: buy.contactAddress,
+                    contactPhone: buy.contactPhone,
+                    contactMobile: buy.contactMobile,
+                    contactEmail: buy.contactEmail,
+                    receiveMail: buy.receiveMail,
+                    date: buy.date
                 },
                 message: 'request success'
             });
-
-
 
 
         }
@@ -332,10 +328,10 @@ var BuyController = {
                 ward: ward,
                 street: street,
                 project: project,
-                balconyDirection: balconyDirection,
-                bedroomCount: bedroomCount,
-                area: area,
-                price: price
+                balconyDirection: undefined,
+                bedroomCount: undefined,
+                area: undefined,
+                price: undefined
             });
 
 

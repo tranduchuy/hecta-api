@@ -338,21 +338,71 @@ var SaleController = {
 
             }
 
-            let param = await UrlParamModel.findOne({
-                postType: global.POST_TYPE_SALE,
+            let queryParams = {
+                postType: global.POST_TYPE_SALE
+            };
 
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
-                balconyDirection: balconyDirection,
-                bedroomCount: bedroomCount,
-                area: area,
-                price: price
-            });
+            if (formality) {
+                queryParams.formality = formality;
+            }
+
+            if (type) {
+                queryParams.type = type;
+            }
+
+            if (city) {
+                queryParams.city = city;
+            }
+
+            if (district) {
+                queryParams.district = district;
+            }
+
+            if (ward) {
+                queryParams.ward = ward;
+            }
+
+
+            if (street) {
+                queryParams.street = street;
+            }
+            if (project) {
+                queryParams.project = project;
+            }
+
+
+            if (balconyDirection) {
+                queryParams.balconyDirection = balconyDirection;
+            }
+
+            if (bedroomCount) {
+                queryParams.bedroomCount = bedroomCount;
+            }
+
+            if (area) {
+                queryParams.area = area;
+            }
+
+            if (price) {
+                queryParams.price = price;
+            }
+
+            //     formality: formality == null ? undefined : formality,
+            //     type: type == null ? undefined :type,
+            //     city: city == null ? undefined :city,
+            //     district: district == null ? undefined :district,
+            //     ward: ward == null ? undefined :ward,
+            //     street: street == null ? undefined :street,
+            //     project: project == null ? undefined :project,
+            //     balconyDirection: balconyDirection == null ? undefined :balconyDirection,
+            //     bedroomCount: bedroomCount == null ? undefined :bedroomCount,
+            //     area: area == null ? undefined :area,
+            //     price: price == null ? undefined :price
+            // };
+
+            console.log('queryParams ', queryParams);
+
+            let param = await UrlParamModel.findOne(queryParams);
 
 
             let mainUrl = !param ? global.PARAM_NOT_FOUND_SALE : param.param;

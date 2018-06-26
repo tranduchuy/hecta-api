@@ -35,9 +35,9 @@ var ProjectController = {
                 });
             }
 
-            console.log('id : ',id);
+            console.log('id : ', id);
 
-            let project = await ProjectModel.findOne({_id: id});
+            var project = await ProjectModel.findOne({_id: id});
 
             if (!project) {
                 return res.json({
@@ -172,7 +172,7 @@ var ProjectController = {
             if (detailInvestor)
                 project.detailInvestor = detailInvestor;
             if (status)
-                project.status = 1;
+                project.status = status;
 
             project = await project.save();
 
@@ -204,12 +204,75 @@ var ProjectController = {
             }
 
             let projects = await ProjectModel.find().sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+
+            let results = await Promise.all(projects.map(async project => {
+
+                let post = await PostModel.findOne({content_id: project._id});
+
+
+                let result = {
+
+                    id: project._id,
+                    status: project.status,
+                    isShowOverview: project.isShowOverview,
+                    type: project.type,
+                    introImages: project.introImages,
+                    title: project.title,
+                    address: project.address,
+                    area: project.area,
+                    projectScale: project.projectScale,
+                    price: project.price,
+                    deliveryHouseDate: project.deliveryHouseDate,
+                    constructionArea: project.constructionArea,
+                    descriptionInvestor: project.descriptionInvestor,
+                    description: project.description,
+
+                    isShowLocationAndDesign: project.isShowLocationAndDesign,
+                    location: project.location,
+                    infrastructure: project.infrastructure,
+
+                    isShowGround: project.isShowGround,
+                    overallSchema: project.overallSchema,
+                    groundImages: project.groundImages,
+
+                    isShowImageLibs: project.isShowImageLibs,
+                    imageAlbums: project.imageAlbums,
+
+                    isShowProjectProgress: project.isShowProjectProgress,
+                    projectProgressTitle: project.projectProgressTitle,
+                    projectProgressStartDate: project.projectProgressStartDate,
+                    projectProgressEndDate: project.projectProgressEndDate,
+                    projectProgressDate: project.projectProgressDate,
+                    projectProgressImages: project.projectProgressImages,
+
+                    isShowTabVideo: project.isShowTabVideo,
+                    video: project.video,
+
+                    isShowFinancialSupport: project.isShowFinancialSupport,
+                    financialSupport: project.financialSupport,
+
+                    isShowInvestor: project.isShowInvestor,
+                    detailInvestor: project.detailInvestor,
+
+                    district: project.district,
+                    city: project.city
+                };
+
+                if (post) {
+                    result.url = post.url;
+                }
+
+                return result;
+
+            }));
+
+
             let count = await ProjectModel.count();
 
             return res.json({
                 status: 1,
                 data: {
-                    items: projects,
+                    items: results,
                     page: page,
                     total: _.ceil(count / global.PAGE_SIZE)
                 },

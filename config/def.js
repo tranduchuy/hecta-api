@@ -34,9 +34,10 @@ global.URL_PARAM_CAT = 1;
 global.URL_PARAM_DETAIL = 2;
 
 
-global.PARAM_NOT_FOUND_SALE = 'param-not-found-for-sale';
-global.PARAM_NOT_FOUND_BUY = 'param-not-found-for-buy';
-global.PARAM_NOT_FOUND_PROJECT = 'param-not-found-for-project';
+global.PARAM_NOT_FOUND_SALE = 'tin-can-ban-can-cho-thue-chung';
+global.PARAM_NOT_FOUND_BUY = 'tin-can-mua-can-thue-chung';
+global.PARAM_NOT_FOUND_PROJECT = 'du-an-chung';
+global.PARAM_NOT_FOUND_NEWS = 'tin-tuc-chung';
 
 
 
