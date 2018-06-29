@@ -2,6 +2,7 @@ var UrlParamModel = require('../models/UrlParamModel');
 var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
 var SaleModel = require('../models/SaleModel');
+var NewsModel = require('../models/NewsModel');
 var ProjectModel = require('../models/ProjectModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
@@ -22,7 +23,7 @@ var SearchController = {
             if (selectable || level) {
                 extra = {};
                 if (selectable) {
-                    extra.selectable = selectable  == 'true';
+                    extra.selectable = selectable == 'true';
                 }
                 if (level) {
                     extra.level = level;
@@ -103,6 +104,9 @@ var SearchController = {
             else if (params[0] == global.PARAM_NOT_FOUND_PROJECT) {
                 postType = global.POST_TYPE_PROJECT;
             }
+            else if (params[0] == global.PARAM_NOT_FOUND_NEWS) {
+                postType = global.POST_TYPE_NEWS;
+            }
             else if (cat) {
                 postType = cat.postType;
             }
@@ -153,6 +157,7 @@ var SearchController = {
                 }
             }
 
+
             if (params.length == 1) {
 
                 let model;
@@ -163,9 +168,12 @@ var SearchController = {
                         break;
                     case global.POST_TYPE_BUY :
                         model = BuyModel;
-
+                        break;
                     case global.POST_TYPE_PROJECT :
                         model = ProjectModel;
+                        break;
+                    case global.POST_TYPE_NEWS :
+                        model = NewsModel;
                         break;
                     default :
                         model = SaleModel;
@@ -173,12 +181,14 @@ var SearchController = {
                 }
 
                 let data = await model.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-                let results = await Promise.all(data.map(async post => {
+                let results = await Promise.all(data.map(async item => {
+
+                    let post = await PostModel.findOne({content_id: item._id});
 
 
                     if (postType == global.POST_TYPE_SALE) {
 
-                        let sale = post;
+                        let sale = item;
 
 
                         return {
@@ -202,7 +212,7 @@ var SearchController = {
                     else if (postType == global.POST_TYPE_SALE) {
 
 
-                        let buy = post;
+                        let buy = item;
 
                         return {
                             url: post.url,
@@ -224,12 +234,14 @@ var SearchController = {
                             address: buy.address,
                         };
                     }
-                    else {
 
-                        let project = post;
+                    else if (postType == global.POST_TYPE_NEWS) {
+
+                        let project = item;
 
                         return {
                             title: project.title,
+                            description: project.description,
                             address: project.address,
                             price: project.price,
                             area: project.area,
@@ -237,6 +249,19 @@ var SearchController = {
                             projectProgressTitle: project.projectProgressTitle,
                             introImages: project.introImages,
                             url: post.url
+                        };
+
+                    } else {
+                        let news = item;
+
+                        return {
+                            title: news.title,
+                            content: news.content,
+                            cate: news.cate,
+                            image: news.image,
+                            url: post.url,
+                            date : news.date
+
                         };
 
                     }
@@ -285,6 +310,10 @@ var SearchController = {
                 case global.POST_TYPE_PROJECT :
                     model = ProjectModel;
                     break;
+
+                case global.POST_TYPE_NEWS :
+                    model = NewsModel;
+                    break;
                 default :
                     model = SaleModel;
                     break;
@@ -312,6 +341,7 @@ var SearchController = {
                     params: query,
                     status: 1,
                     data: {
+                        priority:post.priority,
                         url: post.url,
                         id: content._id,
                         title: content.title,
@@ -359,6 +389,7 @@ var SearchController = {
                     isList: false,
                     params: query,
                     data: {
+                        priority:post.priority,
                         url: post.url,
                         id: content._id,
                         title: content.title,
@@ -393,7 +424,7 @@ var SearchController = {
                     message: 'request success'
                 });
             }
-            else {
+            else if (postType == global.POST_TYPE_PROJECT) {
                 return res.json({
                     status: 1,
                     type: postType,
@@ -446,6 +477,24 @@ var SearchController = {
 
                         district: content.district,
                         city: content.city
+                    },
+                    message: 'request success'
+                });
+
+
+            } else {
+                return res.json({
+                    status: 1,
+                    type: postType,
+                    isList: false,
+                    params: query,
+                    data: {
+                        title: content.title,
+                        content: content.content,
+                        cate: content.cate,
+                        image: content.image,
+                        url: post.url,
+                        date : content.date
                     },
                     message: 'request success'
                 });

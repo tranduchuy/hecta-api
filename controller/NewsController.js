@@ -7,7 +7,57 @@ var urlSlug = require('url-slug');
 
 var NewsController = {
 
+    detail: async function (req, res, next) {
+        let id = req.params.id;
+        try {
 
+            if (!id || id.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id null error'
+                });
+
+            }
+
+            let news = await NewsModel.findOne({_id: id});
+
+            if (!news) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'data not exist'
+                });
+            }
+
+
+            return res.json({
+                status: 1,
+                data: {
+                    id: news._id,
+                    title: news.title,
+                    content: news.content,
+                    cate: news.cate,
+                    image: news.image,
+                    date : news.date
+
+                },
+                message: 'request success'
+            });
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
     catList: async function (req, res, next) {
         try {
             var cats = await UrlParamModel.find({postType: 4});
@@ -93,14 +143,14 @@ var NewsController = {
             if (image) {
                 news.image = image;
             }
-            if (status) {
+            if (status != undefined) {
                 news.status = status;
             }
             news = await news.save();
 
             let post = await PostModel.findOne({content_id: news._id})
 
-            if (post) {
+            if (title && post) {
 
                 let param = await UrlParamModel.findOne({
                     postType: global.POST_TYPE_NEWS,
@@ -126,7 +176,7 @@ var NewsController = {
             }
 
             return res.json({
-                status: 0,
+                status: 1,
                 data: news,
                 message: 'update success'
             });
@@ -165,7 +215,9 @@ var NewsController = {
                     title: news.title,
                     content: news.content,
                     cate: news.cate,
-                    image: news.image
+                    image: news.image,
+                    date : news.date
+
                 };
 
                 if (post) {

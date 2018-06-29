@@ -8,6 +8,95 @@ var urlSlug = require('url-slug');
 var ProjectController = {
 
 
+
+    detail: async function (req, res, next) {
+        let id = req.params.id;
+        try {
+
+            if (!id || id.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id null error'
+                });
+
+            }
+
+            let project = await ProjectModel.findOne({_id: id});
+
+            if (!project) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'data not exist'
+                });
+            }
+
+
+            return res.json({
+                status: 1,
+                data: {
+                    id: project._id,
+                    isShowOverview: project.isShowOverview,
+                    type: project.type,
+                    introImages: project.introImages,
+                    title: project.title,
+                    address: project.address,
+                    area: project.area,
+                    projectScale: project.projectScale,
+                    price: project.price,
+                    deliveryHouseDate: project.deliveryHouseDate,
+                    constructionArea: project.constructionArea,
+                    descriptionInvestor: project.descriptionInvestor,
+                    description: project.description,
+
+                    isShowLocationAndDesign: project.isShowLocationAndDesign,
+                    location: project.location,
+                    infrastructure: project.infrastructure,
+
+                    isShowGround: project.isShowGround,
+                    overallSchema: project.overallSchema,
+                    groundImages: project.groundImages,
+
+                    isShowImageLibs: project.isShowImageLibs,
+                    imageAlbums: project.imageAlbums,
+
+                    isShowProjectProgress: project.isShowProjectProgress,
+                    projectProgressTitle: project.projectProgressTitle,
+                    projectProgressStartDate: project.projectProgressStartDate,
+                    projectProgressEndDate: project.projectProgressEndDate,
+                    projectProgressDate: project.projectProgressDate,
+                    projectProgressImages: project.projectProgressImages,
+
+                    isShowTabVideo: project.isShowTabVideo,
+                    video: project.video,
+
+                    isShowFinancialSupport: project.isShowFinancialSupport,
+                    financialSupport: project.financialSupport,
+
+                    isShowInvestor: project.isShowInvestor,
+                    detailInvestor: project.detailInvestor,
+
+                    district: project.district,
+                    city: project.city
+
+                },
+                message: 'request success'
+            });
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
     typeList: async function (req, res, next) {
         try {
             var types = await UrlParamModel.find({postType: 3});
@@ -204,7 +293,7 @@ var ProjectController = {
             project = await project.save();
 
             return res.json({
-                status: 0,
+                status: 1,
                 data: project,
                 message: 'update success'
             });
