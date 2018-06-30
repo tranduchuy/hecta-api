@@ -19,7 +19,6 @@ var userSchema = new Schema({
     type: Number,
     date: {type: Number, default: Date.now}
 
-
 });
 
 

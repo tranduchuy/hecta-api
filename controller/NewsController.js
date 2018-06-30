@@ -39,6 +39,7 @@ var NewsController = {
                     content: news.content,
                     cate: news.cate,
                     image: news.image,
+                    description : news.description,
                     date : news.date
 
                 },
@@ -130,6 +131,7 @@ var NewsController = {
             var image = req.body.image;
 
             var status = req.body.status;
+            var description = req.body.description;
 
             if (title) {
                 news.title = title;
@@ -142,6 +144,9 @@ var NewsController = {
             }
             if (image) {
                 news.image = image;
+            }
+            if (description) {
+                news.description = description;
             }
             if (status != undefined) {
                 news.status = status;
@@ -216,7 +221,8 @@ var NewsController = {
                     content: news.content,
                     cate: news.cate,
                     image: news.image,
-                    date : news.date
+                    date : news.date,
+                    description : news.description,
 
                 };
 
@@ -263,6 +269,7 @@ var NewsController = {
             var content = req.body.content;
             var cate = req.body.cate;
             var image = req.body.image;
+            var description = req.body.description;
 
 
             var news = new NewsModel();
@@ -271,6 +278,7 @@ var NewsController = {
             news.content = content;
             news.cate = cate;
             news.image = image;
+            news.description = description;
 
 
             news = await news.save();

@@ -18,7 +18,6 @@ var postSchema = new Schema({
     status : Number,
     payment : Number,
     url : String,
-
     date: {type: Number, default: Date.now}
 
 

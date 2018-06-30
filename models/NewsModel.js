@@ -10,6 +10,7 @@ var newsSchema = new Schema({
     content: String,
     cate: String,
     image: String,
+    description: String,
     status : {type : Number, default:global.STATUS_POST_ACTIVE},
 
     date: {type: Number, default: Date.now}

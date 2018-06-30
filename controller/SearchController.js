@@ -119,7 +119,7 @@ var SearchController = {
             }
 
 
-            let query = {};
+            let query = {status: global.STATUS_POST_ACTIVE};
 
             if (cat) {
                 if (cat.formality) {
@@ -209,7 +209,7 @@ var SearchController = {
                             address: sale.address,
                         };
                     }
-                    else if (postType == global.POST_TYPE_SALE) {
+                    else if (postType == global.POST_TYPE_BUY) {
 
 
                         let buy = item;
@@ -260,7 +260,8 @@ var SearchController = {
                             cate: news.cate,
                             image: news.image,
                             url: post.url,
-                            date : news.date
+                            date: news.date,
+                            description: news.description
 
                         };
 
@@ -341,7 +342,7 @@ var SearchController = {
                     params: query,
                     status: 1,
                     data: {
-                        priority:post.priority,
+                        priority: post.priority,
                         url: post.url,
                         id: content._id,
                         title: content.title,
@@ -389,7 +390,7 @@ var SearchController = {
                     isList: false,
                     params: query,
                     data: {
-                        priority:post.priority,
+                        priority: post.priority,
                         url: post.url,
                         id: content._id,
                         title: content.title,
@@ -494,7 +495,9 @@ var SearchController = {
                         cate: content.cate,
                         image: content.image,
                         url: post.url,
-                        date : content.date
+                        date: content.date,
+                        description: content.description
+
                     },
                     message: 'request success'
                 });

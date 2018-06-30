@@ -3,6 +3,7 @@ var router = express.Router();
 
 var ProjectController = require('../controller/ProjectController');
 var NewsController = require('../controller/NewsController');
+var PostController = require('../controller/PostController');
 
 
 
@@ -19,6 +20,9 @@ router.get('/news/cats', NewsController.catList);
 router.post('/news/add', NewsController.add);
 router.post('/news/update/:id', NewsController.update);
 router.get('/news/detail/:id', NewsController.detail);
+
+
+router.get('/post/list', PostController.listAdmin);
 
 
 module.exports = router;

@@ -2,16 +2,21 @@ var SaleModel = require('../models/SaleModel');
 var BuyModel = require('../models/BuyModel');
 var PostModel = require('../models/PostModel');
 var _ = require('lodash');
+var TokenModel = require('../models/TokenModel');
 
 var PostController = {
 
 
-    list: async function (req, res, next) {
+    listAdmin: async function (req, res, next) {
 
         var page = req.query.page;
         var type = req.query.type;
         var formality = req.query.formality;
         var postType = req.query.postType;
+        var toDate = req.query.toDate;
+        var fromDate = req.query.fromDate;
+        var status = req.query.status;
+        var id = req.query.id;
 
 
         try {
@@ -28,20 +33,34 @@ var PostController = {
                 page = 1;
             }
 
-            let date = Date.now();
+            var query = {};
 
-            var query = {
-                postType: postType
-                , to: {$gt: date}
-                , from: {$lt: date}
-            };
+            if (toDate && fromDate) {
+                query.date = {
+                    $gt: fromDate,
+                    $lt: toDate
+                };
+            }
+
+            if (id) {
+                query._id = id;
+            }
+
 
             if (type) {
                 query.type = type;
             }
 
+            if (postType) {
+                query.postType = postType;
+            }
+
             if (formality) {
                 query.formality = formality;
+            }
+
+            if (status != undefined) {
+                query.status = status;
             }
 
             let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
@@ -50,7 +69,7 @@ var PostController = {
             let results = await Promise.all(posts.map(async post => {
 
 
-                if (postType == global.POST_TYPE_SALE) {
+                if (post.postType == global.POST_TYPE_SALE) {
 
                     let sale = await SaleModel.findOne({_id: post.content_id});
 
@@ -59,19 +78,40 @@ var PostController = {
                         // {sale, post};
                         {
                             url: post.url,
-                            id: post._id,
-                            formality: sale.formality,
+                            id: sale._id,
                             title: sale.title,
-                            description: sale.description,
+                            formality: sale.formality,
+                            type: sale.type,
                             city: sale.city,
                             district: sale.district,
+                            ward: sale.ward,
+                            street: sale.street,
+                            project: sale.project,
+                            area: sale.area,
                             price: sale.price,
                             unit: sale.unit,
-                            area: sale.area,
-                            date: sale.date,
-                            priority: post.priority,
-                            images: sale.images,
                             address: sale.address,
+                            keywordList: sale.keywordList,
+                            description: sale.description,
+                            streetWidth: sale.streetWidth,
+                            frontSize: sale.frontSize,
+                            direction: sale.direction,
+                            balconyDirection: sale.balconyDirection,
+                            floorCount: sale.floorCount,
+                            bedroomCount: sale.bedroomCount,
+                            toiletCount: sale.toiletCount,
+                            furniture: sale.furniture,
+                            images: sale.images,
+                            contactName: sale.contactName,
+                            contactAddress: sale.contactAddress,
+                            contactPhone: sale.contactPhone,
+                            contactMobile: sale.contactMobile,
+                            contactEmail: sale.contactEmail,
+                            date: sale.date,
+                            to: post.to,
+                            from: post.from,
+                            priority: post.priority,
+                            postType: post.postType
                         };
                 }
                 else {
@@ -82,21 +122,234 @@ var PostController = {
 
                     return await {
                         url: post.url,
-                        id: post._id,
+                        id: buy._id,
                         title: buy.title,
-                        formality: buy.formality,
                         description: buy.description,
+                        keywordList: buy.keywordList,
+                        formality: buy.formality,
+                        type: buy.type,
                         city: buy.city,
                         district: buy.district,
-                        priceMin: buy.priceMin,
-                        priceMax: buy.priceMax,
+                        ward: buy.ward,
+                        street: buy.street,
+                        project: buy.project,
                         areaMin: buy.areaMin,
                         areaMax: buy.areaMax,
+                        priceMin: buy.priceMin,
+                        priceMax: buy.priceMax,
                         unit: buy.unit,
-                        date: buy.date,
-                        priority: post.priority,
-                        images: buy.images,
                         address: buy.address,
+                        images: buy.images,
+                        contactName: buy.contactName,
+                        contactAddress: buy.contactAddress,
+                        contactPhone: buy.contactPhone,
+                        contactMobile: buy.contactMobile,
+                        contactEmail: buy.contactEmail,
+                        receiveMail: buy.receiveMail,
+                        date: buy.date,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType
+                    };
+                }
+
+
+            }));
+
+
+            let count = await PostModel.count(query);
+
+            return res.json({
+                status: 1,
+                data: {
+                    items: results,
+                    page: page,
+                    total: _.ceil(count / global.PAGE_SIZE)
+                },
+                message: 'request success '
+            });
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
+
+    list: async function (req, res, next) {
+
+        var page = req.query.page;
+        var type = req.query.type;
+        var formality = req.query.formality;
+        var postType = req.query.postType;
+        var toDate = req.query.toDate;
+        var fromDate = req.query.fromDate;
+        var status = req.query.status;
+        var id = req.query.id;
+
+
+        var token = req.headers.access_token;
+
+        if(!token)
+        {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'access token empty !'
+            });
+        }
+
+        var accessToken = await  TokenModel.findOne({token: token});
+
+        if (!accessToken) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'access token invalid'
+            });
+
+        }
+
+
+        try {
+
+            if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY)) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'postType : ' + postType + ' invalid'
+                });
+            }
+
+            if (!page || page < 1) {
+                page = 1;
+            }
+
+            var query = {user : accessToken.user};
+
+            if (toDate && fromDate) {
+                query.date = {
+                    $gt: fromDate,
+                    $lt: toDate
+                };
+            }
+
+            if (id) {
+                query._id = id;
+            }
+
+
+            if (type) {
+                query.type = type;
+            }
+
+            if (postType) {
+                query.postType = postType;
+            }
+
+            if (formality) {
+                query.formality = formality;
+            }
+
+            if (status != undefined) {
+                query.status = status;
+            }
+
+            let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+
+
+            let results = await Promise.all(posts.map(async post => {
+
+
+                if (post.postType == global.POST_TYPE_SALE) {
+
+                    let sale = await SaleModel.findOne({_id: post.content_id});
+
+
+                    return await
+                        // {sale, post};
+                        {
+                            url: post.url,
+                            id: sale._id,
+                            title: sale.title,
+                            formality: sale.formality,
+                            type: sale.type,
+                            city: sale.city,
+                            district: sale.district,
+                            ward: sale.ward,
+                            street: sale.street,
+                            project: sale.project,
+                            area: sale.area,
+                            price: sale.price,
+                            unit: sale.unit,
+                            address: sale.address,
+                            keywordList: sale.keywordList,
+                            description: sale.description,
+                            streetWidth: sale.streetWidth,
+                            frontSize: sale.frontSize,
+                            direction: sale.direction,
+                            balconyDirection: sale.balconyDirection,
+                            floorCount: sale.floorCount,
+                            bedroomCount: sale.bedroomCount,
+                            toiletCount: sale.toiletCount,
+                            furniture: sale.furniture,
+                            images: sale.images,
+                            contactName: sale.contactName,
+                            contactAddress: sale.contactAddress,
+                            contactPhone: sale.contactPhone,
+                            contactMobile: sale.contactMobile,
+                            contactEmail: sale.contactEmail,
+                            date: sale.date,
+                            to: post.to,
+                            from: post.from,
+                            priority: post.priority,
+                            postType: post.postType
+                        };
+                }
+                else {
+
+
+                    let buy = await BuyModel.findOne({_id: post.content_id});
+
+
+                    return await {
+                        url: post.url,
+                        id: buy._id,
+                        title: buy.title,
+                        description: buy.description,
+                        keywordList: buy.keywordList,
+                        formality: buy.formality,
+                        type: buy.type,
+                        city: buy.city,
+                        district: buy.district,
+                        ward: buy.ward,
+                        street: buy.street,
+                        project: buy.project,
+                        areaMin: buy.areaMin,
+                        areaMax: buy.areaMax,
+                        priceMin: buy.priceMin,
+                        priceMax: buy.priceMax,
+                        unit: buy.unit,
+                        address: buy.address,
+                        images: buy.images,
+                        contactName: buy.contactName,
+                        contactAddress: buy.contactAddress,
+                        contactPhone: buy.contactPhone,
+                        contactMobile: buy.contactMobile,
+                        contactEmail: buy.contactEmail,
+                        receiveMail: buy.receiveMail,
+                        date: buy.date,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType
                     };
                 }
 
