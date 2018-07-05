@@ -1,6 +1,7 @@
 var PostModel = require('../models/PostModel');
 var BuyModel = require('../models/BuyModel');
 var TokenModel = require('../models/TokenModel');
+var TagModel = require('../models/TagModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
 var UrlParamModel = require('../models/UrlParamModel');
@@ -352,6 +353,33 @@ var BuyController = {
             post = await post.save();
 
 
+            if (keywordList && keywordList.length > 0) {
+                keywordList.forEach(async key => {
+
+                    var slug = urlSlug(key);
+
+                    if (!slug) {
+                        return;
+                    }
+
+                    var tag = await TagModel.findOne({slug: slug});
+
+                    if (!tag) {
+                        tag = new TagModel({
+                            slug: slug,
+                            keyword: key,
+                            posts: []
+                        });
+                    }
+
+                    tag.refresh = Date.now();
+                    tag.posts.push(post._id);
+
+                    await tag.save();
+                })
+            }
+
+
             return res.json({
                 status: 1,
                 data: post,
@@ -360,6 +388,457 @@ var BuyController = {
 
 
         }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    }
+    ,
+    update: async function (req, res, next) {
+
+
+        try {
+
+            var token = req.headers.access_token;
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+            let id = req.params.id;
+
+            if (!id || id.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id invalid '
+                });
+            }
+
+
+            var buy = await BuyModel.findOne({_id: id});
+
+            if (!buy) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'buy not exist '
+                });
+            }
+
+            let post = await PostModel.findOne({content_id: buy._id});
+
+            if (!post || post.user != accessToken.user) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+            var title = req.body.title;
+            var description = req.body.description;
+            var keywordList = req.body.keywordList;
+
+            var formality = req.body.formality;
+            var type = req.body.type;
+            var city = req.body.city;
+            var district = req.body.district;
+            var ward = req.body.ward;
+            var street = req.body.street;
+            var project = req.body.project;
+            var areaMin = req.body.areaMin;
+            var areaMax = req.body.areaMax;
+            var priceMin = req.body.priceMin;
+            var priceMax = req.body.priceMax;
+            var unit = req.body.unit;
+
+            var address = req.body.address;
+
+            var images = req.body.images;
+
+            var contactName = req.body.contactName;
+            var contactAddress = req.body.contactAddress;
+            var contactPhone = req.body.contactPhone;
+            var contactMobile = req.body.contactMobile;
+            var contactEmail = req.body.contactEmail;
+            var receiveMail = req.body.receiveMail;
+
+            var status = req.body.status;
+            var from = req.body.from;
+            var to = req.body.to;
+
+            if (title) {
+                buy.title = title;
+            }
+            if (description) {
+                buy.description = description;
+            }
+            if (keywordList) {
+                buy.keywordList = keywordList;
+            }
+
+
+            if (formality) {
+                buy.formality = formality;
+            }
+            if (type) {
+                buy.type = type;
+            }
+            if (city) {
+                buy.city = city;
+            }
+            if (district) {
+                buy.district = district;
+            }
+            if (ward) {
+                buy.ward = ward;
+            }
+            if (street) {
+                buy.street = street;
+            }
+            if (project) {
+                buy.project = project;
+            }
+            if (areaMin) {
+                buy.areaMin = areaMin;
+            }
+            if (areaMax) {
+                buy.areaMax = areaMax;
+            }
+            if (priceMin) {
+                buy.priceMin = priceMin;
+            }
+            if (priceMax) {
+                buy.priceMax = priceMax;
+            }
+            if (unit) {
+                buy.unit = unit;
+            }
+
+            if (address) {
+                buy.address = address;
+            }
+            if (images) {
+                buy.images = images;
+            }
+
+
+            if (contactName) {
+                buy.contactName = contactName;
+            }
+            if (contactAddress) {
+                buy.contactAddress = contactAddress;
+            }
+            if (contactPhone) {
+                buy.contactPhone = contactPhone;
+            }
+            if (contactMobile) {
+                buy.contactMobile = contactMobile;
+            }
+            if (contactEmail) {
+                buy.contactEmail = contactEmail;
+            }
+            if (receiveMail) {
+                buy.receiveMail = receiveMail;
+            }
+
+
+            if (status != undefined) {
+                buy.status = status;
+            }
+
+
+            buy = await buy.save();
+
+
+            let param = await UrlParamModel.findOne({
+                postType: global.POST_TYPE_BUY,
+
+                formality: formality,
+                type: type,
+                city: city,
+                district: district,
+                ward: ward,
+                street: street,
+                project: project,
+                balconyDirection: undefined,
+                bedroomCount: undefined,
+                area: undefined,
+                price: undefined
+            });
+            if (title) {
+                let mainUrl = !param ? global.PARAM_NOT_FOUND_BUY : param.param;
+                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            }
+            post.formality = buy.formality;
+            post.type = buy.type;
+
+            if (from) {
+                post.from = from;
+            }
+
+            if (to) {
+                post.to = to;
+            }
+
+            await post.save();
+
+            if (keywordList && keywordList.length > 0) {
+                keywordList.forEach(async key => {
+
+                    var slug = urlSlug(key);
+
+                    if (!slug) {
+                        return;
+                    }
+
+                    var tag = await TagModel.findOne({slug: slug});
+
+                    if (!tag) {
+                        tag = new TagModel({
+                            slug: slug,
+                            keyword: key,
+                            posts: []
+                        });
+                    }
+
+                    tag.refresh = Date.now();
+                    tag.posts.push(post._id);
+
+                    await tag.save();
+                })
+            }
+
+
+            return res.json({
+                status: 1,
+                data: buy,
+                message: 'update success'
+            });
+        }
+
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    }
+    ,
+    updateAdmin: async function (req, res, next) {
+
+
+        try {
+
+            var token = req.headers.access_token;
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+            let id = req.params.id;
+
+            if (!id || id.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id invalid '
+                });
+            }
+
+
+            var buy = await BuyModel.findOne({_id: id});
+
+            if (!buy) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'buy not exist '
+                });
+            }
+
+            let post = await PostModel.findOne({content_id: buy._id});
+
+
+            var title = req.body.title;
+            var description = req.body.description;
+            var keywordList = req.body.keywordList;
+
+            var formality = req.body.formality;
+            var type = req.body.type;
+            var city = req.body.city;
+            var district = req.body.district;
+            var ward = req.body.ward;
+            var street = req.body.street;
+            var project = req.body.project;
+            var areaMin = req.body.areaMin;
+            var areaMax = req.body.areaMax;
+            var priceMin = req.body.priceMin;
+            var priceMax = req.body.priceMax;
+            var unit = req.body.unit;
+
+            var address = req.body.address;
+
+            var images = req.body.images;
+
+            var contactName = req.body.contactName;
+            var contactAddress = req.body.contactAddress;
+            var contactPhone = req.body.contactPhone;
+            var contactMobile = req.body.contactMobile;
+            var contactEmail = req.body.contactEmail;
+            var receiveMail = req.body.receiveMail;
+
+            var status = req.body.status;
+
+            var from = req.body.from;
+            var to = req.body.to;
+
+
+            if (title) {
+                buy.title = title;
+            }
+            if (description) {
+                buy.description = description;
+            }
+            if (keywordList) {
+                buy.keywordList = keywordList;
+            }
+
+
+            if (formality) {
+                buy.formality = formality;
+            }
+            if (type) {
+                buy.type = type;
+            }
+            if (city) {
+                buy.city = city;
+            }
+            if (district) {
+                buy.district = district;
+            }
+            if (ward) {
+                buy.ward = ward;
+            }
+            if (street) {
+                buy.street = street;
+            }
+            if (project) {
+                buy.project = project;
+            }
+            if (areaMin) {
+                buy.areaMin = areaMin;
+            }
+            if (areaMax) {
+                buy.areaMax = areaMax;
+            }
+            if (priceMin) {
+                buy.priceMin = priceMin;
+            }
+            if (priceMax) {
+                buy.priceMax = priceMax;
+            }
+            if (unit) {
+                buy.unit = unit;
+            }
+
+            if (address) {
+                buy.address = address;
+            }
+            if (images) {
+                buy.images = images;
+            }
+
+
+            if (contactName) {
+                buy.contactName = contactName;
+            }
+            if (contactAddress) {
+                buy.contactAddress = contactAddress;
+            }
+            if (contactPhone) {
+                buy.contactPhone = contactPhone;
+            }
+            if (contactMobile) {
+                buy.contactMobile = contactMobile;
+            }
+            if (contactEmail) {
+                buy.contactEmail = contactEmail;
+            }
+            if (receiveMail) {
+                buy.receiveMail = receiveMail;
+            }
+
+
+            if (status != undefined) {
+                buy.status = status;
+            }
+
+
+            buy = await buy.save();
+
+
+            let param = await UrlParamModel.findOne({
+                postType: global.POST_TYPE_BUY,
+
+                formality: formality,
+                type: type,
+                city: city,
+                district: district,
+                ward: ward,
+                street: street,
+                project: project,
+                balconyDirection: undefined,
+                bedroomCount: undefined,
+                area: undefined,
+                price: undefined
+            });
+            if (title) {
+                let mainUrl = !param ? global.PARAM_NOT_FOUND_BUY : param.param;
+                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            }
+            post.formality = buy.formality;
+            post.type = buy.type;
+
+            if (from) {
+                post.from = from;
+            }
+
+            if (to) {
+                post.to = to;
+            }
+
+            await post.save();
+
+
+            return res.json({
+                status: 1,
+                data: buy,
+                message: 'update success'
+            });
+        }
+
+
         catch (e) {
             return res.json({
                 status: 0,

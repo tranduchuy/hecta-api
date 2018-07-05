@@ -1,15 +1,9 @@
 global.STATUS_POST_ACTIVE = 1;
 global.STATUS_POST_BLOCKED = 2;
 global.STATUS_POST_PENDING = 3;
-
-global.STATUS_POST_PAID = 1;
-global.STATUS_POST_UNPAID = 2;
-
-// global.STATUS_DEBUG = 3;
-// global.STATUS_REMOVED = 4;
-// global.STATUS_DONE = 5;
-// global.STATUS_HIDE = 6;
-
+global.STATUS_POST_PAID = 4;
+global.STATUS_POST_UNPAID = 5;
+global.STATUS_POST_DETELE = 6;
 
 global.POST_TYPE_SALE = 1;
 global.POST_TYPE_BUY = 2;
@@ -41,6 +35,7 @@ global.PARAM_NOT_FOUND_SALE = 'tin-can-ban-can-cho-thue-chung';
 global.PARAM_NOT_FOUND_BUY = 'tin-can-mua-can-thue-chung';
 global.PARAM_NOT_FOUND_PROJECT = 'du-an-chung';
 global.PARAM_NOT_FOUND_NEWS = 'tin-tuc-chung';
+global.PARAM_NOT_FOUND = 'tim-kiem-chung';
 
 
 

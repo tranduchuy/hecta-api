@@ -10,7 +10,7 @@ var PostController = {
     listAdmin: async function (req, res, next) {
 
         var page = req.query.page;
-        var type = req.query.type;
+        var priority = req.query.priority;
         var formality = req.query.formality;
         var postType = req.query.postType;
         var toDate = req.query.toDate;
@@ -47,8 +47,8 @@ var PostController = {
             }
 
 
-            if (type) {
-                query.type = type;
+            if (priority != undefined) {
+                query.priority = priority;
             }
 
             if (postType) {
@@ -186,7 +186,7 @@ var PostController = {
     list: async function (req, res, next) {
 
         var page = req.query.page;
-        var type = req.query.type;
+        var priority = req.query.priority;
         var formality = req.query.formality;
         var postType = req.query.postType;
         var toDate = req.query.toDate;
@@ -197,8 +197,7 @@ var PostController = {
 
         var token = req.headers.access_token;
 
-        if(!token)
-        {
+        if (!token) {
             return res.json({
                 status: 0,
                 data: {},
@@ -232,7 +231,7 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {user : accessToken.user};
+            var query = {user: accessToken.user};
 
             if (toDate && fromDate) {
                 query.date = {
@@ -246,8 +245,8 @@ var PostController = {
             }
 
 
-            if (type) {
-                query.type = type;
+            if (priority != undefined) {
+                query.priority = priority;
             }
 
             if (postType) {
@@ -261,6 +260,9 @@ var PostController = {
             if (status != undefined) {
                 query.status = status;
             }
+
+            console.log('query ' + query);
+
 
             let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
 
@@ -276,6 +278,7 @@ var PostController = {
                     return await
                         // {sale, post};
                         {
+                            postId:post._id,
                             url: post.url,
                             id: sale._id,
                             title: sale.title,
@@ -309,6 +312,7 @@ var PostController = {
                             date: sale.date,
                             to: post.to,
                             from: post.from,
+                            status : post.status,
                             priority: post.priority,
                             postType: post.postType
                         };
@@ -320,6 +324,7 @@ var PostController = {
 
 
                     return await {
+                        postId:post._id,
                         url: post.url,
                         id: buy._id,
                         title: buy.title,
@@ -348,6 +353,7 @@ var PostController = {
                         date: buy.date,
                         to: post.to,
                         from: post.from,
+                        status : post.status,
                         priority: post.priority,
                         postType: post.postType
                     };
