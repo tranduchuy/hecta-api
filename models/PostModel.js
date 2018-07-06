@@ -6,19 +6,27 @@ var Schema = mongoose.Schema;
 
 var postSchema = new Schema({
 
+    content_id : String,
+
     postType: Number,
     type: Number,
-    content_id : String,
-    priority: Number,
-    from: Number,
-    to: Number,
     formality: Number,
+
     user : String,
 
     status : Number,
-    payment : Number,
+    paymentStatus : Number,
+    price : Number,
+
+    priority: Number,
+
+    from: Number,
+    to: Number,
+
     url : String,
-    date: {type: Number, default: Date.now}
+    date: {type: Number, default: Date.now},
+    refresh: {type: Number, default: Date.now}
+
 
 
 

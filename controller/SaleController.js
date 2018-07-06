@@ -8,158 +8,6 @@ var urlSlug = require('url-slug');
 var SaleController = {
 
 
-    detail: async function (req, res, next) {
-        let id = req.params.id;
-        try {
-
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id null error'
-                });
-
-            }
-
-            let sale = await SaleModel.findOne({_id: id});
-
-            if (!sale) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-            }
-
-
-            return res.json({
-                status: 1,
-                data: {
-                    id: sale._id,
-                    title: sale.title,
-                    formality: sale.formality,
-                    type: sale.type,
-                    city: sale.city,
-                    district: sale.district,
-                    ward: sale.ward,
-                    street: sale.street,
-                    project: sale.project,
-                    area: sale.area,
-                    price: sale.price,
-                    unit: sale.unit,
-                    address: sale.address,
-                    keywordList: sale.keywordList,
-                    description: sale.description,
-                    streetWidth: sale.streetWidth,
-                    frontSize: sale.frontSize,
-                    direction: sale.direction,
-                    balconyDirection: sale.balconyDirection,
-                    floorCount: sale.floorCount,
-                    bedroomCount: sale.bedroomCount,
-                    toiletCount: sale.toiletCount,
-                    furniture: sale.furniture,
-                    images: sale.images,
-                    contactName: sale.contactName,
-                    contactAddress: sale.contactAddress,
-                    contactPhone: sale.contactPhone,
-                    contactMobile: sale.contactMobile,
-                    contactEmail: sale.contactEmail,
-                    date: sale.date
-                },
-                message: 'request success'
-            });
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    }
-    ,
-    list: async function (req, res, next) {
-
-        var page = req.query.page;
-
-        if (!page || page < 1) {
-            page = 1;
-        }
-
-        try {
-
-            let date = Date.now();
-
-            let posts = await PostModel.find({
-                type: global.POST_TYPE_SALE
-                , to: {$gt: date}
-                , from: {$lt: date}
-            }).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-
-
-            let results = await Promise.all(posts.map(async post => {
-
-
-                let sale = await SaleModel.findOne({_id: post.content_id});
-
-
-                return await
-                    // {sale, post};
-                    {
-                        id: post._id,
-                        formality: sale.formality,
-                        title: sale.title,
-                        description: sale.description,
-                        city: sale.city,
-                        district: sale.district,
-                        price: sale.price,
-                        unit: sale.unit,
-                        area: sale.area,
-                        date: sale.date,
-                        priority: post.priority,
-                        images: sale.images,
-                        address: sale.address,
-                    };
-
-
-            }));
-
-
-            let count = await PostModel.count({
-                type: global.POST_TYPE_SALE
-                , to: {$gt: date}
-                , from: {$lt: date}
-            });
-
-            return res.json({
-                status: 1,
-                data: {
-                    items: results,
-                    page: page,
-                    total: _.ceil(count / global.PAGE_SIZE)
-                },
-                message: 'request success '
-            });
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    },
-
     add: async function (req, res, next) {
 
         var token = req.headers.access_token;
@@ -274,6 +122,23 @@ var SaleController = {
 
 
             var sale = new SaleModel();
+            var post = new PostModel();
+
+
+            if (token) {
+
+                var accessToken = await  TokenModel.findOne({token: token});
+
+                if (!accessToken) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'access token invalid'
+                    });
+
+                }
+                post.user = accessToken.user;
+            }
 
             sale.title = title;
 
@@ -311,7 +176,6 @@ var SaleController = {
 
             sale = await sale.save();
 
-            var post = new PostModel();
 
             post.postType = global.POST_TYPE_SALE;
             post.type = sale.type;
@@ -321,78 +185,70 @@ var SaleController = {
             post.to = to;
             post.formality = sale.formality;
 
-            if (token) {
+            post.status = global.STATUS_POST_PENDING;
+            post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
 
-                var accessToken = await  TokenModel.findOne({token: token});
+            let param = await UrlParamModel.findOne({
+                postType: global.POST_TYPE_SALE,
 
-                if (!accessToken) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'access token invalid'
-                    });
+                formality: formality,
+                type: type,
+                city: city,
+                district: district,
+                ward: ward,
+                street: street,
+                project: project,
+                balconyDirection: balconyDirection,
+                bedroomCount: bedroomCount,
+                area: accessToken,
+                price: price,
+                areaMax: undefined,
+                areaMin: undefined,
+                priceMax: undefined,
+                priceMin: undefined,
+                extra: undefined,
+                text: undefined
+            });
 
+
+            if (!param) {
+
+                var mainUrl = global.PARAM_NOT_FOUND_SALE;
+
+                param = await UrlParamModel.findOne({param: mainUrl});
+                while (param) {
+                    mainUrl = mainUrl + '-';
+                    param = await UrlParamModel.findOne({param: mainUrl});
                 }
 
-                post.user = accessToken.user;
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_SALE,
 
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: balconyDirection,
+                    bedroomCount: bedroomCount,
+                    area: accessToken,
+                    price: price,
+                    areaMax: undefined,
+                    areaMin: undefined,
+                    priceMax: undefined,
+                    priceMin: undefined,
+                    extra: undefined,
+                    text: undefined,
+                    param: mainUrl
+                });
+
+                param = await param.save();
 
             }
 
-            let queryParams = {
-                postType: global.POST_TYPE_SALE
-            };
-
-            if (formality) {
-                queryParams.formality = formality;
-            }
-
-            if (type) {
-                queryParams.type = type;
-            }
-
-            if (city) {
-                queryParams.city = city;
-            }
-
-            if (district) {
-                queryParams.district = district;
-            }
-
-            if (ward) {
-                queryParams.ward = ward;
-            }
-
-
-            if (street) {
-                queryParams.street = street;
-            }
-            if (project) {
-                queryParams.project = project;
-            }
-
-
-            if (balconyDirection) {
-                queryParams.balconyDirection = balconyDirection;
-            }
-
-            if (bedroomCount) {
-                queryParams.bedroomCount = bedroomCount;
-            }
-
-            if (area) {
-                queryParams.area = area;
-            }
-
-            if (price) {
-                queryParams.price = price;
-            }
-
-
-            let param = await UrlParamModel.findOne(queryParams);
-
-
-            let mainUrl = !param ? global.PARAM_NOT_FOUND_SALE : param.param;
+            mainUrl = param.param;
 
             post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
 
@@ -454,6 +310,7 @@ var SaleController = {
 
             var accessToken = await  TokenModel.findOne({token: token});
 
+
             if (!accessToken) {
                 return res.json({
                     status: 0,
@@ -474,24 +331,35 @@ var SaleController = {
             }
 
 
-            var sale = await SaleModel.findOne({_id: id});
+            let post = await PostModel.findOne({_id: id});
 
-
-            if (!sale) {
+            if (!post || post.postType != global.POST_TYPE_SALE) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: 'sale not exist '
+                    message: 'post not exist '
                 });
             }
 
-            let post = await PostModel.findOne({content_id: sale._id});
-
-            if (!post || post.user != accessToken.user) {
+            if(post.user != accessToken.user)
+            {
                 return res.json({
                     status: 0,
                     data: {},
                     message: 'user does not have permission !'
+                });
+            }
+
+
+            var sale = await SaleModel.findOne({_id: post.content_id});
+
+
+
+            if (!sale ) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'sale not exist '
                 });
             }
 
@@ -537,7 +405,6 @@ var SaleController = {
 
             var from = req.body.from;
             var to = req.body.to;
-            var paramsX = req.body.params;
 
 
             if (title) {
@@ -631,14 +498,6 @@ var SaleController = {
                 sale.contactEmail = contactEmail;
             }
 
-            if (priority) {
-                sale.priority = priority;
-            }
-
-            if (status != undefined) {
-                sale.status = status;
-            }
-
 
             sale = await sale.save();
 
@@ -656,23 +515,81 @@ var SaleController = {
                 balconyDirection: balconyDirection,
                 bedroomCount: bedroomCount,
                 area: area,
-                price: price
+                price: price,
+                areaMax: undefined,
+                areaMin: undefined,
+                priceMax: undefined,
+                priceMin: undefined,
+                extra: undefined,
+                text: undefined
             });
 
 
-            if (title) {
-                let mainUrl = !param ? global.PARAM_NOT_FOUND_SALE : param.param;
-                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            if (!param) {
+
+                var mainUrl = global.PARAM_NOT_FOUND_SALE;
+
+                param = await UrlParamModel.findOne({param: mainUrl});
+                while (param) {
+                    mainUrl = mainUrl + '-';
+                    param = await UrlParamModel.findOne({param: mainUrl});
+                }
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_SALE,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: balconyDirection,
+                    bedroomCount: bedroomCount,
+                    area: area,
+                    price: price,
+                    areaMax: undefined,
+                    areaMin: undefined,
+                    priceMax: undefined,
+                    priceMin: undefined,
+                    extra: undefined,
+                    text: undefined,
+                    param: mainUrl
+                });
+
+                param = await param.save();
+
             }
+
+            mainUrl = param.param;
+            post.url = mainUrl + '/' + urlSlug(sale.title) + '-' + Date.now();
+
             post.type = sale.type;
             post.priority = sale.priority;
 
             if (from) {
                 post.from = from;
+                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.refresh = Date.now();
+
             }
 
             if (to) {
                 post.to = to;
+                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS_PAYMENT_UNPAID;
+            }
+
+            if (status == global.STATUS_POST_DETELE) {
+                post.status = status;
+            }
+
+            if (priority) {
+                post.priority = priority;
+                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS_PAYMENT_UNPAID;
             }
 
             await post.save();
@@ -749,9 +666,31 @@ var SaleController = {
             }
 
 
-            var sale = await SaleModel.findOne({_id: id});
+            let post = await PostModel.findOne({content_id: id});
 
-            if (!sale) {
+            if (!post || post.postType != global.POST_TYPE_SALE) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist '
+                });
+            }
+
+            if(post.user != accessToken.user)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+
+            var sale = await SaleModel.findOne({_id: post.content_id});
+
+
+
+            if (!sale ) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -801,6 +740,7 @@ var SaleController = {
 
             var from = req.body.from;
             var to = req.body.to;
+            var paymentStatus = req.body.paymentStatus;
 
 
             if (title) {
@@ -894,18 +834,11 @@ var SaleController = {
                 sale.contactEmail = contactEmail;
             }
 
-            if (priority) {
-                sale.priority = priority;
-            }
-
-            if (status != undefined) {
-                sale.status = status;
-            }
-
+            // if (priority) {
+            //     sale.priority = priority;
+            // }
 
             sale = await sale.save();
-
-            let post = await PostModel.findOne({content_id: sale._id})
 
 
             let param = await UrlParamModel.findOne({
@@ -920,26 +853,78 @@ var SaleController = {
                 project: project,
                 balconyDirection: balconyDirection,
                 bedroomCount: bedroomCount,
-                area: area,
-                price: price
+                area: accessToken,
+                price: price,
+                areaMax: undefined,
+                areaMin: undefined,
+                priceMax: undefined,
+                priceMin: undefined,
+                extra: undefined,
+                text: undefined
             });
 
 
-            if (title) {
-                let mainUrl = !param ? global.PARAM_NOT_FOUND_SALE : param.param;
-                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            if (!param) {
+
+                var mainUrl = global.PARAM_NOT_FOUND_SALE;
+
+                param = await UrlParamModel.findOne({param: mainUrl});
+                while (param) {
+                    mainUrl = mainUrl + '-';
+                    param = await UrlParamModel.findOne({param: mainUrl});
+                }
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_SALE,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: balconyDirection,
+                    bedroomCount: bedroomCount,
+                    area: accessToken,
+                    price: price,
+                    areaMax: undefined,
+                    areaMin: undefined,
+                    priceMax: undefined,
+                    priceMin: undefined,
+                    extra: undefined,
+                    text: undefined,
+                    param: mainUrl
+                });
+
+                param = await param.save();
+
             }
+
+            mainUrl = param.param;
+            post.url = mainUrl + '/' + urlSlug(sale.title) + '-' + Date.now();
+
             post.type = sale.type;
-            post.priority = sale.priority;
+
+            if (priority) {
+                post.priority = priority;
+            }
+            if (paymentStatus) {
+                post.paymentStatus = paymentStatus;
+            }
 
             if (from) {
                 post.from = from;
+                post.refresh = Date.now();
             }
 
             if (to) {
                 post.to = to;
             }
 
+            if (status == undefined) {
+                post.status = status;
+            }
 
             await post.save();
 

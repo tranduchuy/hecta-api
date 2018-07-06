@@ -8,157 +8,6 @@ var UrlParamModel = require('../models/UrlParamModel');
 
 var BuyController = {
 
-
-    detail: async function (req, res, next) {
-
-
-        let id = req.params.id;
-        try {
-
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id null error'
-                });
-
-            }
-
-            let buy = await BuyModel.findOne({_id: id});
-
-            if (!buy) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-            }
-
-
-            return res.json({
-                status: 1,
-                data: {
-                    id: buy._id,
-                    title: buy.title,
-                    description: buy.description,
-                    keywordList: buy.keywordList,
-                    formality: buy.formality,
-                    type: buy.type,
-                    city: buy.city,
-                    district: buy.district,
-                    ward: buy.ward,
-                    street: buy.street,
-                    project: buy.project,
-                    areaMin: buy.areaMin,
-                    areaMax: buy.areaMax,
-                    priceMin: buy.priceMin,
-                    priceMax: buy.priceMax,
-                    unit: buy.unit,
-                    address: buy.address,
-                    images: buy.images,
-                    contactName: buy.contactName,
-                    contactAddress: buy.contactAddress,
-                    contactPhone: buy.contactPhone,
-                    contactMobile: buy.contactMobile,
-                    contactEmail: buy.contactEmail,
-                    receiveMail: buy.receiveMail,
-                    date: buy.date
-                },
-                message: 'request success'
-            });
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    }
-    ,
-    list: async function (req, res, next) {
-
-
-        var page = req.query.page;
-
-        if (!page || page < 1) {
-            page = 1;
-        }
-
-        try {
-
-            let date = Date.now();
-
-            let posts = await PostModel.find({
-                type: global.POST_TYPE_BUY
-                , to: {$gt: date}
-                , from: {$lt: date}
-            }).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-
-
-            let results = await Promise.all(posts.map(async post => {
-
-
-                let buy = await BuyModel.findOne({_id: post.content_id});
-
-
-                return await {
-                    id: post._id,
-                    title: buy.title,
-                    formality: buy.formality,
-                    description: buy.description,
-                    city: buy.city,
-                    district: buy.district,
-                    priceMin: buy.priceMin,
-                    priceMax: buy.priceMax,
-                    areaMin: buy.areaMin,
-                    areaMax: buy.areaMax,
-                    unit: buy.unit,
-                    date: buy.date,
-                    priority: post.priority,
-                    images: buy.images,
-                    address: buy.address,
-                };
-
-
-            }));
-
-
-            let count = await PostModel.count({
-                type: global.POST_TYPE_BUY
-                , to: {$gt: date}
-                , from: {$lt: date}
-            });
-
-            return res.json({
-                status: 1,
-                data: {
-                    items: results,
-                    page: page,
-                    total: _.ceil(count / global.PAGE_SIZE)
-                },
-                message: 'request success '
-            });
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    },
-
     add: async function (req, res, next) {
 
         var token = req.headers.access_token;
@@ -194,6 +43,9 @@ var BuyController = {
 
         var from = req.body.from;
         var to = req.body.to;
+
+        var priority = req.body.priority;
+
 
         var captchaToken = req.body.captchaToken;
 
@@ -267,6 +119,26 @@ var BuyController = {
 
 
             var buy = new BuyModel();
+            var post = new PostModel();
+
+            if (token) {
+
+                var accessToken = await  TokenModel.findOne({token: token});
+
+                if (!accessToken) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'access token invalid'
+                    });
+
+                }
+
+                post.user = accessToken.user;
+
+
+            }
+
 
             buy.title = title;
             buy.description = description;
@@ -298,27 +170,6 @@ var BuyController = {
 
             buy = await buy.save();
 
-            var post = new PostModel();
-
-
-            if (token) {
-
-                var accessToken = await  TokenModel.findOne({token: token});
-
-                if (!accessToken) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'access token invalid'
-                    });
-
-                }
-
-                post.user = accessToken.user;
-
-
-            }
-
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_BUY,
 
@@ -332,11 +183,71 @@ var BuyController = {
                 balconyDirection: undefined,
                 bedroomCount: undefined,
                 area: undefined,
-                price: undefined
+                price: undefined,
+                areaMax: areaMax,
+                areaMin: areaMin,
+                priceMax: priceMax,
+                priceMin: priceMin,
+                extra: undefined,
+                text: undefined
             });
 
 
-            let mainUrl = !param ? global.PARAM_NOT_FOUND_BUY : param.param;
+            if (!param) {
+
+                var paramX = await UrlParamModel.findOne({
+                    postType: global.POST_TYPE_BUY,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    area: undefined,
+                    price: undefined,
+                    extra: undefined,
+                    text: undefined
+                });
+
+                var urlX = paramX ? paramX.param : global.PARAM_NOT_FOUND_BUY;
+
+                var mainUrl = urlX + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
+
+                param = await UrlParamModel.findOne({param: mainUrl});
+                while (param) {
+                    mainUrl = mainUrl + '-';
+                    param = await UrlParamModel.findOne({param: mainUrl});
+                }
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_BUY,
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    areaMax: areaMax,
+                    areaMin: areaMin,
+                    area: undefined,
+                    priceMax: priceMax,
+                    priceMin: priceMin,
+                    price: undefined,
+                    param: mainUrl
+                });
+
+                param = await param.save();
+
+            }
+
+            mainUrl = param.param;
 
             post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
 
@@ -344,11 +255,12 @@ var BuyController = {
             post.formality = buy.formality;
             post.type = buy.type;
             post.content_id = buy._id;
-            post.priority = 0;
+            post.priority = priority;
             post.from = from;
             post.to = to;
+
             post.status = global.STATUS_POST_PENDING;
-            post.payment = global.STATUS_POST_UNPAID;
+            post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
 
             post = await post.save();
 
@@ -405,6 +317,17 @@ var BuyController = {
 
             var token = req.headers.access_token;
 
+            // var params = req.body.params;
+            //
+            // if (!params) {
+            //     return res.json({
+            //         status: 0,
+            //         data: {},
+            //         message: 'params is not found'
+            //     });
+            // }
+
+
             var accessToken = await  TokenModel.findOne({token: token});
 
             if (!accessToken) {
@@ -426,9 +349,31 @@ var BuyController = {
             }
 
 
-            var buy = await BuyModel.findOne({_id: id});
+            let post = await PostModel.findOne({_id: id});
 
-            if (!buy) {
+            if (!post || post.postType != global.POST_TYPE_BUY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist '
+                });
+            }
+
+            if(post.user != accessToken.user)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+
+            var buy = await BuyModel.findOne({_id: post.content_id});
+
+
+
+            if (!buy ) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -436,15 +381,6 @@ var BuyController = {
                 });
             }
 
-            let post = await PostModel.findOne({content_id: buy._id});
-
-            if (!post || post.user != accessToken.user) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user does not have permission !'
-                });
-            }
 
             var title = req.body.title;
             var description = req.body.description;
@@ -477,6 +413,9 @@ var BuyController = {
             var status = req.body.status;
             var from = req.body.from;
             var to = req.body.to;
+
+            var priority = req.body.priority;
+
 
             if (title) {
                 buy.title = title;
@@ -554,11 +493,6 @@ var BuyController = {
             }
 
 
-            if (status != undefined) {
-                buy.status = status;
-            }
-
-
             buy = await buy.save();
 
 
@@ -575,21 +509,97 @@ var BuyController = {
                 balconyDirection: undefined,
                 bedroomCount: undefined,
                 area: undefined,
-                price: undefined
+                price: undefined,
+                areaMax: areaMax,
+                areaMin: areaMin,
+                priceMax: priceMax,
+                priceMin: priceMin,
+                extra: undefined,
+                text: undefined
             });
-            if (title) {
-                let mainUrl = !param ? global.PARAM_NOT_FOUND_BUY : param.param;
-                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+
+
+            if (!param) {
+
+                var paramX = await UrlParamModel.findOne({
+                    postType: global.POST_TYPE_BUY,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    area: undefined,
+                    price: undefined,
+                    extra: undefined,
+                    text: undefined
+                });
+
+                var urlX = paramX ? paramX.param : global.PARAM_NOT_FOUND_BUY;
+
+                var mainUrl = urlX + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
+
+                param = await UrlParamModel.findOne({param: mainUrl});
+                while (param) {
+                    mainUrl = mainUrl + '-';
+                    param = await UrlParamModel.findOne({param: mainUrl});
+                }
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_BUY,
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    areaMax: areaMax,
+                    areaMin: areaMin,
+                    area: undefined,
+                    priceMax: priceMax,
+                    priceMin: priceMin,
+                    price: undefined,
+                    param: mainUrl
+                });
+
+                param = await param.save();
+
             }
+
+            mainUrl = param.param;
+
+            post.url = mainUrl + '/' + urlSlug(buy.title) + '-' + Date.now();
             post.formality = buy.formality;
             post.type = buy.type;
 
             if (from) {
                 post.from = from;
+                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.refresh = Date.now();
             }
 
             if (to) {
                 post.to = to;
+                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS_PAYMENT_UNPAID;
+            }
+
+            if (status == global.STATUS_POST_DETELE) {
+                post.status = status;
+            }
+
+            if (priority) {
+                post.priority = priority;
+                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS_PAYMENT_UNPAID;
             }
 
             await post.save();
@@ -623,7 +633,7 @@ var BuyController = {
 
             return res.json({
                 status: 1,
-                data: buy,
+                data: {},
                 message: 'update success'
             });
         }
@@ -637,10 +647,9 @@ var BuyController = {
             });
         }
 
-    }
-    ,
-    updateAdmin: async function (req, res, next) {
+    },
 
+    updateAdmin: async function (req, res, next) {
 
         try {
 
@@ -666,18 +675,37 @@ var BuyController = {
                 });
             }
 
+            let post = await PostModel.findOne({content_id: id});
 
-            var buy = await BuyModel.findOne({_id: id});
+            if (!post || post.postType != global.POST_TYPE_SALE) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist '
+                });
+            }
 
-            if (!buy) {
+            if(post.user != accessToken.user)
+            {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+
+            var buy = await BuyModel.findOne({_id: post.content_id});
+
+
+
+            if (!buy ) {
                 return res.json({
                     status: 0,
                     data: {},
                     message: 'buy not exist '
                 });
             }
-
-            let post = await PostModel.findOne({content_id: buy._id});
 
 
             var title = req.body.title;
@@ -708,11 +736,15 @@ var BuyController = {
             var contactEmail = req.body.contactEmail;
             var receiveMail = req.body.receiveMail;
 
+            var priority = req.body.priority;
+
+
             var status = req.body.status;
+            var paymentStatus = req.body.paymentStatus;
+
 
             var from = req.body.from;
             var to = req.body.to;
-
 
             if (title) {
                 buy.title = title;
@@ -790,11 +822,6 @@ var BuyController = {
             }
 
 
-            if (status != undefined) {
-                buy.status = status;
-            }
-
-
             buy = await buy.save();
 
 
@@ -811,29 +838,129 @@ var BuyController = {
                 balconyDirection: undefined,
                 bedroomCount: undefined,
                 area: undefined,
-                price: undefined
+                price: undefined,
+                areaMax: areaMax,
+                areaMin: areaMin,
+                priceMax: priceMax,
+                priceMin: priceMin,
+                extra: undefined,
+                text: undefined
             });
-            if (title) {
-                let mainUrl = !param ? global.PARAM_NOT_FOUND_BUY : param.param;
-                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+
+
+            if (!param) {
+
+                var paramX = await UrlParamModel.findOne({
+                    postType: global.POST_TYPE_BUY,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    area: undefined,
+                    price: undefined,
+                    extra: undefined,
+                    text: undefined
+                });
+
+                var urlX = paramX ? paramX.param : global.PARAM_NOT_FOUND_BUY;
+
+                var mainUrl = urlX + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
+
+                param = await UrlParamModel.findOne({param: mainUrl});
+                while (param) {
+                    mainUrl = mainUrl + '-';
+                    param = await UrlParamModel.findOne({param: mainUrl});
+                }
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_BUY,
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    areaMax: areaMax,
+                    areaMin: areaMin,
+                    area: undefined,
+                    priceMax: priceMax,
+                    priceMin: priceMin,
+                    price: undefined,
+                    param: mainUrl
+                });
+
+                param = await param.save();
+
             }
+
+            mainUrl = param.param;
+
+            post.url = mainUrl + '/' + urlSlug(buy.title) + '-' + Date.now();
             post.formality = buy.formality;
             post.type = buy.type;
 
+            if (paymentStatus) {
+                post.paymentStatus = paymentStatus;
+            }
+
+            if (priority) {
+                post.priority = priority;
+            }
+
             if (from) {
                 post.from = from;
+                post.refresh = Date.now();
             }
 
             if (to) {
                 post.to = to;
             }
 
+            if (status == undefined) {
+                post.status = status;
+            }
+
             await post.save();
+
+            if (keywordList && keywordList.length > 0) {
+                keywordList.forEach(async key => {
+
+                    var slug = urlSlug(key);
+
+                    if (!slug) {
+                        return;
+                    }
+
+                    var tag = await TagModel.findOne({slug: slug});
+
+                    if (!tag) {
+                        tag = new TagModel({
+                            slug: slug,
+                            keyword: key,
+                            posts: []
+                        });
+                    }
+
+                    tag.refresh = Date.now();
+                    tag.posts.push(post._id);
+
+                    await tag.save();
+                })
+            }
 
 
             return res.json({
                 status: 1,
-                data: buy,
+                data: {},
                 message: 'update success'
             });
         }
@@ -846,7 +973,6 @@ var BuyController = {
                 message: 'unknown error : ' + e.message
             });
         }
-
     }
 
 }

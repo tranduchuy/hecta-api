@@ -23,7 +23,8 @@ router.post('/news/update/:id', NewsController.update);
 router.get('/news/detail/:id', NewsController.detail);
 
 
-router.get('/post/list', PostController.listAdmin);
+router.get('/posts/list', PostController.listAdmin);
+router.get('/posts/detail/:id', PostController.detailAdmin);
 
 
 router.post('/buys/update/:id', BuyController.updateAdmin);

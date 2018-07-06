@@ -178,7 +178,6 @@ var SearchController = {
                 price: price
             };
 
-            console.log('query ', query);
 
             var cats = await UrlParamModel.find(query);
             var mainUrl = global.PARAM_NOT_FOUND;
@@ -400,9 +399,7 @@ var SearchController = {
 
 
                         return {
-                            url: post.url,
-                            type: post.type,
-                            id: post._id,
+
                             formality: sale.formality,
                             title: sale.title,
                             description: sale.description,
@@ -412,9 +409,15 @@ var SearchController = {
                             unit: sale.unit,
                             area: sale.area,
                             date: sale.date,
-                            priority: post.priority,
                             images: sale.images,
                             address: sale.address,
+
+                            url: post.url,
+                            type: post.type,
+                            id: post._id,
+
+
+
                         };
                     }
                     else if (postType == global.POST_TYPE_BUY) {
@@ -423,9 +426,7 @@ var SearchController = {
                         let buy = item;
 
                         return {
-                            url: post.url,
-                            type: post.type,
-                            id: post._id,
+
                             title: buy.title,
                             formality: buy.formality,
                             description: buy.description,
@@ -437,9 +438,16 @@ var SearchController = {
                             areaMax: buy.areaMax,
                             unit: buy.unit,
                             date: buy.date,
-                            priority: post.priority,
                             images: buy.images,
                             address: buy.address,
+
+                            url: post.url,
+                            type: post.type,
+                            id: post._id,
+
+                            priority: post.priority,
+                            status : post.status,
+                            paymentStatus : post.paymentStatus
                         };
                     }
 

@@ -41,9 +41,7 @@ var saleSchema = new Schema({
     contactMobile: String,
     contactEmail: String,
 
-    status : {type : Number, default:global.STATUS_POST_ACTIVE},
     date: {type: Number, default: Date.now},
-    refresh: {type: Number, default: Date.now}
 
 
 });

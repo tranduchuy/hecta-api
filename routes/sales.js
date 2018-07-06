@@ -10,8 +10,6 @@ router.get('/', function(req, res, next) {
 
 router.post('/add', SaleController.add);
 router.post('/update/:id', SaleController.update);
-router.get('/list', SaleController.list);
-router.get('/detail/:id', SaleController.detail);
 
 
 module.exports = router;

@@ -2,6 +2,7 @@ var SaleModel = require('../models/SaleModel');
 var BuyModel = require('../models/BuyModel');
 var PostModel = require('../models/PostModel');
 var TagModel = require('../models/TagModel');
+var urlSlug = require('url-slug');
 
 var _ = require('lodash');
 
@@ -104,6 +105,22 @@ var TagController = {
                     let sale = await SaleModel.findOne({_id: post.content_id});
 
 
+                    let keys;
+
+                    if (!sale.keywordList) {
+                        keys = [];
+                    }
+                    else {
+                        keys = await Promise.all(sale.keywordList.map(async key => {
+
+                                return {
+                                    keyword: key,
+                                    slug: urlSlug(key)
+                                }
+                            }
+                        ));
+                    }
+
                     return await
                         // {sale, post};
                         {
@@ -122,7 +139,7 @@ var TagController = {
                             price: sale.price,
                             unit: sale.unit,
                             address: sale.address,
-                            keywordList: sale.keywordList,
+                            keywordList: keys,
                             description: sale.description,
                             streetWidth: sale.streetWidth,
                             frontSize: sale.frontSize,
@@ -150,7 +167,21 @@ var TagController = {
 
 
                     let buy = await BuyModel.findOne({_id: post.content_id});
+                    let keys;
 
+                    if (!buy.keywordList) {
+                        keys = [];
+                    }
+                    else {
+                        keys = await Promise.all(buy.keywordList.map(async key => {
+
+                                return {
+                                    keyword: key,
+                                    slug: urlSlug(key)
+                                }
+                            }
+                        ));
+                    }
 
                     return await {
                         postId: post._id,
@@ -197,6 +228,7 @@ var TagController = {
             return res.json({
                 status: 1,
                 data: {
+                    tag : tag,
                     items: results,
                     page: page,
                     total: _.ceil(count / global.PAGE_SIZE)

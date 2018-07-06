@@ -287,6 +287,8 @@ var NewsController = {
 
             post.postType = global.POST_TYPE_NEWS;
             post.type = news.cate;
+            post.status = global.STATUS_POST_ACTIVE;
+            post.paymentStatus = global.STATUS_PAYMENT_FREE;
             post.content_id = news._id;
 
 

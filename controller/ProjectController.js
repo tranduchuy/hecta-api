@@ -564,6 +564,9 @@ var ProjectController = {
 
             post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
 
+            post.status = global.STATUS_POST_ACTIVE;
+            post.paymentStatus = global.STATUS_PAYMENT_FREE;
+
             post = await post.save();
 
 
