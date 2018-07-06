@@ -397,6 +397,22 @@ var SearchController = {
 
                         let sale = item;
 
+                        let keys;
+
+                        if (!sale.keywordList) {
+                            keys = [];
+                        }
+                        else {
+                            keys = await Promise.all(sale.keywordList.map(async key => {
+
+                                    return {
+                                        keyword: key,
+                                        slug: urlSlug(key)
+                                    }
+                                }
+                            ));
+                        }
+
 
                         return {
 
@@ -411,6 +427,7 @@ var SearchController = {
                             date: sale.date,
                             images: sale.images,
                             address: sale.address,
+                            keywordList: keys,
 
                             url: post.url,
                             type: post.type,
@@ -424,6 +441,22 @@ var SearchController = {
 
 
                         let buy = item;
+
+                        let keys;
+
+                        if (!buy.keywordList) {
+                            keys = [];
+                        }
+                        else {
+                            keys = await Promise.all(buy.keywordList.map(async key => {
+
+                                    return {
+                                        keyword: key,
+                                        slug: urlSlug(key)
+                                    }
+                                }
+                            ));
+                        }
 
                         return {
 
@@ -440,6 +473,8 @@ var SearchController = {
                             date: buy.date,
                             images: buy.images,
                             address: buy.address,
+                            keywordList: keys,
+
 
                             url: post.url,
                             type: post.type,

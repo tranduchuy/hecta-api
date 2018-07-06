@@ -496,7 +496,6 @@ var PostController = {
                 }
 
                 return res.json({
-                    keywordList : keys,
                     status: 1,
                     data: {
 
@@ -512,7 +511,7 @@ var PostController = {
                         price: content.price,
                         unit: content.unit,
                         address: content.address,
-                        keywordList: content.keywordList,
+                        keywordList: keys,
                         description: content.description,
                         streetWidth: content.streetWidth,
                         frontSize: content.frontSize,
@@ -563,12 +562,11 @@ var PostController = {
 
                 return res.json({
                     status: 1,
-                    keywordList : keys,
                     data: {
 
                         title: content.title,
                         description: content.description,
-                        keywordList: content.keywordList,
+                        keywordList: keys,
                         formality: content.formality,
                         type: content.type,
                         city: content.city,

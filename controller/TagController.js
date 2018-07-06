@@ -189,7 +189,7 @@ var TagController = {
                         id: buy._id,
                         title: buy.title,
                         description: buy.description,
-                        keywordList: buy.keywordList,
+                        keywordList: keys,
                         formality: buy.formality,
                         type: buy.type,
                         city: buy.city,
@@ -228,7 +228,7 @@ var TagController = {
             return res.json({
                 status: 1,
                 data: {
-                    tag : tag,
+                    keyword : tag.keyword,
                     items: results,
                     page: page,
                     total: _.ceil(count / global.PAGE_SIZE)
