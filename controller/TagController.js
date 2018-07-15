@@ -8,7 +8,32 @@ var _ = require('lodash');
 
 var TagController = {
 
+    highlight: async function (req, res, next) {
 
+
+        try {
+
+
+            let tags = await TagModel.find().sort({refresh: -1}).limit(10);
+
+            return res.json({
+                status: 1,
+                data: tags,
+                message: 'request success '
+            });
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
     list: async function (req, res, next) {
 
         // var slug = req.query.slug;
@@ -60,8 +85,6 @@ var TagController = {
         try {
             var page = req.query.page;
             var slug = req.query.slug;
-
-
 
 
             if (!slug || slug.length == 0) {
@@ -228,7 +251,7 @@ var TagController = {
             return res.json({
                 status: 1,
                 data: {
-                    keyword : tag.keyword,
+                    keyword: tag.keyword,
                     items: results,
                     page: page,
                     total: _.ceil(count / global.PAGE_SIZE)

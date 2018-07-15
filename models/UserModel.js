@@ -14,6 +14,7 @@ var userSchema = new Schema({
     birthday: Number,
     gender: Number,
     city: String,
+    avatar : String,
     district: Number,
     ward: Number,
     type: Number,

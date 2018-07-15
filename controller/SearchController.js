@@ -429,9 +429,15 @@ var SearchController = {
                             address: sale.address,
                             keywordList: keys,
 
-                            url: post.url,
-                            type: post.type,
                             id: post._id,
+                            url: post.url,
+                            to: post.to,
+                            from: post.from,
+                            priority: post.priority,
+                            postType: post.postType,
+                            status: post.status,
+                            paymentStatus: post.paymentStatus,
+                            refresh: post.refresh
 
 
 
@@ -476,13 +482,15 @@ var SearchController = {
                             keywordList: keys,
 
 
-                            url: post.url,
-                            type: post.type,
                             id: post._id,
-
+                            url: post.url,
+                            to: post.to,
+                            from: post.from,
                             priority: post.priority,
-                            status : post.status,
-                            paymentStatus : post.paymentStatus
+                            postType: post.postType,
+                            status: post.status,
+                            paymentStatus: post.paymentStatus,
+                            refresh: post.refresh
                         };
                     }
 
@@ -587,15 +595,29 @@ var SearchController = {
 
             if (postType == global.POST_TYPE_SALE) {
 
+                let keys;
+
+                if (!content.keywordList) {
+                    keys = [];
+                }
+                else {
+                    keys = await Promise.all(content.keywordList.map(async key => {
+
+                            return {
+                                keyword: key,
+                                slug: urlSlug(key)
+                            }
+                        }
+                    ));
+                }
+
                 return res.json({
                     type: postType,
                     isList: false,
                     params: query,
                     status: 1,
                     data: {
-                        priority: post.priority,
-                        url: post.url,
-                        id: content._id,
+
                         title: content.title,
                         formality: content.formality,
                         type: content.type,
@@ -608,7 +630,7 @@ var SearchController = {
                         price: content.price,
                         unit: content.unit,
                         address: content.address,
-                        keywordList: content.keywordList,
+                        keywordList: keys,
                         description: content.description,
                         streetWidth: content.streetWidth,
                         frontSize: content.frontSize,
@@ -625,15 +647,38 @@ var SearchController = {
                         contactMobile: content.contactMobile,
                         contactEmail: content.contactEmail,
                         date: content.date,
+
+                        id: post._id,
+                        url: post.url,
                         to: post.to,
                         from: post.from,
                         priority: post.priority,
-                        postType: post.postType
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
                     },
                     message: 'request success'
                 });
             }
             else if (postType == global.POST_TYPE_BUY) {
+
+                let keys;
+
+                if (!content.keywordList) {
+                    keys = [];
+                }
+                else {
+                    keys = await Promise.all(content.keywordList.map(async key => {
+
+                            return {
+                                keyword: key,
+                                slug: urlSlug(key)
+                            }
+                        }
+                    ));
+                }
+
 
                 return res.json({
                     status: 1,
@@ -641,12 +686,10 @@ var SearchController = {
                     isList: false,
                     params: query,
                     data: {
-                        priority: post.priority,
-                        url: post.url,
-                        id: content._id,
+
                         title: content.title,
                         description: content.description,
-                        keywordList: content.keywordList,
+                        keywordList: keys,
                         formality: content.formality,
                         type: content.type,
                         city: content.city,
@@ -668,10 +711,16 @@ var SearchController = {
                         contactEmail: content.contactEmail,
                         receiveMail: content.receiveMail,
                         date: content.date,
+
+                        id: post._id,
+                        url: post.url,
                         to: post.to,
                         from: post.from,
                         priority: post.priority,
-                        postType: post.postType
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
                     },
                     message: 'request success'
                 });

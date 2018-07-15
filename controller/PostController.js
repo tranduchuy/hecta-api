@@ -34,7 +34,7 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {};
+            var query = {status: {$ne: global.STATUS_POST_DETELE}};
 
             if (toDate && fromDate) {
                 query.date = {
@@ -276,7 +276,7 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {user: accessToken.user};
+            var query = {user: accessToken.user, status: {$ne: global.STATUS_POST_DETELE}};
 
             if (toDate && fromDate) {
                 query.date = {
@@ -665,8 +665,7 @@ var PostController = {
                 return res.json({
                     status: 1,
                     data: {
-                        url: post.url,
-                        id: content._id,
+
                         title: content.title,
                         formality: content.formality,
                         type: content.type,
@@ -696,10 +695,16 @@ var PostController = {
                         contactMobile: content.contactMobile,
                         contactEmail: content.contactEmail,
                         date: content.date,
+
+                        id: post._id,
+                        url: post.url,
                         to: post.to,
                         from: post.from,
                         priority: post.priority,
-                        postType: post.postType
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
                     },
                     message: 'request success'
                 });

@@ -3,9 +3,57 @@ var UserModel = require('../models/UserModel');
 var _ = require('lodash');
 var bcrypt = require('bcrypt');
 var AccessToken = require('../utils/AccessToken');
+var TokenModel = require('../models/TokenModel');
 
 var UserController = {
+    highlight: async function (req, res, next) {
 
+        try {
+
+
+            let users = await UserModel.find({phone: {$ne: null}, avatar: {$ne: null}}).sort({date: -1}).limit(10);
+
+            let results = await Promise.all(users.map(async user => {
+
+
+                let result = {
+                    id: user._id,
+
+                    username: user.username,
+                    email: user.email,
+                    phone: user.phone,
+                    name: user.name,
+                    birthday: user.birthday,
+                    gender: user.gender,
+                    city: user.city,
+                    avatar: user.avatar,
+                    district: user.district,
+                    ward: user.ward,
+                    type: user.type
+
+                };
+
+
+                return result;
+
+            }));
+
+
+            return res.json({
+                status: 1,
+                data: results,
+                message: 'request success '
+            });
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    },
     check: async function (req, res, next) {
         var username = req.body.username;
 
@@ -83,7 +131,7 @@ var UserController = {
 
         }
 
-        if(bcrypt.compareSync(password, user.hash_password)) {
+        if (await bcrypt.compareSync(password, user.hash_password)) {
 
             var result = {};
 
@@ -236,7 +284,164 @@ var UserController = {
         }
 
 
-    }
+    },
 
+    update: async function (req, res, next) {
+
+        try {
+
+            var token = req.headers.access_token;
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+
+            var email = req.body.email;
+            var password = req.body.password;
+            var name = req.body.name;
+            var phone = req.body.phone;
+            var birthday = req.body.birthday;
+            var gender = req.body.gender;
+            var city = req.body.city;
+            var district = req.body.district;
+            var ward = req.body.ward;
+            var type = req.body.type;
+            var avatar = req.body.avatar;
+            var oldPassword = req.body.oldPassword;
+
+
+            if (email) {
+                if (!EmailValidator.validate(email)) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'email : "' + email + '" is invalid'
+                    });
+                }
+                user.email = email;
+            }
+
+            if (password) {
+                if (!password || password.length < 6) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'password : "' + password + '" is invalid'
+                    });
+                }
+                if (!oldPassword || await bcrypt.compareSync(oldPassword, user.hash_password)) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'oldPassword : "' + oldPassword + '" is incorrect'
+                    });
+                }
+
+
+                user.password = bcrypt.hashSync(password, 10);
+            }
+
+            if (phone) {
+                if (phone.length < 6) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'phone : "' + phone + '" is invalid'
+                    });
+
+                }
+                user.phone = phone;
+            }
+
+            if (name) {
+                if (name.length < 3) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'name : "' + name + '" is invalid'
+                    });
+
+                }
+                user.name = name;
+            }
+            if (birthday) {
+                user.birthday = birthday;
+            }
+
+            if (avatar) {
+                user.avatar = avatar;
+            }
+            console.log('gender 1', gender);
+
+            if (gender != undefined) {
+
+                console.log('gender 2', gender);
+                user.gender = gender;
+            }
+            if (city) {
+                user.city = city;
+            }
+            if (district) {
+                user.district = district;
+            }
+            if (ward) {
+                user.ward = ward;
+            }
+            if (type) {
+                if (type != global.USER_TYPE_PERSONAL && type != global.USER_TYPE_COMPANY) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'type : "' + type + '" is invalid'
+                    });
+
+                }
+                user.type = type;
+            }
+
+            user = await user.save();
+
+            user.hash_password = undefined;
+
+            return res.json({
+                status: 1,
+                data: user,
+                message: 'request success ! '
+            });
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    }
 }
 module.exports = UserController
