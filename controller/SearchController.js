@@ -365,171 +365,168 @@ var SearchController = {
             }
 
 
-            if (params.length == 1) {
+            var model;
 
-                let model;
+            switch (postType) {
+                case global.POST_TYPE_SALE :
+                    model = SaleModel;
+                    break;
+                case global.POST_TYPE_BUY :
+                    model = BuyModel;
+                    break;
+                case global.POST_TYPE_PROJECT :
+                    model = ProjectModel;
+                    break;
+                case global.POST_TYPE_NEWS :
+                    model = NewsModel;
+                    break;
+                default :
+                    model = SaleModel;
+                    break;
+            }
 
-                switch (postType) {
-                    case global.POST_TYPE_SALE :
-                        model = SaleModel;
-                        break;
-                    case global.POST_TYPE_BUY :
-                        model = BuyModel;
-                        break;
-                    case global.POST_TYPE_PROJECT :
-                        model = ProjectModel;
-                        break;
-                    case global.POST_TYPE_NEWS :
-                        model = NewsModel;
-                        break;
-                    default :
-                        model = SaleModel;
-                        break;
+            let data = await model.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            let results = await Promise.all(data.map(async item => {
+
+                let post = await PostModel.findOne({content_id: item._id});
+
+
+                if (postType == global.POST_TYPE_SALE) {
+
+                    let sale = item;
+
+                    let keys;
+
+                    if (!sale.keywordList) {
+                        keys = [];
+                    }
+                    else {
+                        keys = await Promise.all(sale.keywordList.map(async key => {
+
+                                return {
+                                    keyword: key,
+                                    slug: urlSlug(key)
+                                }
+                            }
+                        ));
+                    }
+
+
+                    return {
+
+                        formality: sale.formality,
+                        title: sale.title,
+                        description: sale.description,
+                        city: sale.city,
+                        district: sale.district,
+                        price: sale.price,
+                        unit: sale.unit,
+                        area: sale.area,
+                        date: sale.date,
+                        images: sale.images,
+                        address: sale.address,
+                        keywordList: keys,
+
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
+
+
+                    };
+                }
+                else if (postType == global.POST_TYPE_BUY) {
+
+
+                    let buy = item;
+
+                    let keys;
+
+                    if (!buy.keywordList) {
+                        keys = [];
+                    }
+                    else {
+                        keys = await Promise.all(buy.keywordList.map(async key => {
+
+                                return {
+                                    keyword: key,
+                                    slug: urlSlug(key)
+                                }
+                            }
+                        ));
+                    }
+
+                    return {
+
+                        title: buy.title,
+                        formality: buy.formality,
+                        description: buy.description,
+                        city: buy.city,
+                        district: buy.district,
+                        priceMin: buy.priceMin,
+                        priceMax: buy.priceMax,
+                        areaMin: buy.areaMin,
+                        areaMax: buy.areaMax,
+                        unit: buy.unit,
+                        date: buy.date,
+                        images: buy.images,
+                        address: buy.address,
+                        keywordList: keys,
+
+
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
+                    };
                 }
 
-                let data = await model.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-                let results = await Promise.all(data.map(async item => {
+                else if (postType == global.POST_TYPE_NEWS) {
 
-                    let post = await PostModel.findOne({content_id: item._id});
+                    let project = item;
 
+                    return {
+                        title: project.title,
+                        description: project.description,
+                        address: project.address,
+                        price: project.price,
+                        area: project.area,
+                        descriptionInvestor: project.descriptionInvestor,
+                        projectProgressTitle: project.projectProgressTitle,
+                        introImages: project.introImages,
+                        url: post.url
+                    };
 
-                    if (postType == global.POST_TYPE_SALE) {
+                } else {
+                    let news = item;
 
-                        let sale = item;
+                    return {
+                        title: news.title,
+                        content: news.content,
+                        cate: news.cate,
+                        image: news.image,
+                        url: post.url,
+                        date: news.date,
+                        description: news.description
 
-                        let keys;
+                    };
 
-                        if (!sale.keywordList) {
-                            keys = [];
-                        }
-                        else {
-                            keys = await Promise.all(sale.keywordList.map(async key => {
-
-                                    return {
-                                        keyword: key,
-                                        slug: urlSlug(key)
-                                    }
-                                }
-                            ));
-                        }
-
-
-                        return {
-
-                            formality: sale.formality,
-                            title: sale.title,
-                            description: sale.description,
-                            city: sale.city,
-                            district: sale.district,
-                            price: sale.price,
-                            unit: sale.unit,
-                            area: sale.area,
-                            date: sale.date,
-                            images: sale.images,
-                            address: sale.address,
-                            keywordList: keys,
-
-                            id: post._id,
-                            url: post.url,
-                            to: post.to,
-                            from: post.from,
-                            priority: post.priority,
-                            postType: post.postType,
-                            status: post.status,
-                            paymentStatus: post.paymentStatus,
-                            refresh: post.refresh
+                }
 
 
+            }));
 
-                        };
-                    }
-                    else if (postType == global.POST_TYPE_BUY) {
-
-
-                        let buy = item;
-
-                        let keys;
-
-                        if (!buy.keywordList) {
-                            keys = [];
-                        }
-                        else {
-                            keys = await Promise.all(buy.keywordList.map(async key => {
-
-                                    return {
-                                        keyword: key,
-                                        slug: urlSlug(key)
-                                    }
-                                }
-                            ));
-                        }
-
-                        return {
-
-                            title: buy.title,
-                            formality: buy.formality,
-                            description: buy.description,
-                            city: buy.city,
-                            district: buy.district,
-                            priceMin: buy.priceMin,
-                            priceMax: buy.priceMax,
-                            areaMin: buy.areaMin,
-                            areaMax: buy.areaMax,
-                            unit: buy.unit,
-                            date: buy.date,
-                            images: buy.images,
-                            address: buy.address,
-                            keywordList: keys,
-
-
-                            id: post._id,
-                            url: post.url,
-                            to: post.to,
-                            from: post.from,
-                            priority: post.priority,
-                            postType: post.postType,
-                            status: post.status,
-                            paymentStatus: post.paymentStatus,
-                            refresh: post.refresh
-                        };
-                    }
-
-                    else if (postType == global.POST_TYPE_NEWS) {
-
-                        let project = item;
-
-                        return {
-                            title: project.title,
-                            description: project.description,
-                            address: project.address,
-                            price: project.price,
-                            area: project.area,
-                            descriptionInvestor: project.descriptionInvestor,
-                            projectProgressTitle: project.projectProgressTitle,
-                            introImages: project.introImages,
-                            url: post.url
-                        };
-
-                    } else {
-                        let news = item;
-
-                        return {
-                            title: news.title,
-                            content: news.content,
-                            cate: news.cate,
-                            image: news.image,
-                            url: post.url,
-                            date: news.date,
-                            description: news.description
-
-                        };
-
-                    }
-
-
-                }));
-
-
+            if (params.length == 1) {
                 let count = await model.count(query);
 
                 return res.json({
@@ -557,8 +554,6 @@ var SearchController = {
                     message: 'post not exist'
                 });
             }
-
-            let model;
 
             switch (postType) {
                 case global.POST_TYPE_SALE :
@@ -614,6 +609,7 @@ var SearchController = {
                 return res.json({
                     type: postType,
                     isList: false,
+                    related: results.filter(obj => obj.id != post._id),
                     params: query,
                     status: 1,
                     data: {
@@ -684,6 +680,7 @@ var SearchController = {
                     status: 1,
                     type: postType,
                     isList: false,
+                    related: results.filter(obj => obj.id != post._id),
                     params: query,
                     data: {
 
@@ -730,6 +727,7 @@ var SearchController = {
                     status: 1,
                     type: postType,
                     isList: false,
+                    related: results.filter(obj => obj.id != post._id),
                     params: query,
                     data: {
                         url: post.url,
@@ -788,6 +786,7 @@ var SearchController = {
                     status: 1,
                     type: postType,
                     isList: false,
+                    related: results.filter(obj => obj.id != post._id),
                     params: query,
                     data: {
                         title: content.title,

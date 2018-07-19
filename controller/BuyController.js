@@ -675,9 +675,9 @@ var BuyController = {
                 });
             }
 
-            let post = await PostModel.findOne({content_id: id});
+            let post = await PostModel.findOne({_id: id});
 
-            if (!post || post.postType != global.POST_TYPE_SALE) {
+            if (!post || post.postType != global.POST_TYPE_BUY) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -685,14 +685,14 @@ var BuyController = {
                 });
             }
 
-            if(post.user != accessToken.user)
-            {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user does not have permission !'
-                });
-            }
+            // if(post.user != accessToken.user)
+            // {
+            //     return res.json({
+            //         status: 0,
+            //         data: {},
+            //         message: 'user does not have permission !'
+            //     });
+            // }
 
 
             var buy = await BuyModel.findOne({_id: post.content_id});
@@ -925,7 +925,7 @@ var BuyController = {
                 post.to = to;
             }
 
-            if (status == undefined) {
+            if (status != undefined) {
                 post.status = status;
             }
 

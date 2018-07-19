@@ -6,6 +6,8 @@ var PostController = require('../controller/PostController');
 
 
 router.get('/list', PostController.list);
+router.get('/latest', PostController.latest);
+router.get('/top/city', PostController.topCity);
 router.get('/detail/:id', PostController.detail);
 
 

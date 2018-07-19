@@ -200,7 +200,7 @@ var SaleController = {
                 project: project,
                 balconyDirection: balconyDirection,
                 bedroomCount: bedroomCount,
-                area: accessToken,
+                area: area,
                 price: price,
                 areaMax: undefined,
                 areaMin: undefined,
@@ -233,7 +233,7 @@ var SaleController = {
                     project: project,
                     balconyDirection: balconyDirection,
                     bedroomCount: bedroomCount,
-                    area: accessToken,
+                    area: area,
                     price: price,
                     areaMax: undefined,
                     areaMin: undefined,
@@ -547,7 +547,7 @@ var SaleController = {
                     project: project,
                     balconyDirection: balconyDirection,
                     bedroomCount: bedroomCount,
-                    area: area,
+                    area: area  ,
                     price: price,
                     areaMax: undefined,
                     areaMin: undefined,
@@ -666,7 +666,10 @@ var SaleController = {
             }
 
 
-            let post = await PostModel.findOne({content_id: id});
+            let post = await PostModel.findOne({_id: id});
+
+            console.log('post ', post);
+            console.log('id ', id);
 
             if (!post || post.postType != global.POST_TYPE_SALE) {
                 return res.json({
@@ -676,14 +679,14 @@ var SaleController = {
                 });
             }
 
-            if(post.user != accessToken.user)
-            {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user does not have permission !'
-                });
-            }
+            // if(post.user != accessToken.user)
+            // {
+            //     return res.json({
+            //         status: 0,
+            //         data: {},
+            //         message: 'user does not have permission !'
+            //     });
+            // }
 
 
             var sale = await SaleModel.findOne({_id: post.content_id});
@@ -853,7 +856,7 @@ var SaleController = {
                 project: project,
                 balconyDirection: balconyDirection,
                 bedroomCount: bedroomCount,
-                area: accessToken,
+                area: area,
                 price: price,
                 areaMax: undefined,
                 areaMin: undefined,
@@ -886,7 +889,7 @@ var SaleController = {
                     project: project,
                     balconyDirection: balconyDirection,
                     bedroomCount: bedroomCount,
-                    area: accessToken,
+                    area: area,
                     price: price,
                     areaMax: undefined,
                     areaMin: undefined,
@@ -922,7 +925,7 @@ var SaleController = {
                 post.to = to;
             }
 
-            if (status == undefined) {
+            if (status != undefined) {
                 post.status = status;
             }
 
