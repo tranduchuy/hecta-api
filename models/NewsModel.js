@@ -8,7 +8,7 @@ var newsSchema = new Schema({
 
     title: String,
     content: String,
-    cate: String,
+    type: Number,
     image: String,
     description: String,
     status : {type : Number, default:global.STATUS_POST_ACTIVE},

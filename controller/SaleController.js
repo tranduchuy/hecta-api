@@ -497,7 +497,9 @@ var SaleController = {
             if (contactEmail) {
                 sale.contactEmail = contactEmail;
             }
-
+            if (status == global.STATUS_POST_DETELE) {
+                sale.status = status;
+            }
 
             sale = await sale.save();
 
@@ -835,6 +837,10 @@ var SaleController = {
             }
             if (contactEmail) {
                 sale.contactEmail = contactEmail;
+            }
+
+            if (status != undefined) {
+                sale.status = status;
             }
 
             // if (priority) {

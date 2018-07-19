@@ -41,6 +41,7 @@ var saleSchema = new Schema({
     contactMobile: String,
     contactEmail: String,
 
+    status : {type : Number, default:global.STATUS_POST_PENDING},
     date: {type: Number, default: Date.now},
 
 

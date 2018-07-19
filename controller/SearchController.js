@@ -170,11 +170,7 @@ var SearchController = {
                 project: project,
                 balconyDirection: balconyDirection,
                 bedroomCount: bedroomCount,
-                // areaMax: areaMax,
-                // areaMin: areaMin,
                 area: area,
-                // priceMax: priceMax,
-                // priceMin: priceMin,
                 price: price
             };
 
@@ -491,7 +487,7 @@ var SearchController = {
                     };
                 }
 
-                else if (postType == global.POST_TYPE_NEWS) {
+                else if (postType == global.POST_TYPE_PROJECT) {
 
                     let project = item;
 
@@ -512,8 +508,8 @@ var SearchController = {
 
                     return {
                         title: news.title,
-                        content: news.content,
-                        cate: news.cate,
+                        // content: news.content,
+                        cate: news.type,
                         image: news.image,
                         url: post.url,
                         date: news.date,
@@ -791,7 +787,7 @@ var SearchController = {
                     data: {
                         title: content.title,
                         content: content.content,
-                        cate: content.cate,
+                        cate: content.type,
                         image: content.image,
                         url: post.url,
                         date: content.date,

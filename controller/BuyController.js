@@ -359,8 +359,7 @@ var BuyController = {
                 });
             }
 
-            if(post.user != accessToken.user)
-            {
+            if (post.user != accessToken.user) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -372,8 +371,7 @@ var BuyController = {
             var buy = await BuyModel.findOne({_id: post.content_id});
 
 
-
-            if (!buy ) {
+            if (!buy) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -492,6 +490,9 @@ var BuyController = {
                 buy.receiveMail = receiveMail;
             }
 
+            if (status == global.STATUS_POST_DETELE) {
+                buy.status = status;
+            }
 
             buy = await buy.save();
 
@@ -698,8 +699,7 @@ var BuyController = {
             var buy = await BuyModel.findOne({_id: post.content_id});
 
 
-
-            if (!buy ) {
+            if (!buy) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -820,7 +820,9 @@ var BuyController = {
             if (receiveMail) {
                 buy.receiveMail = receiveMail;
             }
-
+            if (status != undefined) {
+                buy.status = status;
+            }
 
             buy = await buy.save();
 

@@ -37,7 +37,7 @@ var NewsController = {
                     id: news._id,
                     title: news.title,
                     content: news.content,
-                    cate: news.cate,
+                    cate: news.type,
                     image: news.image,
                     description : news.description,
                     date : news.date
@@ -140,7 +140,7 @@ var NewsController = {
                 news.content = content;
             }
             if (cate) {
-                news.cate = cate;
+                news.type = cate;
             }
             if (image) {
                 news.image = image;
@@ -219,7 +219,7 @@ var NewsController = {
                     status: news.status,
                     title: news.title,
                     content: news.content,
-                    cate: news.cate,
+                    cate: news.type,
                     image: news.image,
                     date : news.date,
                     description : news.description,
@@ -274,7 +274,7 @@ var NewsController = {
                     status: news.status,
                     title: news.title,
                     content: news.content,
-                    cate: news.cate,
+                    cate: news.type,
                     image: news.image,
                     date : news.date,
                     description : news.description,
@@ -323,7 +323,7 @@ var NewsController = {
                     status: news.status,
                     title: news.title,
                     content: news.content,
-                    cate: news.cate,
+                    cate: news.type,
                     image: news.image,
                     date : news.date,
                     description : news.description,
@@ -373,9 +373,10 @@ var NewsController = {
 
             news.title = title;
             news.content = content;
-            news.cate = cate;
+            news.type = cate;
             news.image = image;
             news.description = description;
+            news.status = global.STATUS_POST_ACTIVE;
 
 
             news = await news.save();
@@ -383,7 +384,7 @@ var NewsController = {
             var post = new PostModel();
 
             post.postType = global.POST_TYPE_NEWS;
-            post.type = news.cate;
+            post.type = news.type;
             post.status = global.STATUS_POST_ACTIVE;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;
             post.content_id = news._id;

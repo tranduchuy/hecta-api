@@ -4,39 +4,779 @@ var _ = require('lodash');
 var bcrypt = require('bcrypt');
 var AccessToken = require('../utils/AccessToken');
 var TokenModel = require('../models/TokenModel');
+var ChildModel = require('../models/ChildModel');
+var TransferModel = require('../models/TransferModel');
 
 var UserController = {
+
+    registerChild: async function (req, res, next) {
+
+
+        var username = req.body.username;
+        var email = req.body.email;
+        var password = req.body.password;
+        var phone = req.body.phone;
+        var name = req.body.name;
+        var birthday = req.body.birthday;
+        var gender = req.body.gender;
+        var city = req.body.city;
+        var district = req.body.district;
+        var ward = req.body.ward;
+        var type = req.body.type;
+
+
+        try {
+
+            var token = req.headers.access_token;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var parrent = await UserModel.findOne({_id: accessToken.user});
+
+            if (!parrent) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'parrent is not exist'
+                });
+            }
+
+            if (parrent.type != global.USER_TYPE_COMPANY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'parrent does not have permission !'
+                });
+            }
+
+            if (!EmailValidator.validate(email)) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'email : "' + email + '" is invalid'
+                });
+            }
+
+            if (!password || password.length < 6) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'password : "' + password + '" is invalid'
+                });
+            }
+
+            if (!phone || phone.length < 6) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'phone : "' + phone + '" is invalid'
+                });
+
+            }
+
+            if (!name || name.length < 3) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'name : "' + name + '" is invalid'
+                });
+
+            }
+
+            if (type != global.USER_TYPE_PERSONAL && type != global.USER_TYPE_COMPANY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'type : "' + type + '" is invalid'
+                });
+
+            }
+
+
+            if (!username || username.length < 6) {
+                return res.json({
+                    status: 1,
+                    data: false,
+                    message: 'username invalid'
+                });
+
+            }
+
+
+            var user = await UserModel.findOne({username: username});
+
+            if (user) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'username : "' + username + '" is duplicate'
+                });
+
+            }
+
+            user = new UserModel();
+            user.username = username;
+            user.email = email;
+            user.phone = phone;
+            user.name = name;
+            user.birthday = birthday;
+            user.gender = gender;
+            user.city = city;
+            user.district = district;
+            user.ward = ward;
+            user.type = type;
+            user.hash_password = bcrypt.hashSync(password, 10);
+
+
+            await user.save();
+
+            let child = new ChildModel({
+                companyId: parrent._id,
+                personalId: user._id,
+                status: global.CHILD_STATUS_ACCEPTED
+            });
+
+            await child.save();
+
+
+            return res.json({
+                status: 1,
+                data: child,
+                message: 'request success !'
+            });
+
+
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    }
+    ,
+
+    childRemove: async function (req, res, next) {
+
+        try {
+            var token = req.headers.access_token;
+            var id = req.params.id;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+            if (user.type != global.USER_TYPE_COMPANY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+
+            var person = await UserModel.findOne({_id: id});
+            if (!person) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'person is not exist'
+                });
+            }
+
+            if (person.type != global.USER_TYPE_PERSONAL) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'person invalid !'
+                });
+            }
+
+            var child = await ChildModel.findOne({
+                companyId: user._id,
+                personalId: person._id,
+                status: {$in: [global.CHILD_STATUS_ACCEPTED, global.CHILD_STATUS_WAITING]}
+            });
+            if (!child) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'child not found'
+                });
+            }
+
+            child.status = global.CHILD_STATUS_NONE;
+
+            await child.save();
+
+            return res.json({
+                status: 1,
+                data: child,
+                message: 'request success !'
+            });
+
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    },
+
+    childResponse: async function (req, res, next) {
+        try {
+            var token = req.headers.access_token;
+            var id = req.params.id;
+            var status = req.body.status;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+            var child = await ChildModel.findOne({
+                _id: id
+            });
+
+            if (!child) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'request not exist'
+                });
+            }
+
+            if (status == global.CHILD_STATUS_ACCEPTED || status == global.CHILD_STATUS_REJECTED) {
+                child.status = status;
+            }
+
+            await child.save();
+
+            return res.json({
+                status: 1,
+                data: child,
+                message: 'request success !'
+            });
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    },
+
+
+    childRequest: async function (req, res, next) {
+
+        try {
+            var token = req.headers.access_token;
+            var id = req.params.id;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+            if (user.type != global.USER_TYPE_COMPANY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+
+            var person = await UserModel.findOne({_id: id});
+            if (!person) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'person is not exist'
+                });
+            }
+
+            if (person.type != global.USER_TYPE_PERSONAL) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'person invalid !'
+                });
+            }
+
+            var child = await ChildModel.findOne({
+                companyId: user._id,
+                personalId: person._id,
+                status: {$in: [global.CHILD_STATUS_WAITING, global.CHILD_STATUS_ACCEPTED]}
+            });
+            if (child && (child.status == global.CHILD_STATUS_WAITING || child.status == global.CHILD_STATUS_ACCEPTED)) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'request already sent'
+                });
+            }
+
+            if (!child) {
+                child = new ChildModel({
+                    companyId: user._id,
+                    personalId: person._id
+                });
+            }
+
+            child.status = global.CHILD_STATUS_WAITING;
+
+            await child.save();
+
+            return res.json({
+                status: 1,
+                data: child,
+                message: 'request success !'
+            });
+
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    },
+
+
+    requestList: async function (req, res, next) {
+        try {
+
+            var token = req.headers.access_token;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+            if (user.type != global.USER_TYPE_PERSONAL) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+            var parrents = await ChildModel.find({personalId: user._id, status: global.CHILD_STATUS_WAITING});
+
+            let results = await Promise.all(parrents.map(async parrent => {
+
+                let company = await  UserModel.findOne({_id: parrent.companyId});
+
+
+                return {
+                    id: parrent._id,
+                    parent: {
+                        id: company ? company._id : 'unknown',
+                        username: company ? company.username : 'unknown',
+                        email: company ? company.email : 'unknown',
+                        name: company ? company.name : 'unknown'
+                    },
+                    status: company.status
+                };
+
+
+            }));
+
+            return res.json({
+                status: 1,
+                data: results,
+                message: 'request success !'
+            });
+
+        }
+        catch
+            (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    }
+    ,
+
+    childList: async function (req, res, next) {
+        try {
+            var token = req.headers.access_token;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+            if (user.type != global.USER_TYPE_COMPANY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+            var children = await ChildModel.find({
+                companyId: user._id,
+                status: {$in: [global.CHILD_STATUS_WAITING, global.CHILD_STATUS_ACCEPTED, global.CHILD_STATUS_REJECTED]}
+            });
+
+            let results = await Promise.all(children.map(async child => {
+
+                let personal = await  UserModel.findOne({_id: child.personalId});
+
+                var transfer = undefined;
+
+                if (child && child.status == global.CHILD_STATUS_ACCEPTED) {
+
+
+                    transfer = await TransferModel.aggregate(
+                        [
+                            {
+                                $group: {
+                                    _id: "$childId",
+                                    mountCount: {$sum: {$cond: [{$eq: ["$childId", child._id]}, 0, 1]}},
+                                    summarizedMount: {$sum: "$mount"}
+                                }
+                            },
+                            {
+                                $project: {
+                                    sum: "$summarizedMount",
+                                }
+                            }
+                        ]
+                    );
+
+                    console.log('transfer ', transfer);
+                }
+
+                return {
+                    id: personal ? personal._id : 'unknown',
+                    username: personal ? personal.username : 'unknown',
+                    email: personal ? personal.email : 'unknown',
+                    name: personal ? personal.name : 'unknown',
+                    status: child.status,
+                    transfer: transfer && transfer.sum ? transfer.sum : 0
+
+                };
+
+
+            }));
+
+            return res.json({
+                status: 1,
+                data: results,
+                message: 'request success !'
+            });
+
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    }
+    ,
+
+    findUserByEmail: async function (req, res, next) {
+
+        try {
+
+            var token = req.headers.access_token;
+            var email = req.params.email;
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var user = await UserModel.findOne({_id: accessToken.user});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user is not exist'
+                });
+            }
+
+            if (user.type != global.USER_TYPE_COMPANY) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+            var personal = await UserModel.findOne({email: email});
+            if (!personal || personal.type != global.USER_TYPE_PERSONAL) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'email not found !'
+                });
+            }
+
+            var child = await ChildModel.findOne({companyId: user._id, personalId: personal._id});
+
+            var transfer = undefined;
+
+            if (child && child.status == global.CHILD_STATUS_ACCEPTED) {
+
+
+                transfer = await TransferModel.aggregate(
+                    [
+                        {
+                            $group: {
+                                _id: "$childId",
+                                mountCount: {$sum: {$cond: [{$eq: ["$childId", child._id]}, 0, 1]}},
+                                summarizedMount: {$sum: "$mount"}
+                            }
+                        },
+                        {
+                            $project: {
+                                sum: "$summarizedMount",
+                            }
+                        }
+                    ]
+                );
+
+                console.log('transfer ', transfer);
+            }
+
+
+            return res.json({
+                status: 1,
+                data: {
+                    id: personal._id,
+                    username: personal.username,
+                    email: personal.email,
+                    name: personal.name,
+                    status: !child ? global.CHILD_STATUS_NONE : child.status,
+                    transfer: transfer && transfer.sum ? transfer.sum : 0
+                },
+                message: 'request success'
+            });
+
+
+        }
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    }
+    ,
+
     highlight: async function (req, res, next) {
 
         try {
 
 
-            let users = await UserModel.find({phone: {$ne: null}, avatar: {$ne: null}}).sort({date: -1}).limit(10);
+            let users = await
+                UserModel.find({phone: {$ne: null}, avatar: {$ne: null}}).sort({date: -1}).limit(10);
 
-            let results = await Promise.all(users.map(async user => {
-
-
-                let result = {
-                    id: user._id,
-
-                    username: user.username,
-                    email: user.email,
-                    phone: user.phone,
-                    name: user.name,
-                    birthday: user.birthday,
-                    gender: user.gender,
-                    city: user.city,
-                    avatar: user.avatar,
-                    district: user.district,
-                    ward: user.ward,
-                    type: user.type
-
-                };
+            let results = await
+                Promise.all(users.map(async user => {
 
 
-                return result;
+                    let result = {
+                        id: user._id,
 
-            }));
+                        username: user.username,
+                        email: user.email,
+                        phone: user.phone,
+                        name: user.name,
+                        birthday: user.birthday,
+                        gender: user.gender,
+                        city: user.city,
+                        avatar: user.avatar,
+                        district: user.district,
+                        ward: user.ward,
+                        type: user.type
+
+                    };
+
+
+                    return result;
+
+                }));
 
 
             return res.json({
@@ -53,7 +793,9 @@ var UserController = {
             });
         }
 
-    },
+    }
+
+    ,
     check: async function (req, res, next) {
         var username = req.body.username;
 
@@ -96,7 +838,8 @@ var UserController = {
             });
         }
 
-    },
+    }
+    ,
 
     login: async function (req, res, next) {
 
@@ -135,6 +878,9 @@ var UserController = {
 
             var result = {};
 
+
+            var requestCount = await ChildModel.count({personalId: user._id, status: global.CHILD_STATUS_WAITING});
+
             result.username = user.username;
             result.email = user.email;
             result.phone = user.phone;
@@ -146,6 +892,7 @@ var UserController = {
             result.ward = user.ward;
             result.type = user.type;
             result.id = user._id;
+            result.requestCount = requestCount;
             result.token = AccessToken.generate(user._id);
 
             return res.json({
@@ -284,7 +1031,8 @@ var UserController = {
         }
 
 
-    },
+    }
+    ,
 
     update: async function (req, res, next) {
 

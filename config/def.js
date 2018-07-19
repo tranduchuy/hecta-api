@@ -19,6 +19,12 @@ global.ROOT_DIR = '/var/hecta/';
 global.USER_TYPE_COMPANY = 1;
 global.USER_TYPE_PERSONAL = 2;
 
+global.CHILD_STATUS_NONE = 1;
+global.CHILD_STATUS_WAITING = 2;
+global.CHILD_STATUS_REJECTED = 3;
+global.CHILD_STATUS_ACCEPTED = 4;
+global.CHILD_STATUS_DELETED= 5;
+
 global.URL_TYPE_FIXED = 1;
 global.URL_TYPE_GENERATED = 2;
 
