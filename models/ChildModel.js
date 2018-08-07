@@ -9,6 +9,11 @@ var childSchema = new Schema({
     companyId: String,
     personalId: String,
     status: {type: Number, default: global.CHILD_STATUS_WAITING},
+
+    creditHistory: {type: Array, default: []},
+    credit: {type: Number, default: 0},
+    creditUsed: {type: Number, default: 0},
+
     date: {type: Number, default: Date.now}
 
 });

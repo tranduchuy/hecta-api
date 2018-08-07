@@ -3,10 +3,236 @@ var BuyModel = require('../models/BuyModel');
 var PostModel = require('../models/PostModel');
 var _ = require('lodash');
 var TokenModel = require('../models/TokenModel');
+var UserModel = require('../models/UserModel');
 var UrlParamModel = require('../models/UrlParamModel');
+var ChildModel = require('../models/ChildModel');
 var urlSlug = require('url-slug');
 
 var PostController = {
+
+
+    child: async function (req, res, next) {
+        try {
+
+            var token = req.headers.access_token;
+
+
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token empty !'
+                });
+            }
+
+            var accessToken = await  TokenModel.findOne({token: token});
+
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+
+            var company = await UserModel.findOne({_id: accessToken.user});
+
+            if (!company) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'admin is not exist'
+                });
+            }
+
+            var id = req.params.id;
+
+            var user = await UserModel.findOne({_id: id});
+
+            if (!user) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'child not found'
+                });
+            }
+
+            var child = await ChildModel({
+                companyId: company._id,
+                personalId: user._id,
+                status: global.CHILD_STATUS_ACCEPTED
+            })
+
+            if (!child) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'relation invalid'
+                });
+            }
+
+
+            var page = req.query.page;
+            var limit = req.query.limit;
+            var postType = req.query.postType;
+            var toDate = req.query.toDate;
+            var fromDate = req.query.fromDate;
+
+            if (!page || page < 0) {
+                page = 0;
+            }
+
+            if (!limit || limit < 0) {
+                limit = global.PAGE_SIZE;
+            }
+
+            var query = {user: user._id, status: {$ne: global.STATUS_POST_DETELE}};
+
+
+            if (postType == global.POST_TYPE_SALE || postType == global.POST_TYPE_BUY) {
+                query.postType = postType;
+            }
+
+            if (toDate && fromDate) {
+                query.date = {
+                    $gt: fromDate,
+                    $lt: toDate
+                };
+            }
+
+            let posts = await PostModel.find(query).sort({date: -1}).skip((page) * limit).limit(limit);
+
+
+            let results = await Promise.all(posts.map(async post => {
+
+
+                if (post.postType == global.POST_TYPE_SALE) {
+
+                    let sale = await SaleModel.findOne({_id: post.content_id});
+
+
+                    return await
+                        // {sale, post};
+                        {
+
+                            title: sale.title,
+                            formality: sale.formality,
+                            type: sale.type,
+                            city: sale.city,
+                            district: sale.district,
+                            ward: sale.ward,
+                            street: sale.street,
+                            project: sale.project,
+                            area: sale.area,
+                            price: sale.price,
+                            unit: sale.unit,
+                            address: sale.address,
+                            keywordList: sale.keywordList,
+                            description: sale.description,
+                            streetWidth: sale.streetWidth,
+                            frontSize: sale.frontSize,
+                            direction: sale.direction,
+                            balconyDirection: sale.balconyDirection,
+                            floorCount: sale.floorCount,
+                            bedroomCount: sale.bedroomCount,
+                            toiletCount: sale.toiletCount,
+                            furniture: sale.furniture,
+                            images: sale.images,
+                            contactName: sale.contactName,
+                            contactAddress: sale.contactAddress,
+                            contactPhone: sale.contactPhone,
+                            contactMobile: sale.contactMobile,
+                            contactEmail: sale.contactEmail,
+                            date: sale.date,
+
+                            id: post._id,
+                            url: post.url,
+                            to: post.to,
+                            from: post.from,
+                            priority: post.priority,
+                            postType: post.postType,
+                            status: post.status,
+                            paymentStatus: post.paymentStatus,
+                            refresh: post.refresh
+                        };
+                }
+                else {
+
+
+                    let buy = await BuyModel.findOne({_id: post.content_id});
+
+
+                    return await {
+
+                        title: buy.title,
+                        description: buy.description,
+                        keywordList: buy.keywordList,
+                        formality: buy.formality,
+                        type: buy.type,
+                        city: buy.city,
+                        district: buy.district,
+                        ward: buy.ward,
+                        street: buy.street,
+                        project: buy.project,
+                        areaMin: buy.areaMin,
+                        areaMax: buy.areaMax,
+                        priceMin: buy.priceMin,
+                        priceMax: buy.priceMax,
+                        unit: buy.unit,
+                        address: buy.address,
+                        images: buy.images,
+                        contactName: buy.contactName,
+                        contactAddress: buy.contactAddress,
+                        contactPhone: buy.contactPhone,
+                        contactMobile: buy.contactMobile,
+                        contactEmail: buy.contactEmail,
+                        receiveMail: buy.receiveMail,
+                        date: buy.date,
+
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
+                    };
+                }
+
+
+            }));
+
+
+            let count = await PostModel.count(query);
+
+            return res.json({
+                status: 1,
+                data: {
+                    items: results,
+                    page: page + 1,
+                    total: _.ceil(count / limit)
+                },
+                message: 'request success '
+            });
+
+        }
+
+        catch
+            (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+    }
+    ,
 
     topCity: async function (req, res, next) {
         try {

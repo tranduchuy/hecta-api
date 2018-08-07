@@ -5,6 +5,7 @@ var TagModel = require('../models/TagModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
 var UrlParamModel = require('../models/UrlParamModel');
+var PostPriorityModel = require('../models/PostPriorityModel');
 
 var BuyController = {
 
@@ -44,14 +45,28 @@ var BuyController = {
         var from = req.body.from;
         var to = req.body.to;
 
-        var priority = req.body.priority;
-
-
-        var captchaToken = req.body.captchaToken;
+        var priorityId = req.body.priorityId;
 
 
         try {
 
+            if (!priorityId || priorityId.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'priorityId : "' + priorityId + '" is invalid'
+                });
+            }
+
+            var priority = await PostPriorityModel.findOne({_id: priorityId});
+
+            if (!priority) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'priority not found'
+                });
+            }
 
             if (!title || title.length < 30 || title.length > 99) {
                 return res.json({
@@ -66,6 +81,20 @@ var BuyController = {
                     status: 0,
                     data: {},
                     message: 'formality : "' + formality + '" is invalid'
+                });
+            }
+            if (!from || from <= 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'from : "' + from + '" is invalid'
+                });
+            }
+            if (!to || to <= from) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'to : "' + to + '" is invalid'
                 });
             }
 
@@ -106,14 +135,6 @@ var BuyController = {
                     status: 0,
                     data: {},
                     message: 'contactMobile : "' + contactMobile + '" is invalid'
-                });
-            }
-
-            if (!captchaToken || captchaToken.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'captchaToken : "' + captchaToken + '" is invalid'
                 });
             }
 
@@ -255,7 +276,7 @@ var BuyController = {
             post.formality = buy.formality;
             post.type = buy.type;
             post.content_id = buy._id;
-            post.priority = priority;
+            post.priority = priority.priority;
             post.from = from;
             post.to = to;
 
@@ -685,17 +706,6 @@ var BuyController = {
                     message: 'post not exist '
                 });
             }
-
-            // if(post.user != accessToken.user)
-            // {
-            //     return res.json({
-            //         status: 0,
-            //         data: {},
-            //         message: 'user does not have permission !'
-            //     });
-            // }
-
-
             var buy = await BuyModel.findOne({_id: post.content_id});
 
 
@@ -706,7 +716,6 @@ var BuyController = {
                     message: 'buy not exist '
                 });
             }
-
 
             var title = req.body.title;
             var description = req.body.description;
@@ -756,7 +765,6 @@ var BuyController = {
                 buy.keywordList = keywordList;
             }
 
-
             if (formality) {
                 buy.formality = formality;
             }
@@ -800,7 +808,6 @@ var BuyController = {
             if (images) {
                 buy.images = images;
             }
-
 
             if (contactName) {
                 buy.contactName = contactName;
