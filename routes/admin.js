@@ -1,29 +1,32 @@
 var express = require('express');
 var router = express.Router();
 
-var ProjectController = require('../controller/ProjectController');
-var NewsController = require('../controller/NewsController');
+// var ProjectController = require('../controller/ProjectController');
 var PostController = require('../controller/PostController');
 var BuyController = require('../controller/BuyController');
 var SaleController = require('../controller/SaleController');
 var TransactionController = require('../controller/TransactionController');
-var UserController = require('../controller/UserController');
 var PostPriorityController = require('../controller/PostPriorityController');
 
+var AdminController = require('../controller/admin/AdminController');
+var AdminUserController = require('../controller/admin/UserController');
+var AdminProjectController = require('../controller/admin/ProjectController');
+var AdminNewsController = require('../controller/admin/NewsController');
 
-router.get('/projects/list', ProjectController.list);
-router.get('/projects/types', ProjectController.typeList);
 
-router.post('/projects/add', ProjectController.add);
-router.post('/projects/update/:id', ProjectController.update);
-router.get('/projects/detail/:id', ProjectController.detail);
+router.get('/projects/list', AdminProjectController.list);
+router.get('/projects/types', AdminProjectController.typeList);
 
-router.get('/news/list', NewsController.list);
-router.get('/news/cats', NewsController.catList);
+router.post('/projects/add', AdminProjectController.add);
+router.post('/projects/update/:id', AdminProjectController.update);
+router.get('/projects/detail/:id', AdminProjectController.detail);
 
-router.post('/news/add', NewsController.add);
-router.post('/news/update/:id', NewsController.update);
-router.get('/news/detail/:id', NewsController.detail);
+router.get('/news/list', AdminNewsController.list);
+router.get('/news/cats', AdminNewsController.catList);
+
+router.post('/news/add', AdminNewsController.add);
+router.post('/news/update/:id', AdminNewsController.update);
+router.get('/news/detail/:id', AdminNewsController.detail);
 
 
 router.get('/posts/list', PostController.listAdmin);
@@ -37,8 +40,14 @@ router.post('/payments/add/:id', TransactionController.addMain);
 router.post('/promos/add/:id', TransactionController.addPromo);
 
 
-router.get('/users/list', UserController.list);
-router.get('/users/update/:id', UserController.updateAdmin);
+router.get('/users/list', AdminUserController.list);
+router.post('/users/update/:id', AdminUserController.status);
+
+router.get('/admins/list', AdminController.list);
+router.post('/admins/create', AdminController.create);
+router.post('/admins/update', AdminController.update);
+router.post('/admins/login', AdminController.login);
+router.post('/admins/status/:id', AdminController.status);
 
 
 router.get('/vips/list', PostPriorityController.listAdmin);

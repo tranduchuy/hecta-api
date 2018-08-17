@@ -11,8 +11,16 @@ var newsSchema = new Schema({
     type: Number,
     image: String,
     description: String,
-    status : {type : Number, default:global.STATUS_POST_ACTIVE},
+    status: {type: Number, default: global.STATUS_POST_ACTIVE},
 
+
+    metaTitle: String,
+    metaDescription: String,
+    metaType: String,
+    metaUrl: String,
+    metaImage: String,
+    canonical: String,
+    admin: {type: Array, default: []},
     date: {type: Number, default: Date.now}
 
 

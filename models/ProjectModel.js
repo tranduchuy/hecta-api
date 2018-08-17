@@ -50,6 +50,15 @@ var projectSchema = new Schema({
     district: Number,
     city: String,
 
+
+    metaTitle: String,
+    metaDescription: String,
+    metaType: String,
+    metaUrl: String,
+    metaImage: String,
+    canonical: String,
+
+    admin: {type: Array, default: []},
     date: {type: Number, default: Date.now}
 });
 

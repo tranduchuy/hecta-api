@@ -338,16 +338,6 @@ var BuyController = {
 
             var token = req.headers.access_token;
 
-            // var params = req.body.params;
-            //
-            // if (!params) {
-            //     return res.json({
-            //         status: 0,
-            //         data: {},
-            //         message: 'params is not found'
-            //     });
-            // }
-
 
             var accessToken = await  TokenModel.findOne({token: token});
 

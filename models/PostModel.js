@@ -12,8 +12,7 @@ var postSchema = new Schema({
     type: Number,
     formality: Number,
 
-    user : String,
-
+    admin : String,
     status : Number,
     paymentStatus : Number,
     price : Number,

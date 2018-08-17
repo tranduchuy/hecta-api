@@ -3,6 +3,9 @@ var PostModel = require('../models/PostModel');
 var TagModel = require('../models/TagModel');
 var _ = require('lodash');
 var TokenModel = require('../models/TokenModel');
+var AccountModel = require('../models/AccountModel');
+var PostPriorityModel = require('../models/PostPriorityModel');
+var ChildModel = require('../models/ChildModel');
 var UrlParamModel = require('../models/UrlParamModel');
 var urlSlug = require('url-slug');
 var SaleController = {
@@ -48,14 +51,46 @@ var SaleController = {
         var contactMobile = req.body.contactMobile;
         var contactEmail = req.body.contactEmail;
 
-        var priority = req.body.priority;
+        // var priority = req.body.priority;
+        var priorityId = req.body.priorityId;
 
         var from = req.body.from;
         var to = req.body.to;
 
         var captchaToken = req.body.captchaToken;
 
+
         try {
+
+            if (!priorityId || priorityId.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'priorityId : "' + priorityId + '" is invalid'
+                });
+            }
+
+            var priority = await PostPriorityModel.findOne({_id: priorityId});
+            var dateCount = (to - from) / (1000 * 60 * 60 * 24);
+
+            if (!priority) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'priority not found'
+                });
+            }
+
+            if (dateCount < priority.minDay) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post day count <  min day '
+                });
+
+            }
+
             if (!title || title.length < 30 || title.length > 99) {
                 return res.json({
                     status: 0,
@@ -124,6 +159,8 @@ var SaleController = {
             var sale = new SaleModel();
             var post = new PostModel();
 
+            post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
+
 
             if (token) {
 
@@ -138,6 +175,51 @@ var SaleController = {
 
                 }
                 post.user = accessToken.user;
+
+                var price = priority.costByDay * dateCount;
+
+                var child = await ChildModel.findOne({personalId: accessToken.user});
+
+                if (!child) {
+                    if (price <= child.credit) {
+                        child.credit -= price;
+                        price = 0;
+                    }
+                    else {
+                        price -= child.credit;
+                        child.creditUsed += child.credit;
+                        child.credit = 0;
+
+                    }
+                }
+
+                var account = await AccountModel.findOne({owner: accessToken.user});
+
+                if (price <= account.promo) {
+                    account.promo -= price;
+                    price = 0;
+                }
+                else {
+                    price -= account.promo;
+                    account.promo = 0;
+                }
+
+                if (price <= account.main) {
+                    account.main -= price;
+                    price = 0;
+                }
+                else {
+                    price -= account.main;
+                    account.main = 0;
+                }
+
+                if (price == 0) {
+                    post.paymentStatus = global.STATUS_PAYMENT_PAID;
+                    await account.save();
+                    await child.save();
+                }
+
+
             }
 
             sale.title = title;
@@ -180,13 +262,12 @@ var SaleController = {
             post.postType = global.POST_TYPE_SALE;
             post.type = sale.type;
             post.content_id = sale._id;
-            post.priority = priority;
+            post.priority = priority.priority;
             post.from = from;
             post.to = to;
             post.formality = sale.formality;
 
             post.status = global.STATUS_POST_PENDING;
-            post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_SALE,
@@ -341,8 +422,7 @@ var SaleController = {
                 });
             }
 
-            if(post.user != accessToken.user)
-            {
+            if (post.user != accessToken.user) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -354,8 +434,7 @@ var SaleController = {
             var sale = await SaleModel.findOne({_id: post.content_id});
 
 
-
-            if (!sale ) {
+            if (!sale) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -549,7 +628,7 @@ var SaleController = {
                     project: project,
                     balconyDirection: balconyDirection,
                     bedroomCount: bedroomCount,
-                    area: area  ,
+                    area: area,
                     price: price,
                     areaMax: undefined,
                     areaMin: undefined,
@@ -681,21 +760,10 @@ var SaleController = {
                 });
             }
 
-            // if(post.user != accessToken.user)
-            // {
-            //     return res.json({
-            //         status: 0,
-            //         data: {},
-            //         message: 'user does not have permission !'
-            //     });
-            // }
-
-
             var sale = await SaleModel.findOne({_id: post.content_id});
 
 
-
-            if (!sale ) {
+            if (!sale) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -742,6 +810,8 @@ var SaleController = {
             var priority = req.body.priority;
 
             var status = req.body.status;
+            var paymentStatus = req.body.paymentStatus;
+
 
             var from = req.body.from;
             var to = req.body.to;
@@ -843,6 +913,7 @@ var SaleController = {
                 sale.status = status;
             }
 
+
             // if (priority) {
             //     sale.priority = priority;
             // }
@@ -914,6 +985,7 @@ var SaleController = {
             post.url = mainUrl + '/' + urlSlug(sale.title) + '-' + Date.now();
 
             post.type = sale.type;
+            post.admin = accessToken.user;
 
             if (priority) {
                 post.priority = priority;
@@ -933,6 +1005,10 @@ var SaleController = {
 
             if (status != undefined) {
                 post.status = status;
+            }
+
+            if (paymentStatus != undefined) {
+                post.paymentStatus = paymentStatus;
             }
 
             await post.save();
