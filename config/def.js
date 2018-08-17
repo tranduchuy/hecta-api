@@ -11,6 +11,8 @@ global.USER_STATUS_DELETE = 4;
 global.STATUS_ACTIVE = 1;
 global.STATUS_BLOCKED = 2;
 global.STATUS_DELETE = 3;
+global.STATUS_PENDING = 4;
+
 
 
 global.STATUS_PAYMENT_PAID = 1;

@@ -50,7 +50,10 @@ var NewsController = {
 
             }
 
-            let news = await NewsModel.findOne({_id: id});
+            let news = await NewsModel.findOne({
+                _id: id,
+                status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+            });
 
             if (!news) {
                 return res.json({
@@ -194,7 +197,10 @@ var NewsController = {
             }
 
 
-            var news = await NewsModel.findOne({_id: id});
+            var news = await NewsModel.findOne({
+                _id: id,
+                status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+            });
 
             if (!news) {
                 return res.json({
@@ -362,7 +368,7 @@ var NewsController = {
                 page = 1;
             }
 
-            let newsList = await NewsModel.find().sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            let newsList = await NewsModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
 
             let results = await Promise.all(newsList.map(async news => {
 
@@ -397,7 +403,7 @@ var NewsController = {
             }));
 
 
-            let count = await NewsModel.count();
+            let count = await NewsModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
 
             return res.json({
                 status: 1,

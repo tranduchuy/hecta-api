@@ -2,9 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 // var ProjectController = require('../controller/ProjectController');
-var PostController = require('../controller/PostController');
-var BuyController = require('../controller/BuyController');
-var SaleController = require('../controller/SaleController');
+
 var TransactionController = require('../controller/TransactionController');
 var PostPriorityController = require('../controller/PostPriorityController');
 
@@ -12,7 +10,9 @@ var AdminController = require('../controller/admin/AdminController');
 var AdminUserController = require('../controller/admin/UserController');
 var AdminProjectController = require('../controller/admin/ProjectController');
 var AdminNewsController = require('../controller/admin/NewsController');
-
+var AdminBuyController = require('../controller/admin/BuyController');
+var AdminSaleController = require('../controller/admin/SaleController');
+var AdminPostController = require('../controller/admin/PostController');
 
 router.get('/projects/list', AdminProjectController.list);
 router.get('/projects/types', AdminProjectController.typeList);
@@ -29,12 +29,12 @@ router.post('/news/update/:id', AdminNewsController.update);
 router.get('/news/detail/:id', AdminNewsController.detail);
 
 
-router.get('/posts/list', PostController.listAdmin);
-router.get('/posts/detail/:id', PostController.detailAdmin);
+router.get('/posts/list', AdminPostController.list);
+router.get('/posts/detail/:id', AdminPostController.detail);
 
 
-router.post('/buys/update/:id', BuyController.updateAdmin);
-router.post('/sales/update/:id', SaleController.updateAdmin);
+router.post('/buys/update/:id', AdminBuyController.update);
+router.post('/sales/update/:id', AdminSaleController.updateAdmin);
 
 router.post('/payments/add/:id', TransactionController.addMain);
 router.post('/promos/add/:id', TransactionController.addPromo);
