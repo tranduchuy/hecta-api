@@ -27,7 +27,28 @@ var urlParamSchema = new Schema({
     price: Number,
 
     extra: Object,
-    text : String
+    text: String,
+
+    metaTitle: String,
+    metaDescription: String,
+    metaType: String,
+    metaUrl: String,
+    metaImage: String,
+    canonical: String,
+    textEndPage: String,
+
+    status: {type: Number, default: global.STATUS_ACTIVE},
+
+    updatedBy: {type: Array, default: []}
+
+
+//     let metaTitle = req.body.metaTitle;
+// let metaDescription = req.body.metaDescription;
+// let metaType = req.body.metaType;
+// let metaUrl = req.body.metaUrl;
+// let metaImage = req.body.metaImage;
+// let canonical = req.body.canonical;
+// let textEndPage = req.body.textEndPage;
 
 });
 

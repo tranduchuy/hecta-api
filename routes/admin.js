@@ -13,6 +13,7 @@ var AdminNewsController = require('../controller/admin/NewsController');
 var AdminBuyController = require('../controller/admin/BuyController');
 var AdminSaleController = require('../controller/admin/SaleController');
 var AdminPostController = require('../controller/admin/PostController');
+var AdminCategoryController = require('../controller/admin/CategoryController');
 
 router.get('/projects/list', AdminProjectController.list);
 router.get('/projects/types', AdminProjectController.typeList);
@@ -31,7 +32,7 @@ router.get('/news/detail/:id', AdminNewsController.detail);
 
 router.get('/posts/list', AdminPostController.list);
 router.get('/posts/detail/:id', AdminPostController.detail);
-router.get('/posts/update/url/:id', AdminPostController.updateUrl);
+router.post('/posts/update/url/:id', AdminPostController.updateUrl);
 
 
 router.post('/buys/update/:id', AdminBuyController.update);
@@ -54,6 +55,10 @@ router.post('/admins/status/:id', AdminController.status);
 router.get('/vips/list', PostPriorityController.listAdmin);
 router.post('/vips/update/:id', PostPriorityController.update);
 router.post('/vips/add', PostPriorityController.add);
+
+router.get('/category/list', AdminCategoryController.list);
+router.get('/category/detail/:id', AdminCategoryController.detail);
+router.post('/category/update/:id', AdminCategoryController.update);
 
 
 module.exports = router;

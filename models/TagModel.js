@@ -7,11 +7,18 @@ var Schema = mongoose.Schema;
 var tagSchema = new Schema({
 
     slug: String,
-    keyword : String,
+    keyword: String,
     posts: {type: Array, default: []},
     refresh: Number,
     status: {type: Number, default: global.STATUS_POST_ACTIVE},
-    date: {type: Number, default: Date.now}
+    date: {type: Number, default: Date.now},
+    metaTitle: String,
+    metaDescription: String,
+    metaType: String,
+    metaUrl: String,
+    metaImage: String,
+    canonical: String,
+    textEndPage: String
 });
 
 
