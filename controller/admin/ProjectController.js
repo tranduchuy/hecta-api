@@ -62,6 +62,16 @@ var ProjectController = {
                 });
             }
 
+            let post = await PostModel.findOne({content_id: project._id});
+
+            if (!post) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist'
+                });
+            }
+
 
             return res.json({
                 status: 1,
@@ -112,12 +122,14 @@ var ProjectController = {
 
                     status: project.status,
 
-                    metaTitle: project.metaTitle,
-                    metaDescription: project.metaDescription,
-                    metaType: project.metaType,
-                    metaUrl: project.metaUrl,
-                    metaImage: project.metaImage,
-                    canonical: project.canonical
+                    metaTitle: post.metaTitle,
+                    metaDescription: post.metaDescription,
+                    metaType: post.metaType,
+                    metaUrl: post.metaUrl,
+                    metaImage: post.metaImage,
+                    canonical: post.canonical,
+                    textEndPage: post.textEndPage,
+                    url: post.url
 
 
                 },
@@ -298,6 +310,7 @@ var ProjectController = {
             var metaUrl = req.body.metaUrl;
             var metaImage = req.body.metaImage;
             var canonical = req.body.canonical;
+            var textEndPage = req.body.textEndPage;
 
 
             // metaTitle: project.metaTitle,
@@ -307,29 +320,6 @@ var ProjectController = {
             //     metaImage: project.metaImage,
             //     canonical: project.canonical
 
-            if (metaTitle) {
-                project.metaTitle = metaTitle;
-            }
-
-            if (metaDescription) {
-                project.metaDescription = metaDescription;
-            }
-
-            if (metaType) {
-                project.metaType = metaType;
-            }
-
-            if (metaUrl) {
-                project.metaUrl = metaUrl;
-            }
-
-            if (metaImage) {
-                project.metaImage = metaImage;
-            }
-
-            if (canonical) {
-                project.canonical = canonical;
-            }
 
             if (district) {
                 project.district = district;
@@ -479,14 +469,41 @@ var ProjectController = {
             project.admin.push(accessToken.user);
             project = await project.save();
 
+            var post = await PostModel.findOne({content_id: project._id});
 
             if (status == global.STATUS_ACTIVE || global.STATUS_BLOCKED || global.STATUS_DELETE) {
-                var post = await PostModel.findOne({content_id: project._id});
                 post.status = status;
-                await post.save();
             }
 
+            if (metaTitle) {
+                post.metaTitle = metaTitle;
+            }
 
+            if (metaDescription) {
+                post.metaDescription = metaDescription;
+            }
+
+            if (metaType) {
+                post.metaType = metaType;
+            }
+
+            if (metaUrl) {
+                post.metaUrl = metaUrl;
+            }
+
+            if (metaImage) {
+                post.metaImage = metaImage;
+            }
+
+            if (canonical) {
+                post.canonical = canonical;
+            }
+
+            if (textEndPage) {
+                post.textEndPage = textEndPage;
+            }
+
+            await post.save();
             return res.json({
                 status: 1,
                 data: project,
@@ -597,16 +614,18 @@ var ProjectController = {
                     district: project.district,
                     city: project.city,
 
-                    metaTitle: project.metaTitle,
-                    metaDescription: project.metaDescription,
-                    metaType: project.metaType,
-                    metaUrl: project.metaUrl,
-                    metaImage: project.metaImage,
-                    canonical: project.canonical
+
                 };
 
                 if (post) {
                     result.url = post.url;
+                    result.metaTitle = post.metaTitle;
+                    result.metaDescription = post.metaDescription;
+                    result.metaType = post.metaType;
+                    result.metaUrl = post.metaUrl;
+                    result.metaImage = post.metaImage;
+                    result.canonical = post.canonical;
+                    result.textEndPage = post.textEndPage;
                 }
 
                 return result;
@@ -720,16 +739,11 @@ var ProjectController = {
             var metaUrl = req.body.metaUrl;
             var metaImage = req.body.metaImage;
             var canonical = req.body.canonical;
+            var textEndPage = req.body.textEndPage;
 
 
             var project = new ProjectModel();
 
-            project.metaTitle = metaTitle;
-            project.metaDescription = metaDescription;
-            project.metaType = metaType;
-            project.metaUrl = metaUrl;
-            project.metaImage = metaImage;
-            project.canonical = canonical;
 
             project.district = district;
             project.city = city;
@@ -787,6 +801,13 @@ var ProjectController = {
             post.content_id = project._id;
             post.user = accessToken.user;
 
+            post.metaTitle = metaTitle;
+            post.metaDescription = metaDescription;
+            post.metaType = metaType;
+            post.metaUrl = metaUrl;
+            post.metaImage = metaImage;
+            post.canonical = canonical;
+            post.textEndPage = textEndPage;
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_PROJECT,
@@ -803,10 +824,20 @@ var ProjectController = {
                 area: undefined,
                 price: price
             });
+            if (!param) {
+                param = await param.save();
 
-            let mainUrl = !param ? global.PARAM_NOT_FOUND_PROJECT : param.param;
+            }
+            var url = urlSlug(title);
 
-            post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            var count = await PostModel.find({url: new RegExp("^" + url)});
+
+            if (count > 0) {
+                url += ('-' + count);
+            }
+
+            post.url = url;
+            post.params = param._id;
 
             post.status = global.STATUS_POST_ACTIVE;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;

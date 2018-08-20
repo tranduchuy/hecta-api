@@ -51,12 +51,12 @@ var projectSchema = new Schema({
     city: String,
 
 
-    metaTitle: String,
-    metaDescription: String,
-    metaType: String,
-    metaUrl: String,
-    metaImage: String,
-    canonical: String,
+    // metaTitle: String,
+    // metaDescription: String,
+    // metaType: String,
+    // metaUrl: String,
+    // metaImage: String,
+    // canonical: String,
 
     admin: {type: Array, default: []},
     date: {type: Number, default: Date.now}

@@ -292,46 +292,21 @@ var SaleController = {
             });
 
 
+
             if (!param) {
-
-                var mainUrl = global.PARAM_NOT_FOUND_SALE;
-
-                param = await UrlParamModel.findOne({param: mainUrl});
-                while (param) {
-                    mainUrl = mainUrl + '-';
-                    param = await UrlParamModel.findOne({param: mainUrl});
-                }
-
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_SALE,
-
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: balconyDirection,
-                    bedroomCount: bedroomCount,
-                    area: area,
-                    price: price,
-                    areaMax: undefined,
-                    areaMin: undefined,
-                    priceMax: undefined,
-                    priceMin: undefined,
-                    extra: undefined,
-                    text: undefined,
-                    param: mainUrl
-                });
-
                 param = await param.save();
 
             }
+            var url = urlSlug(title);
 
-            mainUrl = param.param;
+            var count = await PostModel.find({url: new RegExp("^" + url)});
 
-            post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            if (count > 0) {
+                url += ('-' + count);
+            }
+
+            post.url = url;
+            post.params = param._id;
 
             post = await post.save();
 
@@ -606,45 +581,21 @@ var SaleController = {
             });
 
 
+
             if (!param) {
-
-                var mainUrl = global.PARAM_NOT_FOUND_SALE;
-
-                param = await UrlParamModel.findOne({param: mainUrl});
-                while (param) {
-                    mainUrl = mainUrl + '-';
-                    param = await UrlParamModel.findOne({param: mainUrl});
-                }
-
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_SALE,
-
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: balconyDirection,
-                    bedroomCount: bedroomCount,
-                    area: area,
-                    price: price,
-                    areaMax: undefined,
-                    areaMin: undefined,
-                    priceMax: undefined,
-                    priceMin: undefined,
-                    extra: undefined,
-                    text: undefined,
-                    param: mainUrl
-                });
-
                 param = await param.save();
 
             }
+            var url = urlSlug(title);
 
-            mainUrl = param.param;
-            post.url = mainUrl + '/' + urlSlug(sale.title) + '-' + Date.now();
+            var count = await PostModel.find({url: new RegExp("^" + url)});
+
+            if (count > 0) {
+                url += ('-' + count);
+            }
+
+            post.url = url;
+            post.params = param._id;
 
             post.type = sale.type;
             post.priority = sale.priority;

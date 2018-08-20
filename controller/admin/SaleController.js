@@ -1,9 +1,9 @@
-var SaleModel = require('../models/SaleModel');
-var PostModel = require('../models/PostModel');
-var TagModel = require('../models/TagModel');
+var SaleModel = require('../../models/SaleModel');
+var PostModel = require('../../models/PostModel');
+var TagModel = require('../../models/TagModel');
 var _ = require('lodash');
-var TokenModel = require('../models/TokenModel');
-var UrlParamModel = require('../models/UrlParamModel');
+var TokenModel = require('../../models/TokenModel');
+var UrlParamModel = require('../../models/UrlParamModel');
 var urlSlug = require('url-slug');
 var UserModel = require('../../models/UserModel');
 

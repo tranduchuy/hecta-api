@@ -31,10 +31,11 @@ router.get('/news/detail/:id', AdminNewsController.detail);
 
 router.get('/posts/list', AdminPostController.list);
 router.get('/posts/detail/:id', AdminPostController.detail);
+router.get('/posts/update/url/:id', AdminPostController.updateUrl);
 
 
 router.post('/buys/update/:id', AdminBuyController.update);
-router.post('/sales/update/:id', AdminSaleController.updateAdmin);
+router.post('/sales/update/:id', AdminSaleController.update);
 
 router.post('/payments/add/:id', TransactionController.addMain);
 router.post('/promos/add/:id', TransactionController.addPromo);

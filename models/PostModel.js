@@ -6,27 +6,34 @@ var Schema = mongoose.Schema;
 
 var postSchema = new Schema({
 
-    content_id : String,
+    content_id: String,
 
     postType: Number,
     type: Number,
     formality: Number,
 
-    admin : String,
-    status : Number,
-    paymentStatus : Number,
-    price : Number,
+    admin: String,
+    status: Number,
+    paymentStatus: Number,
+    price: Number,
 
     priority: Number,
 
     from: Number,
     to: Number,
+    params: String,
 
-    url : String,
+    url: String,
     date: {type: Number, default: Date.now},
-    refresh: {type: Number, default: Date.now}
+    refresh: {type: Number, default: Date.now},
 
-
+    metaTitle: String,
+    metaDescription: String,
+    metaType: String,
+    metaUrl: String,
+    metaImage: String,
+    canonical: String,
+    textEndPage: String
 
 
 });

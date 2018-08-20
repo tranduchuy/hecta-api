@@ -64,6 +64,17 @@ var NewsController = {
             }
 
 
+            let post = await PostModel.findOne({content_id: news._id});
+
+            if (!post) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist'
+                });
+            }
+
+
             return res.json({
                 status: 1,
                 data: {
@@ -74,12 +85,16 @@ var NewsController = {
                     image: news.image,
                     description: news.description,
                     date: news.date,
-                    metaTitle: news.metaTitle,
-                    metaDescription: news.metaDescription,
-                    metaType: news.metaType,
-                    metaUrl: news.metaUrl,
-                    metaImage: news.metaImage,
-                    canonical: news.canonical
+
+
+                    metaTitle: post.metaTitle,
+                    metaDescription: post.metaDescription,
+                    metaType: post.metaType,
+                    metaUrl: post.metaUrl,
+                    metaImage: post.metaImage,
+                    canonical: post.canonical,
+                    textEndPage: post.textEndPage,
+                    url: post.url
 
                 },
                 message: 'request success'
@@ -226,38 +241,7 @@ var NewsController = {
             var metaUrl = req.body.metaUrl;
             var metaImage = req.body.metaImage;
             var canonical = req.body.canonical;
-
-
-            // metaTitle: project.metaTitle,
-            //     metaDescription: project.metaDescription,
-            //     metaType: project.metaType,
-            //     metaUrl: project.metaUrl,
-            //     metaImage: project.metaImage,
-            //     canonical: project.canonical
-
-            if (metaTitle) {
-                news.metaTitle = metaTitle;
-            }
-
-            if (metaDescription) {
-                news.metaDescription = metaDescription;
-            }
-
-            if (metaType) {
-                news.metaType = metaType;
-            }
-
-            if (metaUrl) {
-                news.metaUrl = metaUrl;
-            }
-
-            if (metaImage) {
-                news.metaImage = metaImage;
-            }
-
-            if (canonical) {
-                news.canonical = canonical;
-            }
+            var textEndPage = req.body.textEndPage;
 
 
             if (title) {
@@ -287,7 +271,35 @@ var NewsController = {
 
             news = await news.save();
 
-            let post = await PostModel.findOne({content_id: news._id})
+            let post = await PostModel.findOne({content_id: news._id});
+
+            if (textEndPage) {
+                post.textEndPage = textEndPage;
+            }
+
+            if (metaTitle) {
+                post.metaTitle = metaTitle;
+            }
+
+            if (metaDescription) {
+                post.metaDescription = metaDescription;
+            }
+
+            if (metaType) {
+                post.metaType = metaType;
+            }
+
+            if (metaUrl) {
+                post.metaUrl = metaUrl;
+            }
+
+            if (metaImage) {
+                post.metaImage = metaImage;
+            }
+
+            if (canonical) {
+                post.canonical = canonical;
+            }
 
             if (title && post) {
 
@@ -307,9 +319,19 @@ var NewsController = {
                     price: undefined
                 });
 
-                let mainUrl = !param ? global.PARAM_NOT_FOUND_NEWS : param.param;
+                if (!param) {
+                    param = await param.save();
+                }
+                var url = urlSlug(title);
 
-                post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+                var count = await PostModel.find({url: new RegExp("^" + url)});
+
+                if (count > 0) {
+                    url += ('-' + count);
+                }
+
+                post.url = url;
+                post.params = param._id;
 
                 await post.save();
             }
@@ -372,8 +394,6 @@ var NewsController = {
 
             let results = await Promise.all(newsList.map(async news => {
 
-                let post = await PostModel.findOne({content_id: news._id});
-
 
                 let result = {
 
@@ -385,17 +405,21 @@ var NewsController = {
                     image: news.image,
                     date: news.date,
                     description: news.description,
-                    metaTitle: news.metaTitle,
-                    metaDescription: news.metaDescription,
-                    metaType: news.metaType,
-                    metaUrl: news.metaUrl,
-                    metaImage: news.metaImage,
-                    canonical: news.canonical
+
 
                 };
 
+                let post = await PostModel.findOne({content_id: news._id});
+
                 if (post) {
                     result.url = post.url;
+                    result.metaTitle = post.metaTitle;
+                    result.metaDescription = post.metaDescription;
+                    result.metaType = post.metaType;
+                    result.metaUrl = post.metaUrl;
+                    result.metaImage = post.metaImage;
+                    result.canonical = post.canonical;
+                    result.textEndPage = post.textEndPage
                 }
 
                 return result;
@@ -469,16 +493,12 @@ var NewsController = {
             var metaUrl = req.body.metaUrl;
             var metaImage = req.body.metaImage;
             var canonical = req.body.canonical;
+            var textEndPage = req.body.textEndPage;
 
 
             var news = new NewsModel();
 
-            news.metaTitle = metaTitle;
-            news.metaDescription = metaDescription;
-            news.metaType = metaType;
-            news.metaUrl = metaUrl;
-            news.metaImage = metaImage;
-            news.canonical = canonical;
+
 
             news.title = title;
             news.content = content;
@@ -516,9 +536,28 @@ var NewsController = {
                 price: undefined
             });
 
-            let mainUrl = !param ? global.PARAM_NOT_FOUND_NEWS : param.param;
+            if (!param) {
+                param = await param.save();
 
-            post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            }
+            var url = urlSlug(title);
+
+            var count = await PostModel.find({url: new RegExp("^" + url)});
+
+            if (count > 0) {
+                url += ('-' + count);
+            }
+
+            post.url = url;
+            post.params = param._id;
+
+            post.metaTitle = metaTitle;
+            post.metaDescription = metaDescription;
+            post.metaType = metaType;
+            post.metaUrl = metaUrl;
+            post.metaImage = metaImage;
+            post.canonical = canonical;
+            post.textEndPage = textEndPage;
 
             post = await post.save();
 

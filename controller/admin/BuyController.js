@@ -1,10 +1,10 @@
-var PostModel = require('../models/PostModel');
-var BuyModel = require('../models/BuyModel');
-var TokenModel = require('../models/TokenModel');
-var TagModel = require('../models/TagModel');
+var PostModel = require('../../models/PostModel');
+var BuyModel = require('../../models/BuyModel');
+var TokenModel = require('../../models/TokenModel');
+var TagModel = require('../../models/TagModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
-var UrlParamModel = require('../models/UrlParamModel');
+var UrlParamModel = require('../../models/UrlParamModel');
 var UserModel = require('../../models/UserModel');
 
 var BuyController = {

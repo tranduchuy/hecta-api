@@ -215,62 +215,20 @@ var BuyController = {
 
 
             if (!param) {
-
-                var paramX = await UrlParamModel.findOne({
-                    postType: global.POST_TYPE_BUY,
-
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    area: undefined,
-                    price: undefined,
-                    extra: undefined,
-                    text: undefined
-                });
-
-                var urlX = paramX ? paramX.param : global.PARAM_NOT_FOUND_BUY;
-
-                var mainUrl = urlX + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
-
-                param = await UrlParamModel.findOne({param: mainUrl});
-                while (param) {
-                    mainUrl = mainUrl + '-';
-                    param = await UrlParamModel.findOne({param: mainUrl});
-                }
-
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_BUY,
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    areaMax: areaMax,
-                    areaMin: areaMin,
-                    area: undefined,
-                    priceMax: priceMax,
-                    priceMin: priceMin,
-                    price: undefined,
-                    param: mainUrl
-                });
-
                 param = await param.save();
 
             }
+            var url = urlSlug(title);
 
-            mainUrl = param.param;
+            var count = await PostModel.find({url: new RegExp("^" + url)});
 
-            post.url = mainUrl + '/' + urlSlug(title) + '-' + Date.now();
+            if (count > 0) {
+                url += ('-' + count);
+            }
+
+            post.url = url;
+            post.params = param._id;
+
 
             post.postType = global.POST_TYPE_BUY;
             post.formality = buy.formality;
@@ -530,64 +488,21 @@ var BuyController = {
                 text: undefined
             });
 
-
             if (!param) {
-
-                var paramX = await UrlParamModel.findOne({
-                    postType: global.POST_TYPE_BUY,
-
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    area: undefined,
-                    price: undefined,
-                    extra: undefined,
-                    text: undefined
-                });
-
-                var urlX = paramX ? paramX.param : global.PARAM_NOT_FOUND_BUY;
-
-                var mainUrl = urlX + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
-
-                param = await UrlParamModel.findOne({param: mainUrl});
-                while (param) {
-                    mainUrl = mainUrl + '-';
-                    param = await UrlParamModel.findOne({param: mainUrl});
-                }
-
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_BUY,
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    areaMax: areaMax,
-                    areaMin: areaMin,
-                    area: undefined,
-                    priceMax: priceMax,
-                    priceMin: priceMin,
-                    price: undefined,
-                    param: mainUrl
-                });
-
                 param = await param.save();
 
             }
+            var url = urlSlug(title);
 
-            mainUrl = param.param;
+            var count = await PostModel.find({url: new RegExp("^" + url)});
 
-            post.url = mainUrl + '/' + urlSlug(buy.title) + '-' + Date.now();
+            if (count > 0) {
+                url += ('-' + count);
+            }
+
+            post.url = url;
+            post.params = param._id;
+
             post.formality = buy.formality;
             post.type = buy.type;
 

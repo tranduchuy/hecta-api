@@ -14,12 +14,13 @@ var newsSchema = new Schema({
     status: {type: Number, default: global.STATUS_POST_ACTIVE},
 
 
-    metaTitle: String,
-    metaDescription: String,
-    metaType: String,
-    metaUrl: String,
-    metaImage: String,
-    canonical: String,
+    // metaTitle: String,
+    // metaDescription: String,
+    // metaType: String,
+    // metaUrl: String,
+    // metaImage: String,
+    // canonical: String,
+
     admin: {type: Array, default: []},
     date: {type: Number, default: Date.now}
 

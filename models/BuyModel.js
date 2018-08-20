@@ -6,41 +6,40 @@ var Schema = mongoose.Schema;
 
 var buySchema = new Schema({
 
-    title : String,
-    description : String,
+    title: String,
+    description: String,
     keywordList: Array,
 
-    formality : Number,
-    type : Number,
-    city : String,
-    district : Number,
-    ward : Number,
-    street : Number,
-    project : String,
-    areaMin : Number,
-    areaMax : Number,
-    priceMin : Number,
-    priceMax : Number,
-    unit : Number,
+    formality: Number,
+    type: Number,
+    city: String,
+    district: Number,
+    ward: Number,
+    street: Number,
+    project: String,
+    areaMin: Number,
+    areaMax: Number,
+    priceMin: Number,
+    priceMax: Number,
+    unit: Number,
 
-    address : String,
+    address: String,
 
-    images : Array,
+    images: Array,
 
-    contactName : String,
-    contactAddress : String,
-    contactPhone : String,
-    contactMobile : String,
-    contactEmail : String,
+    contactName: String,
+    contactAddress: String,
+    contactPhone: String,
+    contactMobile: String,
+    contactEmail: String,
     receiveMail: Boolean,
 
     admin: {type: Array, default: []},
 
 
-    status : {type : Number, default:global.STATUS_POST_PENDING},
+    status: {type: Number, default: global.STATUS_POST_PENDING},
     date: {type: Number, default: Date.now}
 });
-
 
 
 var BuyModel = mongoose.model('Buy', buySchema);

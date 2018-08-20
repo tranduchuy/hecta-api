@@ -1,9 +1,9 @@
-var SaleModel = require('../models/SaleModel');
-var BuyModel = require('../models/BuyModel');
-var PostModel = require('../models/PostModel');
+var SaleModel = require('../../models/SaleModel');
+var BuyModel = require('../../models/BuyModel');
+var PostModel = require('../../models/PostModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
-var TokenModel = require('../models/TokenModel');
+var TokenModel = require('../../models/TokenModel');
 var UserModel = require('../../models/UserModel');
 
 var PostController = {
@@ -12,6 +12,7 @@ var PostController = {
 
         var token = req.headers.access_token;
         var accessToken = await  TokenModel.findOne({token: token});
+
 
         if (!accessToken) {
             return res.json({
@@ -48,7 +49,7 @@ var PostController = {
 
         }
 
-        let post = await PostModel.findOne({_id: id});
+        var post = await PostModel.findOne({_id: id});
 
         if (!post) {
             return res.json({
@@ -60,6 +61,14 @@ var PostController = {
 
         let url = req.body.url;
 
+        let metaTitle = req.body.metaTitle;
+        let metaDescription = req.body.metaDescription;
+        let metaType = req.body.metaType;
+        let metaUrl = req.body.metaUrl;
+        let metaImage = req.body.metaImage;
+        let canonical = req.body.canonical;
+        let textEndPage = req.body.textEndPage;
+
         if (!url || url.length < 10) {
             return res.json({
                 status: 0,
@@ -68,10 +77,50 @@ var PostController = {
             });
         }
 
+        if (await PostModel.count({url: url}) > 0) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'url duplicate '
+            });
+        }
+
+        post.url = url;
+
+        if (metaTitle) {
+            post.metaTitle = metaTitle;
+        }
+
+        if (metaDescription) {
+            post.metaDescription = metaDescription;
+        }
+
+        if (metaType) {
+            post.metaType = metaType;
+        }
+
+        if (metaUrl) {
+            post.metaUrl = metaUrl;
+        }
+
+        if (metaImage) {
+            post.metaImage = metaImage;
+        }
+
+        if (canonical) {
+            post.canonical = canonical;
+        }
+
+        if (textEndPage) {
+            post.textEndPage = textEndPage;
+        }
+
+        post = await post.save();
+
 
         return res.json({
             status: 1,
-            data: {},
+            data: post,
             message: 'success !'
         });
 
@@ -232,7 +281,15 @@ var PostController = {
                                     postType: post.postType,
                                     status: post.status,
                                     paymentStatus: post.paymentStatus,
-                                    refresh: post.refresh
+                                    refresh: post.refresh,
+
+                                    metaTitle: post.metaTitle,
+                                    metaDescription: post.metaDescription,
+                                    metaType: post.metaType,
+                                    metaUrl: post.metaUrl,
+                                    metaImage: post.metaImage,
+                                    canonical: post.canonical,
+                                    textEndPage: post.textEndPage,
                                 };
                         }
                         else {

@@ -10,53 +10,53 @@ var urlSlug = require('url-slug');
 var SearchController = {
 
 
-    addParamUrl: async function (req, res, next) {
-        try {
-            var text = req.body.text;
-            var id = req.body.id;
-            var postType = req.body.postType;
-            var selectable = req.body.selectable;
-            var level = req.body.level;
-
-
-            var extra;
-            if (selectable || level) {
-                extra = {};
-                if (selectable) {
-                    extra.selectable = selectable == 'true';
-                }
-                if (level) {
-                    extra.level = level;
-                }
-            }
-
-
-            var urlParam = new UrlParamModel();
-
-            urlParam.param = urlSlug(text);
-            urlParam.postType = postType;
-            urlParam.text = text;
-            urlParam.type = id;
-            if (extra) {
-                urlParam.extra = extra;
-            }
-            urlParam = await urlParam.save();
-
-            return res.json({
-                status: 1,
-                data: urlParam,
-                message: 'request success !'
-            });
-
-        }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-    },
+    // addParamUrl: async function (req, res, next) {
+    //     try {
+    //         var text = req.body.text;
+    //         var id = req.body.id;
+    //         var postType = req.body.postType;
+    //         var selectable = req.body.selectable;
+    //         var level = req.body.level;
+    //
+    //
+    //         var extra;
+    //         if (selectable || level) {
+    //             extra = {};
+    //             if (selectable) {
+    //                 extra.selectable = selectable == 'true';
+    //             }
+    //             if (level) {
+    //                 extra.level = level;
+    //             }
+    //         }
+    //
+    //
+    //         var urlParam = new UrlParamModel();
+    //
+    //         urlParam.param = urlSlug(text);
+    //         urlParam.postType = postType;
+    //         urlParam.text = text;
+    //         urlParam.type = id;
+    //         if (extra) {
+    //             urlParam.extra = extra;
+    //         }
+    //         urlParam = await urlParam.save();
+    //
+    //         return res.json({
+    //             status: 1,
+    //             data: urlParam,
+    //             message: 'request success !'
+    //         });
+    //
+    //     }
+    //     catch (e) {
+    //         return res.json({
+    //             status: 0,
+    //             data: {},
+    //             message: 'unknown error : ' + e.message
+    //         });
+    //     }
+    // },
 
     filter: async function (req, res, next) {
 
