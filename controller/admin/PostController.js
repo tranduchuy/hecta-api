@@ -69,23 +69,17 @@ var PostController = {
         let canonical = req.body.canonical;
         let textEndPage = req.body.textEndPage;
 
-        if (!url || url.length < 10) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'url invalid '
-            });
-        }
+        if (url && url.length > 0) {
+            if (await PostModel.count({url: url}) > 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'url duplicate '
+                });
+            }
 
-        if (await PostModel.count({url: url}) > 0) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'url duplicate '
-            });
+            post.url = url;
         }
-
-        post.url = url;
 
         if (metaTitle) {
             post.metaTitle = metaTitle;

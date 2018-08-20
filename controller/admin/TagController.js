@@ -1,10 +1,9 @@
-var UrlParamModel = require('../../models/UrlParamModel');
+var TagModel = require('../../models/TagModel');
 var _ = require('lodash');
-var urlSlug = require('url-slug');
 var TokenModel = require('../../models/TokenModel');
 var UserModel = require('../../models/UserModel');
 
-var CategoryController = {
+var TagController = {
 
     update: async function (req, res, next) {
 
@@ -47,17 +46,17 @@ var CategoryController = {
 
         }
 
-        var category = await UrlParamModel.findOne({_id: id});
+        var tag = await TagModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
 
-        if (!category) {
+        if (!tag) {
             return res.json({
                 status: 0,
                 data: {},
-                message: 'post not exist'
+                message: 'tag not exist'
             });
         }
 
-        let url = req.body.url;
+        let slug = req.body.slug;
         let metaTitle = req.body.metaTitle;
         let metaDescription = req.body.metaDescription;
         let metaType = req.body.metaType;
@@ -68,61 +67,61 @@ var CategoryController = {
 
         let status = req.body.status;
 
-        if (url && url.length > 0) {
-            if (await UrlParamModel.count({param: url}) > 0) {
+        if (slug && slug.length > 0) {
+            if (await TagModel.count({slug: slug}) > 0) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: 'url duplicate '
+                    message: 'slug duplicate '
                 });
             }
 
-            category.url = url;
+            tag.slug = slug;
         }
 
         if (status == global.STATUS_ACTIVE || status == global.STATUS_DELETE || status == global.STATUS_DELETE) {
-            category.status = status;
+            tag.status = status;
         }
 
         if (metaTitle) {
-            category.metaTitle = metaTitle;
+            tag.metaTitle = metaTitle;
         }
 
         if (metaDescription) {
-            category.metaDescription = metaDescription;
+            tag.metaDescription = metaDescription;
         }
 
         if (metaType) {
-            category.metaType = metaType;
+            tag.metaType = metaType;
         }
 
         if (metaUrl) {
-            category.metaUrl = metaUrl;
+            tag.metaUrl = metaUrl;
         }
 
         if (metaImage) {
-            category.metaImage = metaImage;
+            tag.metaImage = metaImage;
         }
 
         if (canonical) {
-            category.canonical = canonical;
+            tag.canonical = canonical;
         }
 
         if (textEndPage) {
-            category.textEndPage = textEndPage;
+            tag.textEndPage = textEndPage;
         }
 
-        if (!category.updatedBy) {
-            category.updatedBy = [];
+        if (!tag.updatedBy) {
+            tag.updatedBy = [];
 
         }
-        category.updatedBy.push(admin._id);
-        category = await category.save();
+        tag.updatedBy.push(admin._id);
+        tag = await tag.save();
 
 
         return res.json({
             status: 1,
-            data: category,
+            data: tag,
             message: 'success !'
         });
 
@@ -163,7 +162,7 @@ var CategoryController = {
 
 
             var page = req.query.page;
-            var url = req.query.url;
+            var slug = req.query.slug;
 
 
             if (!page || page < 1) {
@@ -172,33 +171,32 @@ var CategoryController = {
 
             var query = {status: {$ne: global.STATUS_POST_DETELE}};
 
-            if (url) {
-                query.param = {"$regex": url, "$options": "i"};
+            if (slug) {
+                query.slug = {"$regex": slug, "$options": "i"};
             }
 
 
-            let categories = await
-                UrlParamModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            let tags = await
+                TagModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
 
 
             let results = await
-                Promise.all(categories.map(async category => {
-
-
+                Promise.all(tags.map(async tag => {
                         return {
-                            id: category._id,
-                            param: category.param,
-                            metaTitle: category.metaTitle,
-                            metaDescription: category.metaDescription,
-                            metaType: category.metaType,
-                            metaUrl: category.metaUrl,
-                            metaImage: category.metaImage,
-                            canonical: category.canonical,
-                            textEndPage: category.textEndPage,
+                            id: tag._id,
+                            slug: tag.slug,
+                            keyword : tag.keyword,
+                            metaTitle: tag.metaTitle,
+                            metaDescription: tag.metaDescription,
+                            metaType: tag.metaType,
+                            metaUrl: tag.metaUrl,
+                            metaImage: tag.metaImage,
+                            canonical: tag.canonical,
+                            textEndPage: tag.textEndPage,
                         }
                     }
                 ));
-            let count = await UrlParamModel.count(query);
+            let count = await TagModel.count(query);
 
             return res.json({
                 status: 1,
@@ -270,47 +268,28 @@ var CategoryController = {
 
             }
 
-            let category = await UrlParamModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
+            let tag = await TagModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
 
-            if (!category) {
+            if (!tag) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: 'category not exist'
+                    message: 'tag not exist'
                 });
             }
 
             return {
-                id: category._id,
-                param: category.param,
-                metaTitle: category.metaTitle,
-                metaDescription: category.metaDescription,
-                metaType: category.metaType,
-                metaUrl: category.metaUrl,
-                metaImage: category.metaImage,
-                canonical: category.canonical,
-                textEndPage: category.textEndPage,
+                id: tag._id,
+                slug: tag.slug,
+                metaTitle: tag.metaTitle,
+                metaDescription: tag.metaDescription,
+                metaType: tag.metaType,
+                metaUrl: tag.metaUrl,
+                metaImage: tag.metaImage,
+                canonical: tag.canonical,
+                textEndPage: tag.textEndPage,
+                keyword: tag.keyword,
 
-                postType: category.postType,
-
-                formality: category.formality,
-                type: category.type,
-                city: category.city,
-                district: category.district,
-                ward: category.ward,
-                street: category.street,
-                project: category.project,
-                balconyDirection: category.balconyDirection,
-                bedroomCount: category.bedroomCount,
-                areaMax: category.areaMax,
-                areaMin: category.areaMin,
-                area: category.area,
-                priceMax: category.priceMax,
-                priceMin: category.priceMin,
-                price: category.price,
-
-                extra: category.extra,
-                text: category.text,
             }
 
 
@@ -329,4 +308,4 @@ var CategoryController = {
 
 
 }
-module.exports = CategoryController
+module.exports = TagController
