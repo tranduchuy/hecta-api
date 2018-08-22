@@ -471,9 +471,187 @@ var PostController = {
         }
 
 
-    }
+    },
+    detail: async function (req, res, next) {
+        let id = req.params.id;
 
-    ,
+        try {
+
+            if (!id || id.length == 0) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'id null error'
+                });
+
+            }
+
+            let post = await PostModel.findOne({_id: id});
+
+            if (!post) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist'
+                });
+            }
+
+            let model = post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
+
+            let content = await model.findOne({_id: post.content_id});
+
+
+            if (!content) {
+
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'data not exist'
+                });
+
+
+            }
+
+            if (post.postType == global.POST_TYPE_SALE) {
+
+                let keys;
+
+                if (!content.keywordList) {
+                    keys = [];
+                }
+                else {
+                    keys = await Promise.all(content.keywordList.map(async key => {
+
+                            return {
+                                keyword: key,
+                                slug: urlSlug(key)
+                            }
+                        }
+                    ));
+                }
+
+                return res.json({
+                    status: 1,
+                    data: {
+
+                        title: content.title,
+                        formality: content.formality,
+                        type: content.type,
+                        city: content.city,
+                        district: content.district,
+                        ward: content.ward,
+                        street: content.street,
+                        project: content.project,
+                        area: content.area,
+                        price: content.price,
+                        unit: content.unit,
+                        address: content.address,
+                        keywordList: keys,
+                        description: content.description,
+                        streetWidth: content.streetWidth,
+                        frontSize: content.frontSize,
+                        direction: content.direction,
+                        balconyDirection: content.balconyDirection,
+                        floorCount: content.floorCount,
+                        bedroomCount: content.bedroomCount,
+                        toiletCount: content.toiletCount,
+                        furniture: content.furniture,
+                        images: content.images,
+                        contactName: content.contactName,
+                        contactAddress: content.contactAddress,
+                        contactPhone: content.contactPhone,
+                        contactMobile: content.contactMobile,
+                        contactEmail: content.contactEmail,
+                        date: content.date,
+
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
+                    },
+                    message: 'request success'
+                });
+            }
+            else {
+
+                let keys;
+
+                if (!content.keywordList) {
+                    keys = [];
+                }
+                else {
+                    keys = await Promise.all(content.keywordList.map(async key => {
+
+                            return {
+                                keyword: key,
+                                slug: urlSlug(key)
+                            }
+                        }
+                    ));
+                }
+
+                return res.json({
+                    status: 1,
+                    data: {
+
+                        title: content.title,
+                        description: content.description,
+                        keywordList: keys,
+                        formality: content.formality,
+                        type: content.type,
+                        city: content.city,
+                        district: content.district,
+                        ward: content.ward,
+                        street: content.street,
+                        project: content.project,
+                        areaMin: content.areaMin,
+                        areaMax: content.areaMax,
+                        priceMin: content.priceMin,
+                        priceMax: content.priceMax,
+                        unit: content.unit,
+                        address: content.address,
+                        images: content.images,
+                        contactName: content.contactName,
+                        contactAddress: content.contactAddress,
+                        contactPhone: content.contactPhone,
+                        contactMobile: content.contactMobile,
+                        contactEmail: content.contactEmail,
+                        receiveMail: content.receiveMail,
+                        date: content.date,
+
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
+
+                    },
+                    message: 'request success'
+                });
+            }
+
+
+        }
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+
+
+    },
 
     list: async function (req, res, next) {
 
@@ -669,188 +847,6 @@ var PostController = {
                 },
                 message: 'request success '
             });
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    }
-    ,
-
-    detail: async function (req, res, next) {
-        let id = req.params.id;
-
-        try {
-
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id null error'
-                });
-
-            }
-
-            let post = await PostModel.findOne({_id: id});
-
-            if (!post) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'post not exist'
-                });
-            }
-
-            let model = post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
-
-            let content = await model.findOne({_id: post.content_id});
-
-
-            if (!content) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-
-
-            }
-
-            if (post.postType == global.POST_TYPE_SALE) {
-
-                let keys;
-
-                if (!content.keywordList) {
-                    keys = [];
-                }
-                else {
-                    keys = await Promise.all(content.keywordList.map(async key => {
-
-                            return {
-                                keyword: key,
-                                slug: urlSlug(key)
-                            }
-                        }
-                    ));
-                }
-
-                return res.json({
-                    status: 1,
-                    data: {
-
-                        title: content.title,
-                        formality: content.formality,
-                        type: content.type,
-                        city: content.city,
-                        district: content.district,
-                        ward: content.ward,
-                        street: content.street,
-                        project: content.project,
-                        area: content.area,
-                        price: content.price,
-                        unit: content.unit,
-                        address: content.address,
-                        keywordList: keys,
-                        description: content.description,
-                        streetWidth: content.streetWidth,
-                        frontSize: content.frontSize,
-                        direction: content.direction,
-                        balconyDirection: content.balconyDirection,
-                        floorCount: content.floorCount,
-                        bedroomCount: content.bedroomCount,
-                        toiletCount: content.toiletCount,
-                        furniture: content.furniture,
-                        images: content.images,
-                        contactName: content.contactName,
-                        contactAddress: content.contactAddress,
-                        contactPhone: content.contactPhone,
-                        contactMobile: content.contactMobile,
-                        contactEmail: content.contactEmail,
-                        date: content.date,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
-                    },
-                    message: 'request success'
-                });
-            }
-            else {
-
-                let keys;
-
-                if (!content.keywordList) {
-                    keys = [];
-                }
-                else {
-                    keys = await Promise.all(content.keywordList.map(async key => {
-
-                            return {
-                                keyword: key,
-                                slug: urlSlug(key)
-                            }
-                        }
-                    ));
-                }
-
-                return res.json({
-                    status: 1,
-                    data: {
-
-                        title: content.title,
-                        description: content.description,
-                        keywordList: keys,
-                        formality: content.formality,
-                        type: content.type,
-                        city: content.city,
-                        district: content.district,
-                        ward: content.ward,
-                        street: content.street,
-                        project: content.project,
-                        areaMin: content.areaMin,
-                        areaMax: content.areaMax,
-                        priceMin: content.priceMin,
-                        priceMax: content.priceMax,
-                        unit: content.unit,
-                        address: content.address,
-                        images: content.images,
-                        contactName: content.contactName,
-                        contactAddress: content.contactAddress,
-                        contactPhone: content.contactPhone,
-                        contactMobile: content.contactMobile,
-                        contactEmail: content.contactEmail,
-                        receiveMail: content.receiveMail,
-                        date: content.date,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
-
-                    },
-                    message: 'request success'
-                });
-            }
-
 
         }
 

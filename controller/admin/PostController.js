@@ -1,6 +1,8 @@
 var SaleModel = require('../../models/SaleModel');
 var BuyModel = require('../../models/BuyModel');
 var PostModel = require('../../models/PostModel');
+var NewsModel = require('../../models/NewsModel');
+var ProjectModel = require('../../models/ProjectModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
 var TokenModel = require('../../models/TokenModel');
@@ -163,7 +165,7 @@ var PostController = {
             var status = req.query.status;
             var id = req.query.id;
 
-            if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY)) {
+            if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY && postType != global.POST_TYPE_NEWS && postType != global.POST_TYPE_PROJECT)) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -286,8 +288,8 @@ var PostController = {
                                     textEndPage: post.textEndPage,
                                 };
                         }
-                        else {
 
+                        if (post.postType == global.POST_TYPE_BUY) {
 
                             let buy = await BuyModel.findOne({_id: post.content_id});
 
@@ -346,6 +348,98 @@ var PostController = {
                             };
                         }
 
+                        if (post.postType == global.POST_TYPE_NEWS) {
+
+                            let news = await NewsModel.findOne({_id: post.content_id});
+
+                            return {
+
+                                status: news.status,
+                                title: news.title,
+                                content: news.content,
+                                cate: news.type,
+                                image: news.image,
+                                date: news.date,
+                                description: news.description,
+                                id: post._id,
+                                url: post.url,
+                                metaTitle: post.metaTitle,
+                                metaDescription: post.metaDescription,
+                                metaType: post.metaType,
+                                metaUrl: post.metaUrl,
+                                metaImage: metaImage,
+                                canonical: post.canonical,
+                                textEndPage: post.textEndPage
+                            }
+
+
+                        }
+                        if (post.postType == global.POST_TYPE_PROJECT) {
+
+                            let project = await ProjectModel.findOne({_id: post.content_id});
+
+
+                            return {
+
+                                status: project.status,
+                                isShowOverview: project.isShowOverview,
+                                type: project.type,
+                                introImages: project.introImages,
+                                title: project.title,
+                                address: project.address,
+                                area: project.area,
+                                projectScale: project.projectScale,
+                                price: project.price,
+                                deliveryHouseDate: project.deliveryHouseDate,
+                                constructionArea: project.constructionArea,
+                                descriptionInvestor: project.descriptionInvestor,
+                                description: project.description,
+
+                                isShowLocationAndDesign: project.isShowLocationAndDesign,
+                                location: project.location,
+                                infrastructure: project.infrastructure,
+
+                                isShowGround: project.isShowGround,
+                                overallSchema: project.overallSchema,
+                                groundImages: project.groundImages,
+
+                                isShowImageLibs: project.isShowImageLibs,
+                                imageAlbums: project.imageAlbums,
+
+                                isShowProjectProgress: project.isShowProjectProgress,
+                                projectProgressTitle: project.projectProgressTitle,
+                                projectProgressStartDate: project.projectProgressStartDate,
+                                projectProgressEndDate: project.projectProgressEndDate,
+                                projectProgressDate: project.projectProgressDate,
+                                projectProgressImages: project.projectProgressImages,
+
+                                isShowTabVideo: project.isShowTabVideo,
+                                video: project.video,
+
+                                isShowFinancialSupport: project.isShowFinancialSupport,
+                                financialSupport: project.financialSupport,
+
+                                isShowInvestor: project.isShowInvestor,
+                                detailInvestor: project.detailInvestor,
+
+                                district: project.district,
+                                city: project.city,
+
+                                id: post._id,
+                                url: post.url,
+                                metaTitle: post.metaTitle,
+                                metaDescription: post.metaDescription,
+                                metaType: post.metaType,
+                                metaUrl: post.metaUrl,
+                                metaImage: post.metaImage,
+                                canonical: post.canonical,
+                                textEndPage: post.textEndPage,
+
+
+                            };
+
+
+                        }
 
                     }
                 ))
@@ -424,7 +518,7 @@ var PostController = {
 
             }
 
-            let post = await PostModel.findOne({_id: id});
+            let post = await PostModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
 
             if (!post) {
                 return res.json({
@@ -434,7 +528,24 @@ var PostController = {
                 });
             }
 
-            let model = post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
+            let model = BuyModel;//post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
+
+            switch (post.postType) {
+                case global.POST_TYPE_SALE:
+                    model = SaleModel;
+                    break;
+                case global.POST_TYPE_BUY:
+                    model = BuyModel;
+                    break;
+                case global.POST_TYPE_NEWS:
+                    model = NewsModel;
+                    break;
+                case global.POST_TYPE_PROJECT:
+                    model = ProjectModel;
+                    break;
+
+
+            }
 
             let content = await model.findOne({_id: post.content_id});
 
@@ -499,7 +610,7 @@ var PostController = {
                     message: 'request success'
                 });
             }
-            else {
+            if (post.postType == global.POST_TYPE_BUY) {
 
                 return res.json({
                     status: 1,
@@ -542,8 +653,95 @@ var PostController = {
                     message: 'request success'
                 });
             }
+            if (post.postType == global.POST_TYPE_NEWS) {
+
+                return res.json({
+                    status: 1,
+                    data: {
+                        id: post._id,
+                        title: content.title,
+                        content: content.content,
+                        cate: content.type,
+                        image: content.image,
+                        description: content.description,
+                        date: content.date,
 
 
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage,
+                        url: post.url
+                    },
+                    message: 'request success'
+                });
+            }
+            if (post.postType == global.POST_TYPE_PROJECT) {
+
+                return res.json({
+                    status: 1,
+                    data: {
+                        isShowOvervjiew: content.isShowOverview,
+                        type: content.type,
+                        introImages: content.introImages,
+                        title: content.title,
+                        address: content.address,
+                        area: content.area,
+                        projectScale: content.projectScale,
+                        price: content.price,
+                        deliveryHouseDate: content.deliveryHouseDate,
+                        constructionArea: content.constructionArea,
+                        descriptionInvestor: content.descriptionInvestor,
+                        description: content.description,
+
+                        isShowLocationAndDesign: content.isShowLocationAndDesign,
+                        location: content.location,
+                        infrastructure: content.infrastructure,
+
+                        isShowGround: content.isShowGround,
+                        overallSchema: content.overallSchema,
+                        groundImages: content.groundImages,
+
+                        isShowImageLibs: content.isShowImageLibs,
+                        imageAlbums: content.imageAlbums,
+
+                        isShowProjectProgress: content.isShowProjectProgress,
+                        projectProgressTitle: content.projectProgressTitle,
+                        projectProgressStartDate: content.projectProgressStartDate,
+                        projectProgressEndDate: content.projectProgressEndDate,
+                        projectProgressDate: content.projectProgressDate,
+                        projectProgressImages: content.projectProgressImages,
+
+                        isShowTabVideo: content.isShowTabVideo,
+                        video: project.video,
+
+                        isShowFinancialSupport: content.isShowFinancialSupport,
+                        financialSupport: content.financialSupport,
+
+                        isShowInvestor: content.isShowInvestor,
+                        detailInvestor: content.detailInvestor,
+
+                        district: content.district,
+                        city: content.city,
+
+                        status: content.status,
+
+                        id: post._id,
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage,
+                        url: post.url
+                    },
+                    message: 'request success'
+                });
+            }
         }
 
         catch (e) {

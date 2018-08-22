@@ -7,7 +7,7 @@ var Schema = mongoose.Schema;
 var urlParamSchema = new Schema({
 
 
-    param: {type: String, unique: true},
+    param: String, //{type: String, unique: false},
     postType: Number,
 
     formality: Number,

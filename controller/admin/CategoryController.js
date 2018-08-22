@@ -280,38 +280,43 @@ var CategoryController = {
                 });
             }
 
-            return {
-                id: category._id,
-                param: category.param,
-                metaTitle: category.metaTitle,
-                metaDescription: category.metaDescription,
-                metaType: category.metaType,
-                metaUrl: category.metaUrl,
-                metaImage: category.metaImage,
-                canonical: category.canonical,
-                textEndPage: category.textEndPage,
+            return res.json({
+                status: 1,
+                data: {
+                    id: category._id,
+                    param: category.param,
+                    metaTitle: category.metaTitle,
+                    metaDescription: category.metaDescription,
+                    metaType: category.metaType,
+                    metaUrl: category.metaUrl,
+                    metaImage: category.metaImage,
+                    canonical: category.canonical,
+                    textEndPage: category.textEndPage,
 
-                postType: category.postType,
+                    postType: category.postType,
 
-                formality: category.formality,
-                type: category.type,
-                city: category.city,
-                district: category.district,
-                ward: category.ward,
-                street: category.street,
-                project: category.project,
-                balconyDirection: category.balconyDirection,
-                bedroomCount: category.bedroomCount,
-                areaMax: category.areaMax,
-                areaMin: category.areaMin,
-                area: category.area,
-                priceMax: category.priceMax,
-                priceMin: category.priceMin,
-                price: category.price,
+                    formality: category.formality,
+                    type: category.type,
+                    city: category.city,
+                    district: category.district,
+                    ward: category.ward,
+                    street: category.street,
+                    project: category.project,
+                    balconyDirection: category.balconyDirection,
+                    bedroomCount: category.bedroomCount,
+                    areaMax: category.areaMax,
+                    areaMin: category.areaMin,
+                    area: category.area,
+                    priceMax: category.priceMax,
+                    priceMin: category.priceMin,
+                    price: category.price,
 
-                extra: category.extra,
-                text: category.text,
-            }
+                    extra: category.extra,
+                    text: category.text,
+                },
+                message: 'success'
+            });
+
 
 
         }

@@ -33,7 +33,9 @@ var postSchema = new Schema({
     metaUrl: String,
     metaImage: String,
     canonical: String,
-    textEndPage: String
+    textEndPage: String,
+
+    tags: {type: Array, default: []}
 
 
 });

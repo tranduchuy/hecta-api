@@ -9,146 +9,146 @@ var urlSlug = require('url-slug');
 var ProjectController = {
 
 
-    detail: async function (req, res, next) {
-        try {
-
-            var token = req.headers.access_token;
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
-            }
-
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id null error'
-                });
-
-            }
-            let id = req.params.id;
-
-            let project = await ProjectModel.findOne({
-                _id: id,
-                status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
-            });
-
-            if (!project) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-            }
-
-            let post = await PostModel.findOne({content_id: project._id});
-
-            if (!post) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'post not exist'
-                });
-            }
-
-
-            return res.json({
-                status: 1,
-                data: {
-                    id: project._id,
-                    isShowOverview: project.isShowOverview,
-                    type: project.type,
-                    introImages: project.introImages,
-                    title: project.title,
-                    address: project.address,
-                    area: project.area,
-                    projectScale: project.projectScale,
-                    price: project.price,
-                    deliveryHouseDate: project.deliveryHouseDate,
-                    constructionArea: project.constructionArea,
-                    descriptionInvestor: project.descriptionInvestor,
-                    description: project.description,
-
-                    isShowLocationAndDesign: project.isShowLocationAndDesign,
-                    location: project.location,
-                    infrastructure: project.infrastructure,
-
-                    isShowGround: project.isShowGround,
-                    overallSchema: project.overallSchema,
-                    groundImages: project.groundImages,
-
-                    isShowImageLibs: project.isShowImageLibs,
-                    imageAlbums: project.imageAlbums,
-
-                    isShowProjectProgress: project.isShowProjectProgress,
-                    projectProgressTitle: project.projectProgressTitle,
-                    projectProgressStartDate: project.projectProgressStartDate,
-                    projectProgressEndDate: project.projectProgressEndDate,
-                    projectProgressDate: project.projectProgressDate,
-                    projectProgressImages: project.projectProgressImages,
-
-                    isShowTabVideo: project.isShowTabVideo,
-                    video: project.video,
-
-                    isShowFinancialSupport: project.isShowFinancialSupport,
-                    financialSupport: project.financialSupport,
-
-                    isShowInvestor: project.isShowInvestor,
-                    detailInvestor: project.detailInvestor,
-
-                    district: project.district,
-                    city: project.city,
-
-                    status: project.status,
-
-                    metaTitle: post.metaTitle,
-                    metaDescription: post.metaDescription,
-                    metaType: post.metaType,
-                    metaUrl: post.metaUrl,
-                    metaImage: post.metaImage,
-                    canonical: post.canonical,
-                    textEndPage: post.textEndPage,
-                    url: post.url
-
-
-                },
-                message: 'request success'
-            });
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    },
+    // detail: async function (req, res, next) {
+    //     try {
+    //
+    //         var token = req.headers.access_token;
+    //         var accessToken = await  TokenModel.findOne({token: token});
+    //
+    //         if (!accessToken) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'access token invalid'
+    //             });
+    //
+    //         }
+    //
+    //         var admin = await UserModel.findOne({
+    //             _id: accessToken.user,
+    //             status: global.STATUS_ACTIVE,
+    //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
+    //         });
+    //
+    //         if (!admin) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'admin not found or blocked'
+    //             });
+    //
+    //         }
+    //
+    //         if (!id || id.length == 0) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'id null error'
+    //             });
+    //
+    //         }
+    //         let id = req.params.id;
+    //
+    //         let project = await ProjectModel.findOne({
+    //             _id: id,
+    //             status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+    //         });
+    //
+    //         if (!project) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'data not exist'
+    //             });
+    //         }
+    //
+    //         let post = await PostModel.findOne({content_id: project._id});
+    //
+    //         if (!post) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'post not exist'
+    //             });
+    //         }
+    //
+    //
+    //         return res.json({
+    //             status: 1,
+    //             data: {
+    //                 isShowOverview: project.isShowOverview,
+    //                 type: project.type,
+    //                 introImages: project.introImages,
+    //                 title: project.title,
+    //                 address: project.address,
+    //                 area: project.area,
+    //                 projectScale: project.projectScale,
+    //                 price: project.price,
+    //                 deliveryHouseDate: project.deliveryHouseDate,
+    //                 constructionArea: project.constructionArea,
+    //                 descriptionInvestor: project.descriptionInvestor,
+    //                 description: project.description,
+    //
+    //                 isShowLocationAndDesign: project.isShowLocationAndDesign,
+    //                 location: project.location,
+    //                 infrastructure: project.infrastructure,
+    //
+    //                 isShowGround: project.isShowGround,
+    //                 overallSchema: project.overallSchema,
+    //                 groundImages: project.groundImages,
+    //
+    //                 isShowImageLibs: project.isShowImageLibs,
+    //                 imageAlbums: project.imageAlbums,
+    //
+    //                 isShowProjectProgress: project.isShowProjectProgress,
+    //                 projectProgressTitle: project.projectProgressTitle,
+    //                 projectProgressStartDate: project.projectProgressStartDate,
+    //                 projectProgressEndDate: project.projectProgressEndDate,
+    //                 projectProgressDate: project.projectProgressDate,
+    //                 projectProgressImages: project.projectProgressImages,
+    //
+    //                 isShowTabVideo: project.isShowTabVideo,
+    //                 video: project.video,
+    //
+    //                 isShowFinancialSupport: project.isShowFinancialSupport,
+    //                 financialSupport: project.financialSupport,
+    //
+    //                 isShowInvestor: project.isShowInvestor,
+    //                 detailInvestor: project.detailInvestor,
+    //
+    //                 district: project.district,
+    //                 city: project.city,
+    //
+    //                 status: project.status,
+    //
+    //                 id: post._id,
+    //                 metaTitle: post.metaTitle,
+    //                 metaDescription: post.metaDescription,
+    //                 metaType: post.metaType,
+    //                 metaUrl: post.metaUrl,
+    //                 metaImage: post.metaImage,
+    //                 canonical: post.canonical,
+    //                 textEndPage: post.textEndPage,
+    //                 url: post.url
+    //
+    //
+    //             },
+    //             message: 'request success'
+    //         });
+    //
+    //
+    //     }
+    //
+    //     catch (e) {
+    //         return res.json({
+    //             status: 0,
+    //             data: {},
+    //             message: 'unknown error : ' + e.message
+    //         });
+    //     }
+    //
+    //
+    // },
     typeList: async function (req, res, next) {
         try {
 
@@ -246,7 +246,16 @@ var ProjectController = {
                 });
             }
 
-            var project = await ProjectModel.findOne({_id: id});
+            var post = await PostModel.findOne({_id: id});
+
+            if (!post) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post of project not exist '
+                });
+            }
+            var project = await ProjectModel.findOne({_id: post.content_id});
 
             if (!project) {
                 return res.json({
@@ -469,7 +478,6 @@ var ProjectController = {
             project.admin.push(accessToken.user);
             project = await project.save();
 
-            var post = await PostModel.findOne({content_id: project._id});
 
             if (status == global.STATUS_ACTIVE || global.STATUS_BLOCKED || global.STATUS_DELETE) {
                 post.status = status;
@@ -522,138 +530,138 @@ var ProjectController = {
 
     },
 
-    list: async function (req, res, next) {
-
-        try {
-
-            var token = req.headers.access_token;
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
-            }
-
-
-            var page = req.query.page;
-
-            if (!page || page < 1) {
-                page = 1;
-            }
-
-            let projects = await ProjectModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-
-            let results = await Promise.all(projects.map(async project => {
-
-                let post = await PostModel.findOne({content_id: project._id});
-
-
-                let result = {
-
-                    id: project._id,
-                    status: project.status,
-                    isShowOverview: project.isShowOverview,
-                    type: project.type,
-                    introImages: project.introImages,
-                    title: project.title,
-                    address: project.address,
-                    area: project.area,
-                    projectScale: project.projectScale,
-                    price: project.price,
-                    deliveryHouseDate: project.deliveryHouseDate,
-                    constructionArea: project.constructionArea,
-                    descriptionInvestor: project.descriptionInvestor,
-                    description: project.description,
-
-                    isShowLocationAndDesign: project.isShowLocationAndDesign,
-                    location: project.location,
-                    infrastructure: project.infrastructure,
-
-                    isShowGround: project.isShowGround,
-                    overallSchema: project.overallSchema,
-                    groundImages: project.groundImages,
-
-                    isShowImageLibs: project.isShowImageLibs,
-                    imageAlbums: project.imageAlbums,
-
-                    isShowProjectProgress: project.isShowProjectProgress,
-                    projectProgressTitle: project.projectProgressTitle,
-                    projectProgressStartDate: project.projectProgressStartDate,
-                    projectProgressEndDate: project.projectProgressEndDate,
-                    projectProgressDate: project.projectProgressDate,
-                    projectProgressImages: project.projectProgressImages,
-
-                    isShowTabVideo: project.isShowTabVideo,
-                    video: project.video,
-
-                    isShowFinancialSupport: project.isShowFinancialSupport,
-                    financialSupport: project.financialSupport,
-
-                    isShowInvestor: project.isShowInvestor,
-                    detailInvestor: project.detailInvestor,
-
-                    district: project.district,
-                    city: project.city,
-
-
-                };
-
-                if (post) {
-                    result.url = post.url;
-                    result.metaTitle = post.metaTitle;
-                    result.metaDescription = post.metaDescription;
-                    result.metaType = post.metaType;
-                    result.metaUrl = post.metaUrl;
-                    result.metaImage = post.metaImage;
-                    result.canonical = post.canonical;
-                    result.textEndPage = post.textEndPage;
-                }
-
-                return result;
-
-            }));
-
-
-            let count = await ProjectModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
-
-            return res.json({
-                status: 1,
-                data: {
-                    items: results,
-                    page: page,
-                    total: _.ceil(count / global.PAGE_SIZE)
-                },
-                message: 'request success '
-            });
-        }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-    },
+    // list: async function (req, res, next) {
+    //
+    //     try {
+    //
+    //         var token = req.headers.access_token;
+    //         var accessToken = await  TokenModel.findOne({token: token});
+    //
+    //         if (!accessToken) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'access token invalid'
+    //             });
+    //
+    //         }
+    //
+    //         var admin = await UserModel.findOne({
+    //             _id: accessToken.user,
+    //             status: global.STATUS_ACTIVE,
+    //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
+    //         });
+    //
+    //         if (!admin) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'admin not found or blocked'
+    //             });
+    //
+    //         }
+    //
+    //
+    //         var page = req.query.page;
+    //
+    //         if (!page || page < 1) {
+    //             page = 1;
+    //         }
+    //
+    //         let projects = await ProjectModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+    //
+    //         let results = await Promise.all(projects.map(async project => {
+    //
+    //             let post = await PostModel.findOne({content_id: project._id});
+    //
+    //
+    //             let result = {
+    //
+    //                 status: project.status,
+    //                 isShowOverview: project.isShowOverview,
+    //                 type: project.type,
+    //                 introImages: project.introImages,
+    //                 title: project.title,
+    //                 address: project.address,
+    //                 area: project.area,
+    //                 projectScale: project.projectScale,
+    //                 price: project.price,
+    //                 deliveryHouseDate: project.deliveryHouseDate,
+    //                 constructionArea: project.constructionArea,
+    //                 descriptionInvestor: project.descriptionInvestor,
+    //                 description: project.description,
+    //
+    //                 isShowLocationAndDesign: project.isShowLocationAndDesign,
+    //                 location: project.location,
+    //                 infrastructure: project.infrastructure,
+    //
+    //                 isShowGround: project.isShowGround,
+    //                 overallSchema: project.overallSchema,
+    //                 groundImages: project.groundImages,
+    //
+    //                 isShowImageLibs: project.isShowImageLibs,
+    //                 imageAlbums: project.imageAlbums,
+    //
+    //                 isShowProjectProgress: project.isShowProjectProgress,
+    //                 projectProgressTitle: project.projectProgressTitle,
+    //                 projectProgressStartDate: project.projectProgressStartDate,
+    //                 projectProgressEndDate: project.projectProgressEndDate,
+    //                 projectProgressDate: project.projectProgressDate,
+    //                 projectProgressImages: project.projectProgressImages,
+    //
+    //                 isShowTabVideo: project.isShowTabVideo,
+    //                 video: project.video,
+    //
+    //                 isShowFinancialSupport: project.isShowFinancialSupport,
+    //                 financialSupport: project.financialSupport,
+    //
+    //                 isShowInvestor: project.isShowInvestor,
+    //                 detailInvestor: project.detailInvestor,
+    //
+    //                 district: project.district,
+    //                 city: project.city,
+    //
+    //
+    //             };
+    //
+    //             if (post) {
+    //                 result.id = post._id;
+    //                 result.url = post.url;
+    //                 result.metaTitle = post.metaTitle;
+    //                 result.metaDescription = post.metaDescription;
+    //                 result.metaType = post.metaType;
+    //                 result.metaUrl = post.metaUrl;
+    //                 result.metaImage = post.metaImage;
+    //                 result.canonical = post.canonical;
+    //                 result.textEndPage = post.textEndPage;
+    //             }
+    //
+    //             return result;
+    //
+    //         }));
+    //
+    //
+    //         let count = await ProjectModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
+    //
+    //         return res.json({
+    //             status: 1,
+    //             data: {
+    //                 items: results,
+    //                 page: page,
+    //                 total: _.ceil(count / global.PAGE_SIZE)
+    //             },
+    //             message: 'request success '
+    //         });
+    //     }
+    //     catch (e) {
+    //         return res.json({
+    //             status: 0,
+    //             data: {},
+    //             message: 'unknown error : ' + e.message
+    //         });
+    //     }
+    //
+    // },
 
     add: async function (req, res, next) {
 
@@ -842,12 +850,12 @@ var ProjectController = {
             post.status = global.STATUS_POST_ACTIVE;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;
 
-            post = await post.save();
+            await post.save();
 
 
             return res.json({
                 status: 1,
-                data: post,
+                data: {},
                 message: 'request post project success !'
             });
         }

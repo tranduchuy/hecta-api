@@ -16,19 +16,19 @@ var AdminPostController = require('../controller/admin/PostController');
 var AdminCategoryController = require('../controller/admin/CategoryController');
 var AdminTagController = require('../controller/admin/TagController');
 
-router.get('/projects/list', AdminProjectController.list);
+// router.get('/projects/list', AdminProjectController.list);
 router.get('/projects/types', AdminProjectController.typeList);
 
 router.post('/projects/add', AdminProjectController.add);
 router.post('/projects/update/:id', AdminProjectController.update);
-router.get('/projects/detail/:id', AdminProjectController.detail);
+// router.get('/projects/detail/:id', AdminProjectController.detail);
 
-router.get('/news/list', AdminNewsController.list);
+// router.get('/news/list', AdminNewsController.list);
 router.get('/news/cats', AdminNewsController.catList);
 
 router.post('/news/add', AdminNewsController.add);
 router.post('/news/update/:id', AdminNewsController.update);
-router.get('/news/detail/:id', AdminNewsController.detail);
+// router.get('/news/detail/:id', AdminNewsController.detail);
 
 
 router.get('/posts/list', AdminPostController.list);

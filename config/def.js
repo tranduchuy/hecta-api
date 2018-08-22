@@ -14,7 +14,6 @@ global.STATUS_DELETE = 3;
 global.STATUS_PENDING = 4;
 
 
-
 global.STATUS_PAYMENT_PAID = 1;
 global.STATUS_PAYMENT_UNPAID = 2;
 global.STATUS_PAYMENT_FREE = 3;
@@ -34,7 +33,7 @@ global.CHILD_STATUS_NONE = 1;
 global.CHILD_STATUS_WAITING = 2;
 global.CHILD_STATUS_REJECTED = 3;
 global.CHILD_STATUS_ACCEPTED = 4;
-global.CHILD_STATUS_DELETED= 5;
+global.CHILD_STATUS_DELETED = 5;
 
 global.URL_TYPE_FIXED = 1;
 global.URL_TYPE_GENERATED = 2;
@@ -67,6 +66,13 @@ global.TRANSACTION_TYPE_RECEIVE_CREDIT = 5;
 global.USER_ROLE_MASTER = 1;
 global.USER_ROLE_ADMIN = 2;
 global.USER_ROLE_ENDUSER = 3;
+
+
+global.SLUG_PROJECT = "du-an";
+global.SLUG_NEWS = "bai-viet";
+global.SLUG_TAG = "t";
+global.SLUG_SELL_OR_BUY = "chi-tiet-bds";
+global.SLUG_CATEGORY = "bds";
 
 
 

@@ -8,7 +8,6 @@ var tagSchema = new Schema({
 
     slug: String,
     keyword: String,
-    posts: {type: Array, default: []},
     refresh: Number,
     status: {type: Number, default: global.STATUS_ACTIVE},
     date: {type: Number, default: Date.now},

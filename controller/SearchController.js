@@ -4,6 +4,7 @@ var BuyModel = require('../models/BuyModel');
 var SaleModel = require('../models/SaleModel');
 var NewsModel = require('../models/NewsModel');
 var ProjectModel = require('../models/ProjectModel');
+var TagModel = require('../models/TagModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
 
@@ -258,11 +259,9 @@ var SearchController = {
             });
         }
 
-    }
+    },
 
-
-    , search: async function (req, res, next) {
-
+    search2: async function (req, res, next) {
 
         try {
 
@@ -277,260 +276,735 @@ var SearchController = {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: url + ' url invalid'
+                    message: url + ' url invalid 1'
                 });
 
             }
 
 
-            var params = url.trim().split('/');
+            var urlSplited = url.trim().split('/');
 
-            if (params.length == 0 || params.length > 2) {
-
+            if (!urlSplited || urlSplited.length != 2) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: url + ' url invalid'
+                    message: url + ' url invalid 2'
                 });
             }
 
+            let slug = urlSplited[0];
+            let param = urlSplited[1];
 
-            let cat = await UrlParamModel.findOne({param: params[0]});
-            let postType;
-
-            if (params[0] == global.PARAM_NOT_FOUND_SALE) {
-                postType = global.POST_TYPE_SALE;
-            }
-            else if (params[0] == global.PARAM_NOT_FOUND_BUY) {
-                postType = global.POST_TYPE_BUY;
-            }
-            else if (params[0] == global.PARAM_NOT_FOUND_PROJECT) {
-                postType = global.POST_TYPE_PROJECT;
-            }
-            else if (params[0] == global.PARAM_NOT_FOUND_NEWS) {
-                postType = global.POST_TYPE_NEWS;
-            }
-            else if (cat) {
-                postType = cat.postType;
-            }
-            else {
+            if (!slug || slug.length == 0 || !param || param.length == 0) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: params[0] + ' not found'
+                    message: url + ' url invalid 3'
                 });
             }
 
 
-            let query = {status: global.STATUS_POST_ACTIVE};
+            if (slug == global.SLUG_NEWS || slug == global.SLUG_PROJECT || slug == global.SLUG_SELL_OR_BUY) {
 
-            if (cat) {
-                if (cat.formality) {
+                var data = {};
+
+                let post = await PostModel.findOne({
+                    status: global.STATUS_ACTIVE,
+                    url: param
+                });
+
+                if (!post) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'post not found'
+                    });
+                }
+
+                let cat = await UrlParamModel.findOne({_id: post.params});
+                let query = {status: global.STATUS_ACTIVE};
+
+                if (cat && cat.postType) {
+                    query.postType = cat.postType;
+                }
+
+                if (cat && cat.formality) {
                     query.formality = cat.formality;
                 }
-                if (cat.type) {
+                if (cat && cat.type) {
                     query.type = cat.type;
                 }
-                if (cat.city) {
+                if (cat && cat.city) {
                     query.city = cat.city;
                 }
-                if (cat.district) {
+                if (cat && cat.district) {
                     query.district = cat.district;
                 }
-                if (cat.ward) {
+                if (cat && cat.ward) {
                     query.ward = cat.ward;
                 }
-                if (cat.street) {
+                if (cat && cat.street) {
                     query.street = cat.street;
                 }
-                if (cat.project) {
+
+                if (cat && cat.project) {
                     query.project = cat.project;
                 }
-                if (cat.balconyDirection) {
+
+                if (cat && cat.balconyDirection) {
                     query.balconyDirection = cat.balconyDirection;
                 }
-                if (cat.bedroomCount) {
+                if (cat && cat.bedroomCount) {
                     query.bedroomCount = cat.bedroomCount;
                 }
-                if (cat.area) {
+                if (cat && cat.areaMax) {
+                    query.areaMax = cat.areaMax;
+                }
+                if (cat && cat.areaMin) {
+                    query.areaMin = cat.areaMin;
+                }
+                if (cat && cat.area) {
                     query.area = cat.area;
                 }
-                if (cat.price) {
+
+                if (cat && cat.priceMax) {
+                    query.priceMax = cat.priceMax;
+                }
+                if (cat && cat.priceMin) {
+                    query.priceMin = cat.priceMin;
+                }
+                if (cat && cat.price) {
                     query.price = cat.price;
                 }
-            }
-
-
-            var model;
-
-            switch (postType) {
-                case global.POST_TYPE_SALE :
-                    model = SaleModel;
-                    break;
-                case global.POST_TYPE_BUY :
-                    model = BuyModel;
-                    break;
-                case global.POST_TYPE_PROJECT :
-                    model = ProjectModel;
-                    break;
-                case global.POST_TYPE_NEWS :
-                    model = NewsModel;
-                    break;
-                default :
-                    model = SaleModel;
-                    break;
-            }
-
-            let data = await model.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-            let results = await Promise.all(data.map(async item => {
-
-                let post = await PostModel.findOne({content_id: item._id});
-
-
-                if (postType == global.POST_TYPE_SALE) {
-
-                    let sale = item;
-
-                    let keys;
-
-                    if (!sale.keywordList) {
-                        keys = [];
-                    }
-                    else {
-                        keys = await Promise.all(sale.keywordList.map(async key => {
-
-                                return {
-                                    keyword: key,
-                                    slug: urlSlug(key)
-                                }
-                            }
-                        ));
-                    }
-
-
-                    return {
-
-                        formality: sale.formality,
-                        title: sale.title,
-                        description: sale.description,
-                        city: sale.city,
-                        district: sale.district,
-                        price: sale.price,
-                        unit: sale.unit,
-                        area: sale.area,
-                        date: sale.date,
-                        images: sale.images,
-                        address: sale.address,
-                        keywordList: keys,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
-
-
-                    };
+                if (cat && cat.extra) {
+                    query.extra = cat.extra;
                 }
-                else if (postType == global.POST_TYPE_BUY) {
-
-
-                    let buy = item;
-
-                    let keys;
-
-                    if (!buy.keywordList) {
-                        keys = [];
-                    }
-                    else {
-                        keys = await Promise.all(buy.keywordList.map(async key => {
-
-                                return {
-                                    keyword: key,
-                                    slug: urlSlug(key)
-                                }
-                            }
-                        ));
-                    }
-
-                    return {
-
-                        title: buy.title,
-                        formality: buy.formality,
-                        description: buy.description,
-                        city: buy.city,
-                        district: buy.district,
-                        priceMin: buy.priceMin,
-                        priceMax: buy.priceMax,
-                        areaMin: buy.areaMin,
-                        areaMax: buy.areaMax,
-                        unit: buy.unit,
-                        date: buy.date,
-                        images: buy.images,
-                        address: buy.address,
-                        keywordList: keys,
-
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
-                    };
+                if (cat && cat.text) {
+                    query.text = cat.text;
                 }
 
-                else if (postType == global.POST_TYPE_PROJECT) {
+                query._id = {$ne: post._id};
 
-                    let project = item;
 
-                    return {
-                        title: project.title,
-                        description: project.description,
-                        address: project.address,
-                        price: project.price,
-                        area: project.area,
-                        descriptionInvestor: project.descriptionInvestor,
-                        projectProgressTitle: project.projectProgressTitle,
-                        introImages: project.introImages,
+                let related = await post.find(query).limit(10);
+
+
+                if (slug == global.SLUG_NEWS) {
+
+
+                    if (post.postType != global.POST_TYPE_NEWS) {
+                        return res.json({
+                            status: 0,
+                            data: {},
+                            message: 'post of news not found 1'
+                        });
+                    }
+
+                    let news = await NewsModel.findOne({
+                        _id: post.content_id
+                    });
+
+                    if (!news) {
+                        return res.json({
+                            status: 0,
+                            data: {},
+                            message: 'news not found'
+                        });
+                    }
+
+
+                    data = {
+                        title: news.title,
+                        content: news.content,
+                        cate: news.type,
+                        image: news.image,
+                        description: news.description,
+                        date: news.date,
+
+                        id: post._id,
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage,
                         url: post.url
                     };
 
-                } else {
-                    let news = item;
-
-                    return {
-                        title: news.title,
-                        // content: news.content,
-                        cate: news.type,
-                        image: news.image,
-                        url: post.url,
-                        date: news.date,
-                        description: news.description
-
-                    };
 
                 }
 
+                if (slug == global.SLUG_PROJECT) {
 
-            }));
 
-            if (params.length == 1) {
-                let count = await model.count(query);
+                    if (post.postType != global.POST_TYPE_PROJECT) {
+                        return res.json({
+                            status: 0,
+                            data: {},
+                            message: 'post of project not found 1'
+                        });
+                    }
 
+                    let project = await ProjectModel.findOne({
+                        _id: post.content_id
+                    });
+
+                    if (!project) {
+                        return res.json({
+                            status: 0,
+                            data: {},
+                            message: 'project not found'
+                        });
+                    }
+
+
+                    data = {
+                        isShowOverview: project.isShowOverview,
+                        type: project.type,
+                        introImages: project.introImages,
+                        title: project.title,
+                        address: project.address,
+                        area: project.area,
+                        projectScale: project.projectScale,
+                        price: project.price,
+                        deliveryHouseDate: project.deliveryHouseDate,
+                        constructionArea: project.constructionArea,
+                        descriptionInvestor: project.descriptionInvestor,
+                        description: project.description,
+
+                        isShowLocationAndDesign: project.isShowLocationAndDesign,
+                        location: project.location,
+                        infrastructure: project.infrastructure,
+
+                        isShowGround: project.isShowGround,
+                        overallSchema: project.overallSchema,
+                        groundImages: project.groundImages,
+
+                        isShowImageLibs: project.isShowImageLibs,
+                        imageAlbums: project.imageAlbums,
+
+                        isShowProjectProgress: project.isShowProjectProgress,
+                        projectProgressTitle: project.projectProgressTitle,
+                        projectProgressStartDate: project.projectProgressStartDate,
+                        projectProgressEndDate: project.projectProgressEndDate,
+                        projectProgressDate: project.projectProgressDate,
+                        projectProgressImages: project.projectProgressImages,
+
+                        isShowTabVideo: project.isShowTabVideo,
+                        video: project.video,
+
+                        isShowFinancialSupport: project.isShowFinancialSupport,
+                        financialSupport: project.financialSupport,
+
+                        isShowInvestor: project.isShowInvestor,
+                        detailInvestor: project.detailInvestor,
+
+                        district: project.district,
+                        city: project.city,
+
+                        status: project.status,
+
+                        id: post._id,
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage,
+                        url: post.url
+                    }
+
+                }
+
+                if (slug == global.global.SLUG_SELL_OR_BUY) {
+
+
+                    if (post.postType != global.POST_TYPE_BUY && post.postType != global.POST_TYPE_SALE) {
+                        return res.json({
+                            status: 0,
+                            data: {},
+                            message: 'post of buy or sell not found 1'
+                        });
+                    }
+
+
+                    if (post.postType == global.POST_TYPE_BUY) {
+
+                        let buy = await BuyModel.findOne({
+                            _id: post.content_id
+                        });
+
+                        if (!buy) {
+                            return res.json({
+                                status: 0,
+                                data: {},
+                                message: 'buy not found'
+                            });
+                        }
+
+                        let keys;
+
+                        if (!buy.keywordList) {
+                            keys = [];
+                        }
+                        else {
+                            keys = await Promise.all(buy.keywordList.map(async key => {
+
+                                    return {
+                                        keyword: key,
+                                        slug: urlSlug(key)
+                                    }
+                                }
+                            ));
+                        }
+
+                        data = {
+                            title: buy.title,
+                            formality: buy.formality,
+                            type: buy.type,
+                            city: buy.city,
+                            district: buy.district,
+                            ward: buy.ward,
+                            street: buy.street,
+                            project: buy.project,
+                            area: buy.area,
+                            price: buy.price,
+                            unit: buy.unit,
+                            address: buy.address,
+                            keywordList: keys,
+                            description: buy.description,
+                            streetWidth: buy.streetWidth,
+                            frontSize: buy.frontSize,
+                            direction: buy.direction,
+                            balconyDirection: buy.balconyDirection,
+                            floorCount: buy.floorCount,
+                            bedroomCount: buy.bedroomCount,
+                            toiletCount: buy.toiletCount,
+                            furniture: buy.furniture,
+                            images: buy.images,
+                            contactName: buy.contactName,
+                            contactAddress: buy.contactAddress,
+                            contactPhone: buy.contactPhone,
+                            contactMobile: buy.contactMobile,
+                            contactEmail: buy.contactEmail,
+                            date: buy.date,
+
+                            id: post._id,
+                            url: post.url,
+                            to: post.to,
+                            from: post.from,
+                            priority: post.priority,
+                            postType: post.postType,
+                            status: post.status,
+                            paymentStatus: post.paymentStatus,
+                            refresh: post.refresh,
+                            metaTitle: post.metaTitle,
+                            metaDescription: post.metaDescription,
+                            metaType: post.metaType,
+                            metaUrl: post.metaUrl,
+                            metaImage: post.metaImage,
+                            canonical: post.canonical,
+                            textEndPage: post.textEndPage,
+                        }
+
+
+                    }
+
+                    if (post.postType == global.POST_TYPE_SALE) {
+                        let sale = await SaleModel.findOne({
+                            _id: post.content_id
+                        });
+
+                        if (!sale) {
+                            return res.json({
+                                status: 0,
+                                data: {},
+                                message: 'sale not found'
+                            });
+                        }
+
+                        let keys;
+
+                        if (!sale.keywordList) {
+                            keys = [];
+                        }
+                        else {
+                            keys = await Promise.all(sale.keywordList.map(async key => {
+
+                                    return {
+                                        keyword: key,
+                                        slug: urlSlug(key)
+                                    }
+                                }
+                            ));
+                        }
+
+                        data = {
+                            title: sale.title,
+                            description: sale.description,
+                            keywordList: keys,
+                            formality: sale.formality,
+                            type: sale.type,
+                            city: sale.city,
+                            district: sale.district,
+                            ward: sale.ward,
+                            street: sale.street,
+                            project: sale.project,
+                            areaMin: sale.areaMin,
+                            areaMax: sale.areaMax,
+                            priceMin: sale.priceMin,
+                            priceMax: sale.priceMax,
+                            unit: sale.unit,
+                            address: sale.address,
+                            images: sale.images,
+                            contactName: sale.contactName,
+                            contactAddress: sale.contactAddress,
+                            contactPhone: sale.contactPhone,
+                            contactMobile: sale.contactMobile,
+                            contactEmail: sale.contactEmail,
+                            receiveMail: sale.receiveMail,
+                            date: sale.date,
+
+                            id: post._id,
+                            url: post.url,
+                            to: post.to,
+                            from: post.from,
+                            priority: post.priority,
+                            postType: post.postType,
+                            status: post.status,
+                            paymentStatus: post.paymentStatus,
+                            refresh: post.refresh,
+                            metaTitle: post.metaTitle,
+                            metaDescription: post.metaDescription,
+                            metaType: post.metaType,
+                            metaUrl: post.metaUrl,
+                            metaImage: post.metaImage,
+                            canonical: post.canonical,
+                            textEndPage: post.textEndPage
+                        };
+
+
+                    }
+
+
+                }
                 return res.json({
                     status: 1,
-                    type: postType,
+                    type: post.postType,
+                    isList: false,
+                    related: related,
+                    params: query,
+                    data: data,
+                    message: 'request success'
+                });
+
+            }
+
+
+            // if (slug == global.global.SLUG_TAG || slug == global.global.SLUG_CATEGORY) {
+
+            if (slug == global.global.SLUG_CATEGORY) {
+
+                var isFound = true;
+                var query = {status: global.STATUS_ACTIVE};
+
+                // if (slug == global.global.SLUG_TAG) {
+                //
+                //     var tag = await TagModel({status: global.STATUS_ACTIVE, slug: slug});
+                //
+                //     if (!tag) {
+                //
+                //         query.tags = tag._id;
+                //
+                //         // posts = await PostModel.find({
+                //         //     status: global.STATUS_ACTIVE,
+                //         //     tags: tag._id
+                //         // }).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+                //         // count = await PostModel.count({status: global.STATUS_ACTIVE, tags: tag._id});
+                //     }
+                //     else {
+                //         isFound = false;
+                //     }
+                // }
+                // if (slug == global.global.SLUG_CATEGORY) {
+                var cat = await UrlParamModel.findOne({param: param});
+
+                if (cat) {
+                    // if (cat.postType) {
+                    //     query.postType = cat.postType;
+                    // }
+
+                    if (cat.formality) {
+                        query.formality = cat.formality;
+                    }
+                    if (cat.type) {
+                        query.type = cat.type;
+                    }
+                    if (cat.city) {
+                        query.city = cat.city;
+                    }
+                    if (cat.district) {
+                        query.district = cat.district;
+                    }
+                    if (cat.ward) {
+                        query.ward = cat.ward;
+                    }
+                    if (cat.street) {
+                        query.street = cat.street;
+                    }
+                    if (cat.project) {
+                        query.project = cat.project;
+                    }
+                    if (cat.balconyDirection) {
+                        query.balconyDirection = cat.balconyDirection;
+                    }
+                    if (cat.bedroomCount) {
+                        query.bedroomCount = cat.bedroomCount;
+                    }
+                    if (cat.areaMax) {
+                        query.areaMax = cat.areaMax;
+                    }
+                    if (cat.areaMin) {
+                        query.areaMin = cat.areaMin;
+                    }
+                    if (cat.area) {
+                        query.area = cat.area;
+                    }
+
+                    if (cat.priceMax) {
+                        query.priceMax = cat.priceMax;
+                    }
+                    if (cat.priceMin) {
+                        query.priceMin = cat.priceMin;
+                    }
+                    if (cat.price) {
+                        query.price = cat.price;
+                    }
+                    // if (cat.extra) {
+                    //     query.extra = cat.extra;
+                    // }
+                    // if (cat.text) {
+                    //     query.text = cat.text;
+                    // }
+                }
+                else {
+                    isFound = false
+                }
+                // }
+                var results = [];
+                var count = 0;
+                if (isFound) {
+
+                    var model;
+
+                    switch (cat.postType) {
+                        case global.POST_TYPE_SALE :
+                            model = SaleModel;
+                            break;
+                        case global.POST_TYPE_BUY :
+                            model = BuyModel;
+                            break;
+                        case global.POST_TYPE_PROJECT :
+                            model = ProjectModel;
+                            break;
+                        case global.POST_TYPE_NEWS :
+                            model = NewsModel;
+                            break;
+                        default :
+                            model = SaleModel;
+                            break;
+                    }
+
+                    let data = await model.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+
+                    count = await model.count(query);
+                    results = await Promise.all(data.map(async item => {
+
+                        let post = await PostModel.findOne({content_id: item._id});
+
+
+                        if (cat.postType == global.POST_TYPE_SALE) {
+
+                            let sale = item;
+
+                            let keys;
+
+                            if (!sale.keywordList) {
+                                keys = [];
+                            }
+                            else {
+                                keys = await Promise.all(sale.keywordList.map(async key => {
+
+                                        return {
+                                            keyword: key,
+                                            slug: urlSlug(key)
+                                        }
+                                    }
+                                ));
+                            }
+
+
+                            return {
+
+                                formality: sale.formality,
+                                title: sale.title,
+                                description: sale.description,
+                                city: sale.city,
+                                district: sale.district,
+                                price: sale.price,
+                                unit: sale.unit,
+                                area: sale.area,
+                                date: sale.date,
+                                images: sale.images,
+                                address: sale.address,
+                                keywordList: keys,
+
+                                id: post._id,
+                                url: post.url,
+                                to: post.to,
+                                from: post.from,
+                                priority: post.priority,
+                                postType: post.postType,
+                                status: post.status,
+                                paymentStatus: post.paymentStatus,
+                                refresh: post.refresh,
+
+                                metaTitle: post.metaTitle,
+                                metaDescription: post.metaDescription,
+                                metaType: post.metaType,
+                                metaUrl: post.metaUrl,
+                                metaImage: post.metaImage,
+                                canonical: post.canonical,
+                                textEndPage: post.textEndPage
+
+
+                            };
+                        }
+                        else if (cat.postType == global.POST_TYPE_BUY) {
+
+
+                            let buy = item;
+
+                            let keys;
+
+                            if (!buy.keywordList) {
+                                keys = [];
+                            }
+                            else {
+                                keys = await Promise.all(buy.keywordList.map(async key => {
+
+                                        return {
+                                            keyword: key,
+                                            slug: urlSlug(key)
+                                        }
+                                    }
+                                ));
+                            }
+
+                            return {
+
+                                title: buy.title,
+                                formality: buy.formality,
+                                description: buy.description,
+                                city: buy.city,
+                                district: buy.district,
+                                priceMin: buy.priceMin,
+                                priceMax: buy.priceMax,
+                                areaMin: buy.areaMin,
+                                areaMax: buy.areaMax,
+                                unit: buy.unit,
+                                date: buy.date,
+                                images: buy.images,
+                                address: buy.address,
+                                keywordList: keys,
+
+
+                                id: post._id,
+                                url: post.url,
+                                to: post.to,
+                                from: post.from,
+                                priority: post.priority,
+                                postType: post.postType,
+                                status: post.status,
+                                paymentStatus: post.paymentStatus,
+                                refresh: post.refresh,
+
+                                metaTitle: post.metaTitle,
+                                metaDescription: post.metaDescription,
+                                metaType: post.metaType,
+                                metaUrl: post.metaUrl,
+                                metaImage: post.metaImage,
+                                canonical: post.canonical,
+                                textEndPage: post.textEndPage
+                            };
+                        }
+
+                        else if (cat.postType == global.POST_TYPE_PROJECT) {
+
+                            let project = item;
+
+                            return {
+                                title: project.title,
+                                description: project.description,
+                                address: project.address,
+                                price: project.price,
+                                area: project.area,
+                                descriptionInvestor: project.descriptionInvestor,
+                                projectProgressTitle: project.projectProgressTitle,
+                                introImages: project.introImages,
+
+                                id: post._id,
+                                url: post.url,
+
+                                metaTitle: post.metaTitle,
+                                metaDescription: post.metaDescription,
+                                metaType: post.metaType,
+                                metaUrl: post.metaUrl,
+                                metaImage: post.metaImage,
+                                canonical: post.canonical,
+                                textEndPage: post.textEndPage
+                            };
+
+                        } else {
+                            let news = item;
+
+                            return {
+                                title: news.title,
+                                cate: news.type,
+                                image: news.image,
+                                date: news.date,
+                                description: news.description,
+
+                                id: post._id,
+                                url: post.url,
+
+                                metaTitle: post.metaTitle,
+                                metaDescription: post.metaDescription,
+                                metaType: post.metaType,
+                                metaUrl: post.metaUrl,
+                                metaImage: post.metaImage,
+                                canonical: post.canonical,
+                                textEndPage: post.textEndPage
+
+                            };
+
+                        }
+
+
+                    }));
+
+                }
+
+                query.postType = cat.postType;
+                return res.json({
+                    status: 1,
+                    type: cat.postType,
                     isList: true,
                     params: query,
                     data: {
+                        itemCount: count,
                         items: results,
                         page: page,
                         total: _.ceil(count / global.PAGE_SIZE)
@@ -538,267 +1012,12 @@ var SearchController = {
                     message: 'request success '
                 });
 
-
             }
-
-
-            let post = await PostModel.findOne({url: url});
-            if (!post) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'post not exist'
-                });
-            }
-
-            switch (postType) {
-                case global.POST_TYPE_SALE :
-                    model = SaleModel;
-                    break;
-                case global.POST_TYPE_BUY :
-                    model = BuyModel;
-                    break;
-                case global.POST_TYPE_PROJECT :
-                    model = ProjectModel;
-                    break;
-
-                case global.POST_TYPE_NEWS :
-                    model = NewsModel;
-                    break;
-                default :
-                    model = SaleModel;
-                    break;
-            }
-
-            let content = await model.findOne({_id: post.content_id});
-
-
-            if (!content) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-
-
-            }
-
-            if (postType == global.POST_TYPE_SALE) {
-
-                let keys;
-
-                if (!content.keywordList) {
-                    keys = [];
-                }
-                else {
-                    keys = await Promise.all(content.keywordList.map(async key => {
-
-                            return {
-                                keyword: key,
-                                slug: urlSlug(key)
-                            }
-                        }
-                    ));
-                }
-
-                return res.json({
-                    type: postType,
-                    isList: false,
-                    related: results.filter(obj => obj.id != post._id),
-                    params: query,
-                    status: 1,
-                    data: {
-
-                        title: content.title,
-                        formality: content.formality,
-                        type: content.type,
-                        city: content.city,
-                        district: content.district,
-                        ward: content.ward,
-                        street: content.street,
-                        project: content.project,
-                        area: content.area,
-                        price: content.price,
-                        unit: content.unit,
-                        address: content.address,
-                        keywordList: keys,
-                        description: content.description,
-                        streetWidth: content.streetWidth,
-                        frontSize: content.frontSize,
-                        direction: content.direction,
-                        balconyDirection: content.balconyDirection,
-                        floorCount: content.floorCount,
-                        bedroomCount: content.bedroomCount,
-                        toiletCount: content.toiletCount,
-                        furniture: content.furniture,
-                        images: content.images,
-                        contactName: content.contactName,
-                        contactAddress: content.contactAddress,
-                        contactPhone: content.contactPhone,
-                        contactMobile: content.contactMobile,
-                        contactEmail: content.contactEmail,
-                        date: content.date,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
-                    },
-                    message: 'request success'
-                });
-            }
-            else if (postType == global.POST_TYPE_BUY) {
-
-                let keys;
-
-                if (!content.keywordList) {
-                    keys = [];
-                }
-                else {
-                    keys = await Promise.all(content.keywordList.map(async key => {
-
-                            return {
-                                keyword: key,
-                                slug: urlSlug(key)
-                            }
-                        }
-                    ));
-                }
-
-
-                return res.json({
-                    status: 1,
-                    type: postType,
-                    isList: false,
-                    related: results.filter(obj => obj.id != post._id),
-                    params: query,
-                    data: {
-
-                        title: content.title,
-                        description: content.description,
-                        keywordList: keys,
-                        formality: content.formality,
-                        type: content.type,
-                        city: content.city,
-                        district: content.district,
-                        ward: content.ward,
-                        street: content.street,
-                        project: content.project,
-                        areaMin: content.areaMin,
-                        areaMax: content.areaMax,
-                        priceMin: content.priceMin,
-                        priceMax: content.priceMax,
-                        unit: content.unit,
-                        address: content.address,
-                        images: content.images,
-                        contactName: content.contactName,
-                        contactAddress: content.contactAddress,
-                        contactPhone: content.contactPhone,
-                        contactMobile: content.contactMobile,
-                        contactEmail: content.contactEmail,
-                        receiveMail: content.receiveMail,
-                        date: content.date,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
-                    },
-                    message: 'request success'
-                });
-            }
-            else if (postType == global.POST_TYPE_PROJECT) {
-                return res.json({
-                    status: 1,
-                    type: postType,
-                    isList: false,
-                    related: results.filter(obj => obj.id != post._id),
-                    params: query,
-                    data: {
-                        url: post.url,
-                        id: content._id,
-                        postType: post.postType,
-
-                        isShowOverview: content.isShowOverview,
-                        type: content.type,
-                        introImages: content.introImages,
-                        title: content.title,
-                        address: content.address,
-                        area: content.area,
-                        projectScale: content.projectScale,
-                        price: content.price,
-                        deliveryHouseDate: content.deliveryHouseDate,
-                        constructionArea: content.constructionArea,
-                        descriptionInvestor: content.descriptionInvestor,
-                        description: content.description,
-
-                        isShowLocationAndDesign: content.isShowLocationAndDesign,
-                        location: content.location,
-                        infrastructure: content.infrastructure,
-
-                        isShowGround: content.isShowGround,
-                        overallSchema: content.overallSchema,
-                        groundImages: content.groundImages,
-
-                        isShowImageLibs: content.isShowImageLibs,
-                        imageAlbums: content.imageAlbums,
-
-                        isShowProjectProgress: content.isShowProjectProgress,
-                        projectProgressTitle: content.projectProgressTitle,
-                        projectProgressStartDate: content.projectProgressStartDate,
-                        projectProgressEndDate: content.projectProgressEndDate,
-                        projectProgressDate: content.projectProgressDate,
-                        projectProgressImages: content.projectProgressImages,
-
-                        isShowTabVideo: content.isShowTabVideo,
-                        video: content.video,
-
-                        isShowFinancialSupport: content.isShowFinancialSupport,
-                        financialSupport: content.financialSupport,
-
-                        isShowInvestor: content.isShowInvestor,
-                        detailInvestor: content.detailInvestor,
-
-                        district: content.district,
-                        city: content.city
-                    },
-                    message: 'request success'
-                });
-
-
-            } else {
-                return res.json({
-                    status: 1,
-                    type: postType,
-                    isList: false,
-                    related: results.filter(obj => obj.id != post._id),
-                    params: query,
-                    data: {
-                        title: content.title,
-                        content: content.content,
-                        cate: content.type,
-                        image: content.image,
-                        url: post.url,
-                        date: content.date,
-                        description: content.description
-
-                    },
-                    message: 'request success'
-                });
-
-
-            }
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'url not found'
+            });
 
         }
         catch (e) {
@@ -809,8 +1028,559 @@ var SearchController = {
             });
         }
 
-
     }
+    // ,
+    //
+    // search: async function (req, res, next) {
+    //
+    //
+    //     try {
+    //
+    //         var url = req.query.url;
+    //         var page = req.query.page;
+    //
+    //         if (!page || page < 1) {
+    //             page = 1;
+    //         }
+    //
+    //         if (!url || url.length == 0) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: url + ' url invalid'
+    //             });
+    //
+    //         }
+    //
+    //
+    //         var params = url.trim().split('/');
+    //
+    //         if (params.length == 0 || params.length > 2) {
+    //
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: url + ' url invalid'
+    //             });
+    //         }
+    //
+    //
+    //         let cat = await UrlParamModel.findOne({param: params[0]});
+    //         let postType;
+    //
+    //         if (params[0] == global.PARAM_NOT_FOUND_SALE) {
+    //             postType = global.POST_TYPE_SALE;
+    //         }
+    //         else if (params[0] == global.PARAM_NOT_FOUND_BUY) {
+    //             postType = global.POST_TYPE_BUY;
+    //         }
+    //         else if (params[0] == global.PARAM_NOT_FOUND_PROJECT) {
+    //             postType = global.POST_TYPE_PROJECT;
+    //         }
+    //         else if (params[0] == global.PARAM_NOT_FOUND_NEWS) {
+    //             postType = global.POST_TYPE_NEWS;
+    //         }
+    //         else if (cat) {
+    //             postType = cat.postType;
+    //         }
+    //         else {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: params[0] + ' not found'
+    //             });
+    //         }
+    //
+    //
+    //         let query = {status: global.STATUS_POST_ACTIVE};
+    //
+    //         if (cat) {
+    //             if (cat.formality) {
+    //                 query.formality = cat.formality;
+    //             }
+    //             if (cat.type) {
+    //                 query.type = cat.type;
+    //             }
+    //             if (cat.city) {
+    //                 query.city = cat.city;
+    //             }
+    //             if (cat.district) {
+    //                 query.district = cat.district;
+    //             }
+    //             if (cat.ward) {
+    //                 query.ward = cat.ward;
+    //             }
+    //             if (cat.street) {
+    //                 query.street = cat.street;
+    //             }
+    //             if (cat.project) {
+    //                 query.project = cat.project;
+    //             }
+    //             if (cat.balconyDirection) {
+    //                 query.balconyDirection = cat.balconyDirection;
+    //             }
+    //             if (cat.bedroomCount) {
+    //                 query.bedroomCount = cat.bedroomCount;
+    //             }
+    //             if (cat.area) {
+    //                 query.area = cat.area;
+    //             }
+    //             if (cat.price) {
+    //                 query.price = cat.price;
+    //             }
+    //         }
+    //
+    //
+    //         var model;
+    //
+    //         switch (postType) {
+    //             case global.POST_TYPE_SALE :
+    //                 model = SaleModel;
+    //                 break;
+    //             case global.POST_TYPE_BUY :
+    //                 model = BuyModel;
+    //                 break;
+    //             case global.POST_TYPE_PROJECT :
+    //                 model = ProjectModel;
+    //                 break;
+    //             case global.POST_TYPE_NEWS :
+    //                 model = NewsModel;
+    //                 break;
+    //             default :
+    //                 model = SaleModel;
+    //                 break;
+    //         }
+    //
+    //         let data = await model.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+    //         let results = await Promise.all(data.map(async item => {
+    //
+    //             let post = await PostModel.findOne({content_id: item._id});
+    //
+    //
+    //             if (postType == global.POST_TYPE_SALE) {
+    //
+    //                 let sale = item;
+    //
+    //                 let keys;
+    //
+    //                 if (!sale.keywordList) {
+    //                     keys = [];
+    //                 }
+    //                 else {
+    //                     keys = await Promise.all(sale.keywordList.map(async key => {
+    //
+    //                             return {
+    //                                 keyword: key,
+    //                                 slug: urlSlug(key)
+    //                             }
+    //                         }
+    //                     ));
+    //                 }
+    //
+    //
+    //                 return {
+    //
+    //                     formality: sale.formality,
+    //                     title: sale.title,
+    //                     description: sale.description,
+    //                     city: sale.city,
+    //                     district: sale.district,
+    //                     price: sale.price,
+    //                     unit: sale.unit,
+    //                     area: sale.area,
+    //                     date: sale.date,
+    //                     images: sale.images,
+    //                     address: sale.address,
+    //                     keywordList: keys,
+    //
+    //                     id: post._id,
+    //                     url: post.url,
+    //                     to: post.to,
+    //                     from: post.from,
+    //                     priority: post.priority,
+    //                     postType: post.postType,
+    //                     status: post.status,
+    //                     paymentStatus: post.paymentStatus,
+    //                     refresh: post.refresh
+    //
+    //
+    //                 };
+    //             }
+    //             else if (postType == global.POST_TYPE_BUY) {
+    //
+    //
+    //                 let buy = item;
+    //
+    //                 let keys;
+    //
+    //                 if (!buy.keywordList) {
+    //                     keys = [];
+    //                 }
+    //                 else {
+    //                     keys = await Promise.all(buy.keywordList.map(async key => {
+    //
+    //                             return {
+    //                                 keyword: key,
+    //                                 slug: urlSlug(key)
+    //                             }
+    //                         }
+    //                     ));
+    //                 }
+    //
+    //                 return {
+    //
+    //                     title: buy.title,
+    //                     formality: buy.formality,
+    //                     description: buy.description,
+    //                     city: buy.city,
+    //                     district: buy.district,
+    //                     priceMin: buy.priceMin,
+    //                     priceMax: buy.priceMax,
+    //                     areaMin: buy.areaMin,
+    //                     areaMax: buy.areaMax,
+    //                     unit: buy.unit,
+    //                     date: buy.date,
+    //                     images: buy.images,
+    //                     address: buy.address,
+    //                     keywordList: keys,
+    //
+    //
+    //                     id: post._id,
+    //                     url: post.url,
+    //                     to: post.to,
+    //                     from: post.from,
+    //                     priority: post.priority,
+    //                     postType: post.postType,
+    //                     status: post.status,
+    //                     paymentStatus: post.paymentStatus,
+    //                     refresh: post.refresh
+    //                 };
+    //             }
+    //
+    //             else if (postType == global.POST_TYPE_PROJECT) {
+    //
+    //                 let project = item;
+    //
+    //                 return {
+    //                     title: project.title,
+    //                     description: project.description,
+    //                     address: project.address,
+    //                     price: project.price,
+    //                     area: project.area,
+    //                     descriptionInvestor: project.descriptionInvestor,
+    //                     projectProgressTitle: project.projectProgressTitle,
+    //                     introImages: project.introImages,
+    //                     url: post.url
+    //                 };
+    //
+    //             } else {
+    //                 let news = item;
+    //
+    //                 return {
+    //                     title: news.title,
+    //                     // content: news.content,
+    //                     cate: news.type,
+    //                     image: news.image,
+    //                     url: post.url,
+    //                     date: news.date,
+    //                     description: news.description
+    //
+    //                 };
+    //
+    //             }
+    //
+    //
+    //         }));
+    //
+    //         if (params.length == 1) {
+    //             let count = await model.count(query);
+    //
+    //             return res.json({
+    //                 status: 1,
+    //                 type: postType,
+    //                 isList: true,
+    //                 params: query,
+    //                 data: {
+    //                     items: results,
+    //                     page: page,
+    //                     total: _.ceil(count / global.PAGE_SIZE)
+    //                 },
+    //                 message: 'request success '
+    //             });
+    //
+    //
+    //         }
+    //
+    //
+    //         let post = await PostModel.findOne({url: url});
+    //         if (!post) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'post not exist'
+    //             });
+    //         }
+    //
+    //         switch (postType) {
+    //             case global.POST_TYPE_SALE :
+    //                 model = SaleModel;
+    //                 break;
+    //             case global.POST_TYPE_BUY :
+    //                 model = BuyModel;
+    //                 break;
+    //             case global.POST_TYPE_PROJECT :
+    //                 model = ProjectModel;
+    //                 break;
+    //
+    //             case global.POST_TYPE_NEWS :
+    //                 model = NewsModel;
+    //                 break;
+    //             default :
+    //                 model = SaleModel;
+    //                 break;
+    //         }
+    //
+    //         let content = await model.findOne({_id: post.content_id});
+    //
+    //
+    //         if (!content) {
+    //
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'data not exist'
+    //             });
+    //
+    //
+    //         }
+    //
+    //         if (postType == global.POST_TYPE_SALE) {
+    //
+    //             let keys;
+    //
+    //             if (!content.keywordList) {
+    //                 keys = [];
+    //             }
+    //             else {
+    //                 keys = await Promise.all(content.keywordList.map(async key => {
+    //
+    //                         return {
+    //                             keyword: key,
+    //                             slug: urlSlug(key)
+    //                         }
+    //                     }
+    //                 ));
+    //             }
+    //
+    //             return res.json({
+    //                 type: postType,
+    //                 isList: false,
+    //                 related: results.filter(obj => obj.id != post._id),
+    //                 params: query,
+    //                 status: 1,
+    //                 data: {
+    //
+    //                     title: content.title,
+    //                     formality: content.formality,
+    //                     type: content.type,
+    //                     city: content.city,
+    //                     district: content.district,
+    //                     ward: content.ward,
+    //                     street: content.street,
+    //                     project: content.project,
+    //                     area: content.area,
+    //                     price: content.price,
+    //                     unit: content.unit,
+    //                     address: content.address,
+    //                     keywordList: keys,
+    //                     description: content.description,
+    //                     streetWidth: content.streetWidth,
+    //                     frontSize: content.frontSize,
+    //                     direction: content.direction,
+    //                     balconyDirection: content.balconyDirection,
+    //                     floorCount: content.floorCount,
+    //                     bedroomCount: content.bedroomCount,
+    //                     toiletCount: content.toiletCount,
+    //                     furniture: content.furniture,
+    //                     images: content.images,
+    //                     contactName: content.contactName,
+    //                     contactAddress: content.contactAddress,
+    //                     contactPhone: content.contactPhone,
+    //                     contactMobile: content.contactMobile,
+    //                     contactEmail: content.contactEmail,
+    //                     date: content.date,
+    //
+    //                     id: post._id,
+    //                     url: post.url,
+    //                     to: post.to,
+    //                     from: post.from,
+    //                     priority: post.priority,
+    //                     postType: post.postType,
+    //                     status: post.status,
+    //                     paymentStatus: post.paymentStatus,
+    //                     refresh: post.refresh
+    //                 },
+    //                 message: 'request success'
+    //             });
+    //         }
+    //         else if (postType == global.POST_TYPE_BUY) {
+    //
+    //             let keys;
+    //
+    //             if (!content.keywordList) {
+    //                 keys = [];
+    //             }
+    //             else {
+    //                 keys = await Promise.all(content.keywordList.map(async key => {
+    //
+    //                         return {
+    //                             keyword: key,
+    //                             slug: urlSlug(key)
+    //                         }
+    //                     }
+    //                 ));
+    //             }
+    //
+    //
+    //             return res.json({
+    //                 status: 1,
+    //                 type: postType,
+    //                 isList: false,
+    //                 related: results.filter(obj => obj.id != post._id),
+    //                 params: query,
+    //                 data: {
+    //
+    //                     title: content.title,
+    //                     description: content.description,
+    //                     keywordList: keys,
+    //                     formality: content.formality,
+    //                     type: content.type,
+    //                     city: content.city,
+    //                     district: content.district,
+    //                     ward: content.ward,
+    //                     street: content.street,
+    //                     project: content.project,
+    //                     areaMin: content.areaMin,
+    //                     areaMax: content.areaMax,
+    //                     priceMin: content.priceMin,
+    //                     priceMax: content.priceMax,
+    //                     unit: content.unit,
+    //                     address: content.address,
+    //                     images: content.images,
+    //                     contactName: content.contactName,
+    //                     contactAddress: content.contactAddress,
+    //                     contactPhone: content.contactPhone,
+    //                     contactMobile: content.contactMobile,
+    //                     contactEmail: content.contactEmail,
+    //                     receiveMail: content.receiveMail,
+    //                     date: content.date,
+    //
+    //                     id: post._id,
+    //                     url: post.url,
+    //                     to: post.to,
+    //                     from: post.from,
+    //                     priority: post.priority,
+    //                     postType: post.postType,
+    //                     status: post.status,
+    //                     paymentStatus: post.paymentStatus,
+    //                     refresh: post.refresh
+    //                 },
+    //                 message: 'request success'
+    //             });
+    //         }
+    //         else if (postType == global.POST_TYPE_PROJECT) {
+    //             return res.json({
+    //                 status: 1,
+    //                 type: postType,
+    //                 isList: false,
+    //                 related: results.filter(obj => obj.id != post._id),
+    //                 params: query,
+    //                 data: {
+    //                     url: post.url,
+    //                     id: content._id,
+    //                     postType: post.postType,
+    //
+    //                     isShowOverview: content.isShowOverview,
+    //                     type: content.type,
+    //                     introImages: content.introImages,
+    //                     title: content.title,
+    //                     address: content.address,
+    //                     area: content.area,
+    //                     projectScale: content.projectScale,
+    //                     price: content.price,
+    //                     deliveryHouseDate: content.deliveryHouseDate,
+    //                     constructionArea: content.constructionArea,
+    //                     descriptionInvestor: content.descriptionInvestor,
+    //                     description: content.description,
+    //
+    //                     isShowLocationAndDesign: content.isShowLocationAndDesign,
+    //                     location: content.location,
+    //                     infrastructure: content.infrastructure,
+    //
+    //                     isShowGround: content.isShowGround,
+    //                     overallSchema: content.overallSchema,
+    //                     groundImages: content.groundImages,
+    //
+    //                     isShowImageLibs: content.isShowImageLibs,
+    //                     imageAlbums: content.imageAlbums,
+    //
+    //                     isShowProjectProgress: content.isShowProjectProgress,
+    //                     projectProgressTitle: content.projectProgressTitle,
+    //                     projectProgressStartDate: content.projectProgressStartDate,
+    //                     projectProgressEndDate: content.projectProgressEndDate,
+    //                     projectProgressDate: content.projectProgressDate,
+    //                     projectProgressImages: content.projectProgressImages,
+    //
+    //                     isShowTabVideo: content.isShowTabVideo,
+    //                     video: content.video,
+    //
+    //                     isShowFinancialSupport: content.isShowFinancialSupport,
+    //                     financialSupport: content.financialSupport,
+    //
+    //                     isShowInvestor: content.isShowInvestor,
+    //                     detailInvestor: content.detailInvestor,
+    //
+    //                     district: content.district,
+    //                     city: content.city
+    //                 },
+    //                 message: 'request success'
+    //             });
+    //
+    //
+    //         } else {
+    //             return res.json({
+    //                 status: 1,
+    //                 type: postType,
+    //                 isList: false,
+    //                 related: results.filter(obj => obj.id != post._id),
+    //                 params: query,
+    //                 data: {
+    //                     title: content.title,
+    //                     content: content.content,
+    //                     cate: content.type,
+    //                     image: content.image,
+    //                     url: post.url,
+    //                     date: content.date,
+    //                     description: content.description
+    //
+    //                 },
+    //                 message: 'request success'
+    //             });
+    //
+    //
+    //         }
+    //
+    //     }
+    //     catch (e) {
+    //         return res.json({
+    //             status: 0,
+    //             data: {},
+    //             message: 'unknown error : ' + e.message
+    //         });
+    //     }
+    //
+    //
+    // }
 
 }
 module.exports = SearchController

@@ -8,111 +8,111 @@ var urlSlug = require('url-slug');
 
 var NewsController = {
 
-    detail: async function (req, res, next) {
-        try {
-
-            var token = req.headers.access_token;
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            let id = req.params.id;
-
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
-            }
-
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id null error'
-                });
-
-            }
-
-            let news = await NewsModel.findOne({
-                _id: id,
-                status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
-            });
-
-            if (!news) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-            }
-
-
-            let post = await PostModel.findOne({content_id: news._id});
-
-            if (!post) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'post not exist'
-                });
-            }
-
-
-            return res.json({
-                status: 1,
-                data: {
-                    id: news._id,
-                    title: news.title,
-                    content: news.content,
-                    cate: news.type,
-                    image: news.image,
-                    description: news.description,
-                    date: news.date,
-
-
-                    metaTitle: post.metaTitle,
-                    metaDescription: post.metaDescription,
-                    metaType: post.metaType,
-                    metaUrl: post.metaUrl,
-                    metaImage: post.metaImage,
-                    canonical: post.canonical,
-                    textEndPage: post.textEndPage,
-                    url: post.url
-
-                },
-                message: 'request success'
-            });
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
-    },
+    // detail: async function (req, res, next) {
+    //     try {
+    //
+    //         var token = req.headers.access_token;
+    //         var accessToken = await  TokenModel.findOne({token: token});
+    //
+    //         if (!accessToken) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'access token invalid'
+    //             });
+    //
+    //         }
+    //
+    //         var admin = await UserModel.findOne({
+    //             _id: accessToken.user,
+    //             status: global.STATUS_ACTIVE,
+    //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
+    //         });
+    //
+    //         let id = req.params.id;
+    //
+    //
+    //         if (!admin) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'admin not found or blocked'
+    //             });
+    //
+    //         }
+    //
+    //         if (!id || id.length == 0) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'id null error'
+    //             });
+    //
+    //         }
+    //
+    //         let news = await NewsModel.findOne({
+    //             _id: id,
+    //             status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+    //         });
+    //
+    //         if (!news) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'data not exist'
+    //             });
+    //         }
+    //
+    //
+    //         let post = await PostModel.findOne({content_id: news._id});
+    //
+    //         if (!post) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'post not exist'
+    //             });
+    //         }
+    //
+    //
+    //         return res.json({
+    //             status: 1,
+    //             data: {
+    //                 id: post._id,
+    //                 title: news.title,
+    //                 content: news.content,
+    //                 cate: news.type,
+    //                 image: news.image,
+    //                 description: news.description,
+    //                 date: news.date,
+    //
+    //
+    //                 metaTitle: post.metaTitle,
+    //                 metaDescription: post.metaDescription,
+    //                 metaType: post.metaType,
+    //                 metaUrl: post.metaUrl,
+    //                 metaImage: post.metaImage,
+    //                 canonical: post.canonical,
+    //                 textEndPage: post.textEndPage,
+    //                 url: post.url
+    //
+    //             },
+    //             message: 'request success'
+    //         });
+    //
+    //
+    //     }
+    //
+    //     catch (e) {
+    //         return res.json({
+    //             status: 0,
+    //             data: {},
+    //             message: 'unknown error : ' + e.message
+    //         });
+    //     }
+    //
+    //
+    // },
     catList: async function (req, res, next) {
         try {
 
@@ -211,9 +211,18 @@ var NewsController = {
                 });
             }
 
+            let post = await PostModel.findOne({_id: id});
+
+            if (!news) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post of news not exist '
+                });
+            }
 
             var news = await NewsModel.findOne({
-                _id: id,
+                _id: post.content_id,
                 status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
             });
 
@@ -271,7 +280,6 @@ var NewsController = {
 
             news = await news.save();
 
-            let post = await PostModel.findOne({content_id: news._id});
 
             if (textEndPage) {
                 post.textEndPage = textEndPage;
@@ -353,101 +361,103 @@ var NewsController = {
         }
 
     },
-    list: async function (req, res, next) {
-
-        try {
-
-            var token = req.headers.access_token;
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
-            }
-
-            var page = req.query.page;
-
-            if (!page || page < 1) {
-                page = 1;
-            }
-
-            let newsList = await NewsModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-
-            let results = await Promise.all(newsList.map(async news => {
-
-
-                let result = {
-
-                    id: news._id,
-                    status: news.status,
-                    title: news.title,
-                    content: news.content,
-                    cate: news.type,
-                    image: news.image,
-                    date: news.date,
-                    description: news.description,
-
-
-                };
-
-                let post = await PostModel.findOne({content_id: news._id});
-
-                if (post) {
-                    result.url = post.url;
-                    result.metaTitle = post.metaTitle;
-                    result.metaDescription = post.metaDescription;
-                    result.metaType = post.metaType;
-                    result.metaUrl = post.metaUrl;
-                    result.metaImage = post.metaImage;
-                    result.canonical = post.canonical;
-                    result.textEndPage = post.textEndPage
-                }
-
-                return result;
-
-            }));
-
-
-            let count = await NewsModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
-
-            return res.json({
-                status: 1,
-                data: {
-                    items: results,
-                    page: page,
-                    total: _.ceil(count / global.PAGE_SIZE)
-                },
-                message: 'request success '
-            });
-        }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-    },
+    // ,
+    // list: async function (req, res, next) {
+    //
+    //     try {
+    //
+    //         var token = req.headers.access_token;
+    //         var accessToken = await  TokenModel.findOne({token: token});
+    //
+    //         if (!accessToken) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'access token invalid'
+    //             });
+    //
+    //         }
+    //
+    //         var admin = await UserModel.findOne({
+    //             _id: accessToken.user,
+    //             status: global.STATUS_ACTIVE,
+    //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
+    //         });
+    //
+    //         if (!admin) {
+    //             return res.json({
+    //                 status: 0,
+    //                 data: {},
+    //                 message: 'admin not found or blocked'
+    //             });
+    //
+    //         }
+    //
+    //         var page = req.query.page;
+    //
+    //         if (!page || page < 1) {
+    //             page = 1;
+    //         }
+    //
+    //         let newsList = await NewsModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+    //
+    //         let results = await Promise.all(newsList.map(async news => {
+    //
+    //
+    //             let result = {
+    //
+    //                 status: news.status,
+    //                 title: news.title,
+    //                 content: news.content,
+    //                 cate: news.type,
+    //                 image: news.image,
+    //                 date: news.date,
+    //                 description: news.description,
+    //
+    //
+    //             };
+    //
+    //             let post = await PostModel.findOne({content_id: news._id});
+    //
+    //             if (post) {
+    //                 result.id = post._id;
+    //                 result.url = post.url;
+    //                 result.metaTitle = post.metaTitle;
+    //                 result.metaDescription = post.metaDescription;
+    //                 result.metaType = post.metaType;
+    //                 result.metaUrl = post.metaUrl;
+    //                 result.metaImage = post.metaImage;
+    //                 result.canonical = post.canonical;
+    //                 result.textEndPage = post.textEndPage
+    //             }
+    //
+    //             return result;
+    //
+    //         }));
+    //
+    //
+    //         let count = await NewsModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
+    //
+    //         return res.json({
+    //             status: 1,
+    //             data: {
+    //                 itemCount: count,
+    //                 items: results,
+    //                 page: page,
+    //                 total: _.ceil(count / global.PAGE_SIZE)
+    //             },
+    //             message: 'request success '
+    //         });
+    //     }
+    //     catch (e) {
+    //         return res.json({
+    //             status: 0,
+    //             data: {},
+    //             message: 'unknown error : ' + e.message
+    //         });
+    //     }
+    //
+    // },
 
     add: async function (req, res, next) {
 
@@ -497,7 +507,6 @@ var NewsController = {
 
 
             var news = new NewsModel();
-
 
 
             news.title = title;
@@ -559,12 +568,12 @@ var NewsController = {
             post.canonical = canonical;
             post.textEndPage = textEndPage;
 
-            post = await post.save();
+            await post.save();
 
 
             return res.json({
                 status: 1,
-                data: post,
+                data: {},
                 message: 'request post news success !'
             });
         }

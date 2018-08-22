@@ -292,8 +292,30 @@ var SaleController = {
             });
 
 
-
             if (!param) {
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_SALE,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    param: 'bds-' + Date.now(),
+                    street: street,
+                    project: project,
+                    balconyDirection: balconyDirection,
+                    bedroomCount: bedroomCount,
+                    area: area,
+                    price: price,
+                    areaMax: undefined,
+                    areaMin: undefined,
+                    priceMax: undefined,
+                    priceMin: undefined,
+                    extra: undefined,
+                    text: undefined
+                });
+
                 param = await param.save();
 
             }
@@ -308,7 +330,6 @@ var SaleController = {
             post.url = url;
             post.params = param._id;
 
-            post = await post.save();
 
             if (keywordList && keywordList.length > 0) {
                 keywordList.forEach(async key => {
@@ -319,22 +340,20 @@ var SaleController = {
                         return;
                     }
 
-                    var tag = await TagModel.findOne({slug: slug});
+                    var tag = await TagModel.findOne({status: global.STATUS_ACTIVE, slug: slug});
 
                     if (!tag) {
                         tag = new TagModel({
                             slug: slug,
                             keyword: key,
-                            posts: []
                         });
+                        tag = await tag.save();
+
                     }
-
-                    tag.refresh = Date.now();
-                    tag.posts.push(post._id);
-
-                    await tag.save();
+                    post.tags.push(tag._id);
                 })
             }
+            post = await post.save();
 
 
             return res.json({
@@ -581,8 +600,30 @@ var SaleController = {
             });
 
 
-
             if (!param) {
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_SALE,
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    param: 'bds-' + Date.now(),
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: balconyDirection,
+                    bedroomCount: bedroomCount,
+                    area: area,
+                    price: price,
+                    areaMax: undefined,
+                    areaMin: undefined,
+                    priceMax: undefined,
+                    priceMin: undefined,
+                    extra: undefined,
+                    text: undefined
+                });
+
                 param = await param.save();
 
             }
@@ -624,7 +665,6 @@ var SaleController = {
                 post.status = global.STATUS_PAYMENT_UNPAID;
             }
 
-            await post.save();
 
             if (keywordList && keywordList.length > 0) {
                 keywordList.forEach(async key => {
@@ -635,23 +675,21 @@ var SaleController = {
                         return;
                     }
 
-                    var tag = await TagModel.findOne({slug: slug});
+                    var tag = await TagModel.findOne({status: global.STATUS_ACTIVE, slug: slug});
 
                     if (!tag) {
                         tag = new TagModel({
                             slug: slug,
                             keyword: key,
-                            posts: []
                         });
+                        tag = await tag.save();
+
                     }
-
-                    tag.refresh = Date.now();
-                    tag.posts.push(post._id);
-
-                    await tag.save();
+                    post.tags.push(tag._id);
                 })
             }
 
+            await post.save();
 
             return res.json({
                 status: 1,

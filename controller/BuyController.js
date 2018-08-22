@@ -215,6 +215,27 @@ var BuyController = {
 
 
             if (!param) {
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_BUY,
+                    param: 'bds-' + Date.now(),
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    area: undefined,
+                    price: undefined,
+                    areaMax: areaMax,
+                    areaMin: areaMin,
+                    priceMax: priceMax,
+                    priceMin: priceMin,
+                    extra: undefined,
+                    text: undefined
+                });
                 param = await param.save();
 
             }
@@ -241,8 +262,6 @@ var BuyController = {
             post.status = global.STATUS_POST_PENDING;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;
 
-            post = await post.save();
-
 
             if (keywordList && keywordList.length > 0) {
                 keywordList.forEach(async key => {
@@ -253,22 +272,20 @@ var BuyController = {
                         return;
                     }
 
-                    var tag = await TagModel.findOne({slug: slug});
+                    var tag = await TagModel.findOne({status: global.STATUS_ACTIVE, slug: slug});
 
                     if (!tag) {
                         tag = new TagModel({
                             slug: slug,
                             keyword: key,
-                            posts: []
                         });
+                        tag = await tag.save();
+
                     }
-
-                    tag.refresh = Date.now();
-                    tag.posts.push(post._id);
-
-                    await tag.save();
+                    post.tags.push(tag._id);
                 })
             }
+            post = await post.save();
 
 
             return res.json({
@@ -489,6 +506,29 @@ var BuyController = {
             });
 
             if (!param) {
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_BUY,
+
+                    formality: formality,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: ward,
+                    param: 'bds-' + Date.now(),
+                    street: street,
+                    project: project,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    area: undefined,
+                    price: undefined,
+                    areaMax: areaMax,
+                    areaMin: areaMin,
+                    priceMax: priceMax,
+                    priceMin: priceMin,
+                    extra: undefined,
+                    text: undefined
+                });
                 param = await param.save();
 
             }
@@ -529,7 +569,8 @@ var BuyController = {
                 post.status = global.STATUS_PAYMENT_UNPAID;
             }
 
-            await post.save();
+            post.tags = [];
+
 
             if (keywordList && keywordList.length > 0) {
                 keywordList.forEach(async key => {
@@ -546,16 +587,15 @@ var BuyController = {
                         tag = new TagModel({
                             slug: slug,
                             keyword: key,
-                            posts: []
                         });
+                        tag = await tag.save();
+
                     }
+                    post.tags.push(tag._id);
 
-                    tag.refresh = Date.now();
-                    tag.posts.push(post._id);
-
-                    await tag.save();
                 })
             }
+            await post.save();
 
 
             return res.json({
