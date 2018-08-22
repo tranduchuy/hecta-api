@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 var UserController = require('../controller/UserController');
+var TransactionController = require('../controller/TransactionController');
 
 router.get('/highlight', UserController.highlight);
 
@@ -22,5 +23,7 @@ router.get('/request/list', UserController.requestList);
 router.get('/child/detail/:id', UserController.childDetail);
 router.get('/find/:email', UserController.findUserByEmail);
 router.get('/balance', UserController.balance);
+router.post('/transaction/history', TransactionController.list);
+router.get('/child/transactions/:id', TransactionController.childList);
 
 module.exports = router;

@@ -163,6 +163,7 @@ var TagController = {
 
             var page = req.query.page;
             var slug = req.query.slug;
+            var keyword = req.query.keyword;
 
 
             if (!page || page < 1) {
@@ -173,6 +174,10 @@ var TagController = {
 
             if (slug) {
                 query.slug = {"$regex": slug, "$options": "i"};
+            }
+
+            if (keyword) {
+                query.keyword = {"$regex": keyword, "$options": "i"};
             }
 
 
@@ -277,20 +282,23 @@ var TagController = {
                     message: 'tag not exist'
                 });
             }
+            return res.json({
+                status: 1,
+                data: {
+                    id: tag._id,
+                    slug: tag.slug,
+                    metaTitle: tag.metaTitle,
+                    metaDescription: tag.metaDescription,
+                    metaType: tag.metaType,
+                    metaUrl: tag.metaUrl,
+                    metaImage: tag.metaImage,
+                    canonical: tag.canonical,
+                    textEndPage: tag.textEndPage,
+                    keyword: tag.keyword,
 
-            return {
-                id: tag._id,
-                slug: tag.slug,
-                metaTitle: tag.metaTitle,
-                metaDescription: tag.metaDescription,
-                metaType: tag.metaType,
-                metaUrl: tag.metaUrl,
-                metaImage: tag.metaImage,
-                canonical: tag.canonical,
-                textEndPage: tag.textEndPage,
-                keyword: tag.keyword,
-
-            }
+                },
+                message: 'success'
+            });
 
 
         }

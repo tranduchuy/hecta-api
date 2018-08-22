@@ -6,6 +6,7 @@ var AccessToken = require('../utils/AccessToken');
 var TokenModel = require('../models/TokenModel');
 var ChildModel = require('../models/ChildModel');
 var AccountModel = require('../models/AccountModel');
+var TransactionHistoryModel = require('../models/TransactionHistoryModel');
 var Mailer = require('../commom/Mailer');
 
 var randomstring = require("randomstring");
@@ -344,11 +345,44 @@ var UserController = {
 
             }
 
+
+            var accountChild = await AccountModel({owner: child.personalId});
+            var transactionChild = new TransactionHistoryModel({
+
+                userId: child.personalId,
+                amount: amount,
+                note: note,
+                type: global.TRANSACTION_TYPE_RECEIVE_CREDIT,
+
+                current: {
+                    credit: child.credit - child.creditUsed,
+                    main: accountChild ? accountChild.main : 0,
+                    promo: accountChild ? accountChild.promo : 0
+                }
+            });
+
+            var transactionParrent = new TransactionHistoryModel({
+
+                userId: child.companyId,
+                amount: amount,
+                note: note,
+                type: global.TRANSACTION_TYPE_SHARE_CREDIT,
+
+                current: {
+                    credit: 0,
+                    main: sourceAccount.main,
+                    promo: sourceAccount.promo
+                }
+            });
+
             child.credit += amount;
             child.creditHistory.push({date: Date.now(), amount: amount, note: note});
 
             sourceAccount.main -= sharedCredit;
+
             await sourceAccount.save();
+            await transactionChild.save();
+            await transactionParrent.save();
 
             await child.save();
             return res.json({

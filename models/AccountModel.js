@@ -7,7 +7,6 @@ var Schema = mongoose.Schema;
 var paymentSchema = new Schema({
 
     owner: String,
-    // credit: {type: Number, default: 0},
     promo: {type: Number, default: 0},
     main: {type: Number, default: 0},
     date: {type: Number, default: Date.now}

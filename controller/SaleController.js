@@ -6,6 +6,7 @@ var TokenModel = require('../models/TokenModel');
 var AccountModel = require('../models/AccountModel');
 var PostPriorityModel = require('../models/PostPriorityModel');
 var ChildModel = require('../models/ChildModel');
+var TransactionHistoryModel = require('../models/TransactionHistoryModel');
 var UrlParamModel = require('../models/UrlParamModel');
 var urlSlug = require('url-slug');
 var SaleController = {
@@ -179,6 +180,22 @@ var SaleController = {
                 var price = priority.costByDay * dateCount;
 
                 var child = await ChildModel.findOne({personalId: accessToken.user});
+                var account = await AccountModel.findOne({owner: accessToken.user});
+
+                var transaction = new TransactionHistoryModel({
+
+                    userId: accessToken.user,
+                    amount: price,
+                    note: 'date : ' + Date.now(),
+                    info: 'buy sale : ' + title,
+                    type: global.TRANSACTION_TYPE_PAY_POST,
+
+                    current: {
+                        credit: child ? (child.credit - child.creditUsed) : 0,
+                        main: account ? account.main : 0,
+                        promo: account ? account.promo : 0
+                    }
+                });
 
                 if (!child) {
                     if (price <= child.credit) {
@@ -193,7 +210,6 @@ var SaleController = {
                     }
                 }
 
-                var account = await AccountModel.findOne({owner: accessToken.user});
 
                 if (price <= account.promo) {
                     account.promo -= price;
@@ -217,6 +233,7 @@ var SaleController = {
                     post.paymentStatus = global.STATUS_PAYMENT_PAID;
                     await account.save();
                     await child.save();
+                    await transaction.save();
                 }
 
 
