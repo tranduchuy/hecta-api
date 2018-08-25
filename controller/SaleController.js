@@ -165,6 +165,7 @@ var SaleController = {
 
             if (token) {
 
+
                 var accessToken = await  TokenModel.findOne({token: token});
 
                 if (!accessToken) {
@@ -175,6 +176,7 @@ var SaleController = {
                     });
 
                 }
+
                 post.user = accessToken.user;
 
                 var price = priority.costByDay * dateCount;
@@ -197,7 +199,7 @@ var SaleController = {
                     }
                 });
 
-                if (!child) {
+                if (child) {
                     if (price <= child.credit) {
                         child.credit -= price;
                         price = 0;
@@ -284,7 +286,7 @@ var SaleController = {
             post.to = to;
             post.formality = sale.formality;
 
-            post.status = global.STATUS_POST_PENDING;
+            post.status = global.STATUS_PENDING;
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_SALE,
@@ -349,7 +351,8 @@ var SaleController = {
 
 
             if (keywordList && keywordList.length > 0) {
-                keywordList.forEach(async key => {
+                for (var i = 0; i < keywordList.length; i++) {
+                    var key = keywordList[i];
 
                     var slug = urlSlug(key);
 
@@ -368,7 +371,7 @@ var SaleController = {
 
                     }
                     post.tags.push(tag._id);
-                })
+                }
             }
             post = await post.save();
 
@@ -587,7 +590,7 @@ var SaleController = {
             if (contactEmail) {
                 sale.contactEmail = contactEmail;
             }
-            if (status == global.STATUS_POST_DETELE) {
+            if (status == global.STATUS_DELETE) {
                 sale.status = status;
             }
 
@@ -597,17 +600,17 @@ var SaleController = {
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_SALE,
 
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
-                balconyDirection: balconyDirection,
-                bedroomCount: bedroomCount,
-                area: area,
-                price: price,
+                formality: sale.formality,
+                type: sale.type,
+                city: sale.city,
+                district: sale.district,
+                ward: sale.ward,
+                street: sale.street,
+                project: sale.project,
+                balconyDirection: sale.balconyDirection,
+                bedroomCount: sale.bedroomCount,
+                area: sale.area,
+                price: sale.price,
                 areaMax: undefined,
                 areaMin: undefined,
                 priceMax: undefined,
@@ -621,18 +624,18 @@ var SaleController = {
 
                 param = new UrlParamModel({
                     postType: global.POST_TYPE_SALE,
-                    formality: formality,
-                    type: type,
-                    city: city,
+                    formality: sale.formality,
+                    type: sale.type,
+                    city: sale.city,
                     param: 'bds-' + Date.now(),
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: balconyDirection,
-                    bedroomCount: bedroomCount,
-                    area: area,
-                    price: price,
+                    district: sale.district,
+                    ward: sale.ward,
+                    street: sale.street,
+                    project: sale.project,
+                    balconyDirection: sale.balconyDirection,
+                    bedroomCount: sale.bedroomCount,
+                    area: sale.area,
+                    price: sale.price,
                     areaMax: undefined,
                     areaMin: undefined,
                     priceMax: undefined,
@@ -644,15 +647,19 @@ var SaleController = {
                 param = await param.save();
 
             }
-            var url = urlSlug(title);
 
-            var count = await PostModel.find({url: new RegExp("^" + url)});
+            if (title) {
+                var url = urlSlug(title);
 
-            if (count > 0) {
-                url += ('-' + count);
+                var count = await PostModel.find({url: new RegExp("^" + url)});
+
+                if (count > 0) {
+                    url += ('-' + count);
+                }
+
+                post.url = url;
             }
 
-            post.url = url;
             post.params = param._id;
 
             post.type = sale.type;
@@ -660,31 +667,32 @@ var SaleController = {
 
             if (from) {
                 post.from = from;
-                post.status = global.STATUS_POST_PENDING;
-                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.status = global.STATUS_PENDING;
+                post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
                 post.refresh = Date.now();
 
             }
 
             if (to) {
                 post.to = to;
-                post.status = global.STATUS_POST_PENDING;
-                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.status = global.STATUS_PENDING;
+                post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
             }
 
-            if (status == global.STATUS_POST_DETELE) {
+            if (status == global.STATUS_DELETE) {
                 post.status = status;
             }
 
             if (priority) {
                 post.priority = priority;
-                post.status = global.STATUS_POST_PENDING;
-                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.status = global.STATUS_PENDING;
+                post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
             }
 
 
             if (keywordList && keywordList.length > 0) {
-                keywordList.forEach(async key => {
+                for (var i = 0; i < keywordList.length; i++) {
+                    var key = keywordList[i];
 
                     var slug = urlSlug(key);
 
@@ -703,7 +711,7 @@ var SaleController = {
 
                     }
                     post.tags.push(tag._id);
-                })
+                }
             }
 
             await post.save();

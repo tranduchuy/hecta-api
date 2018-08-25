@@ -213,7 +213,7 @@ var NewsController = {
 
             let post = await PostModel.findOne({_id: id});
 
-            if (!news) {
+            if (!post) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -514,9 +514,9 @@ var NewsController = {
             news.type = cate;
             news.image = image;
             news.description = description;
-            news.status = global.STATUS_POST_ACTIVE;
+            news.status = global.STATUS_ACTIVE;
 
-            project.admin = [accessToken.user];
+            news.admin = [accessToken.user];
 
             news = await news.save();
 
@@ -524,7 +524,7 @@ var NewsController = {
 
             post.postType = global.POST_TYPE_NEWS;
             post.type = news.type;
-            post.status = global.STATUS_POST_ACTIVE;
+            post.status = global.STATUS_ACTIVE;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;
             post.content_id = news._id;
 

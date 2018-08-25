@@ -467,7 +467,7 @@ var ProjectController = {
                 project.detailInvestor = detailInvestor;
             }
 
-            if (status == global.STATUS_ACTIVE || global.STATUS_BLOCKED || global.STATUS_DELETE) {
+            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
                 project.status = status;
             }
 
@@ -479,7 +479,7 @@ var ProjectController = {
             project = await project.save();
 
 
-            if (status == global.STATUS_ACTIVE || global.STATUS_BLOCKED || global.STATUS_DELETE) {
+            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
                 post.status = status;
             }
 
@@ -833,6 +833,22 @@ var ProjectController = {
                 price: price
             });
             if (!param) {
+
+                param = new UrlParamModel({
+                    postType: global.POST_TYPE_PROJECT,
+                    param: 'project-' + Date.now(),
+                    formality: undefined,
+                    type: type,
+                    city: city,
+                    district: district,
+                    ward: undefined,
+                    street: undefined,
+                    project: undefined,
+                    balconyDirection: undefined,
+                    bedroomCount: undefined,
+                    area: undefined,
+                    price: price
+                });
                 param = await param.save();
 
             }
@@ -847,7 +863,7 @@ var ProjectController = {
             post.url = url;
             post.params = param._id;
 
-            post.status = global.STATUS_POST_ACTIVE;
+            post.status = global.STATUS_ACTIVE;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;
 
             await post.save();

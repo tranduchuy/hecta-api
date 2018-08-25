@@ -69,7 +69,7 @@ var CategoryController = {
         let status = req.body.status;
 
         if (url && url.length > 0) {
-            if (await UrlParamModel.count({param: url}) > 0) {
+            if (await UrlParamModel.count({param: url, _id: {$ne: id}}) > 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -77,7 +77,7 @@ var CategoryController = {
                 });
             }
 
-            category.url = url;
+            category.param = url;
         }
 
         if (status == global.STATUS_ACTIVE || status == global.STATUS_DELETE || status == global.STATUS_DELETE) {
@@ -170,7 +170,7 @@ var CategoryController = {
                 page = 1;
             }
 
-            var query = {status: {$ne: global.STATUS_POST_DETELE}};
+            var query = {status: {$ne: global.STATUS_DELETE}};
 
             if (url) {
                 query.param = {"$regex": url, "$options": "i"};
@@ -187,7 +187,7 @@ var CategoryController = {
 
                         return {
                             id: category._id,
-                            param: category.param,
+                            url: category.param,
                             metaTitle: category.metaTitle,
                             metaDescription: category.metaDescription,
                             metaType: category.metaType,
@@ -284,7 +284,7 @@ var CategoryController = {
                 status: 1,
                 data: {
                     id: category._id,
-                    param: category.param,
+                    url: category.param,
                     metaTitle: category.metaTitle,
                     metaDescription: category.metaDescription,
                     metaType: category.metaType,
@@ -316,7 +316,6 @@ var CategoryController = {
                 },
                 message: 'success'
             });
-
 
 
         }

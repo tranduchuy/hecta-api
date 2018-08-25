@@ -35,6 +35,7 @@ var postSchema = new Schema({
     canonical: String,
     textEndPage: String,
 
+    user: String,
     tags: {type: Array, default: []}
 
 

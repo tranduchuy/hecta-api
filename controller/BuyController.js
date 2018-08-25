@@ -5,7 +5,6 @@ var TagModel = require('../models/TagModel');
 var _ = require('lodash');
 var urlSlug = require('url-slug');
 var UrlParamModel = require('../models/UrlParamModel');
-var PostPriorityModel = require('../models/PostPriorityModel');
 
 var BuyController = {
 
@@ -45,28 +44,28 @@ var BuyController = {
         var from = req.body.from;
         var to = req.body.to;
 
-        var priorityId = req.body.priorityId;
+        // var priorityId = req.body.priorityId;
 
 
         try {
 
-            if (!priorityId || priorityId.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'priorityId : "' + priorityId + '" is invalid'
-                });
-            }
-
-            var priority = await PostPriorityModel.findOne({_id: priorityId});
-
-            if (!priority) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'priority not found'
-                });
-            }
+            // if (!priorityId || priorityId.length == 0) {
+            //     return res.json({
+            //         status: 0,
+            //         data: {},
+            //         message: 'priorityId : "' + priorityId + '" is invalid'
+            //     });
+            // }
+            //
+            // var priority = await PostPriorityModel.findOne({_id: priorityId});
+            //
+            // if (!priority) {
+            //     return res.json({
+            //         status: 0,
+            //         data: {},
+            //         message: 'priority not found'
+            //     });
+            // }
 
             if (!title || title.length < 30 || title.length > 99) {
                 return res.json({
@@ -255,16 +254,19 @@ var BuyController = {
             post.formality = buy.formality;
             post.type = buy.type;
             post.content_id = buy._id;
-            post.priority = priority.priority;
+            // post.priority = priority.priority;
             post.from = from;
             post.to = to;
 
-            post.status = global.STATUS_POST_PENDING;
+            post.status = global.STATUS_PENDING;
             post.paymentStatus = global.STATUS_PAYMENT_FREE;
 
 
             if (keywordList && keywordList.length > 0) {
-                keywordList.forEach(async key => {
+
+                for (var i = 0; i < keywordList.length; i++) {
+                    var key = keywordList[i];
+                    // keywordList.forEach(async key => {
 
                     var slug = urlSlug(key);
 
@@ -283,7 +285,7 @@ var BuyController = {
 
                     }
                     post.tags.push(tag._id);
-                })
+                }
             }
             post = await post.save();
 
@@ -398,7 +400,7 @@ var BuyController = {
             var from = req.body.from;
             var to = req.body.to;
 
-            var priority = req.body.priority;
+            // var priority = req.body.priority;
 
 
             if (title) {
@@ -476,7 +478,7 @@ var BuyController = {
                 buy.receiveMail = receiveMail;
             }
 
-            if (status == global.STATUS_POST_DETELE) {
+            if (status == global.STATUS_DELETE) {
                 buy.status = status;
             }
 
@@ -486,21 +488,21 @@ var BuyController = {
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_BUY,
 
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
+                formality: buy.formality,
+                type: buy.type,
+                city: buy.city,
+                district: buy.district,
+                ward: buy.ward,
+                street: buy.street,
+                project: buy.project,
                 balconyDirection: undefined,
                 bedroomCount: undefined,
                 area: undefined,
                 price: undefined,
-                areaMax: areaMax,
-                areaMin: areaMin,
-                priceMax: priceMax,
-                priceMin: priceMin,
+                areaMax: buy.areaMax,
+                areaMin: buy.areaMin,
+                priceMax: buy.priceMax,
+                priceMin: buy.priceMin,
                 extra: undefined,
                 text: undefined
             });
@@ -510,37 +512,40 @@ var BuyController = {
                 param = new UrlParamModel({
                     postType: global.POST_TYPE_BUY,
 
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
+                    formality: buy.formality,
+                    type: buy.type,
+                    city: buy.city,
+                    district: buy.district,
+                    ward: buy.ward,
                     param: 'bds-' + Date.now(),
-                    street: street,
-                    project: project,
+                    street: buy.street,
+                    project: buy.project,
                     balconyDirection: undefined,
                     bedroomCount: undefined,
                     area: undefined,
                     price: undefined,
-                    areaMax: areaMax,
-                    areaMin: areaMin,
-                    priceMax: priceMax,
-                    priceMin: priceMin,
+                    areaMax: buy.areaMax,
+                    areaMin: buy.areaMin,
+                    priceMax: buy.priceMax,
+                    priceMin: buy.priceMin,
                     extra: undefined,
                     text: undefined
                 });
                 param = await param.save();
 
             }
-            var url = urlSlug(title);
 
-            var count = await PostModel.find({url: new RegExp("^" + url)});
+            if (title) {
+                var url = urlSlug(title);
 
-            if (count > 0) {
-                url += ('-' + count);
+                var count = await PostModel.find({url: new RegExp("^" + url)});
+
+                if (count > 0) {
+                    url += ('-' + count);
+                }
+
+                post.url = url;
             }
-
-            post.url = url;
             post.params = param._id;
 
             post.formality = buy.formality;
@@ -563,17 +568,18 @@ var BuyController = {
                 post.status = status;
             }
 
-            if (priority) {
-                post.priority = priority;
-                post.status = global.STATUS_POST_PENDING;
-                post.status = global.STATUS_PAYMENT_UNPAID;
-            }
+            // if (priority) {
+            //     post.priority = priority;
+            //     post.status = global.STATUS_POST_PENDING;
+            //     post.status = global.STATUS_PAYMENT_UNPAID;
+            // }
 
             post.tags = [];
 
 
             if (keywordList && keywordList.length > 0) {
-                keywordList.forEach(async key => {
+                for (var i = 0; i < keywordList.length; i++) {
+                    var key = keywordList[i];
 
                     var slug = urlSlug(key);
 
@@ -593,7 +599,7 @@ var BuyController = {
                     }
                     post.tags.push(tag._id);
 
-                })
+                }
             }
             await post.save();
 

@@ -1,7 +1,7 @@
-global.STATUS_POST_ACTIVE = 1;
-global.STATUS_POST_BLOCKED = 2;
-global.STATUS_POST_PENDING = 3;
-global.STATUS_POST_DETELE = 4;
+// global.STATUS_POST_ACTIVE = 1;
+// global.STATUS_POST_BLOCKED = 2;
+// global.STATUS_POST_PENDING = 3;
+// global.STATUS_POST_DETELE = 4;
 
 global.USER_STATUS_ACTIVE = 1;
 global.USER_STATUS_WAIT_COMFIRM = 2;
@@ -12,7 +12,6 @@ global.STATUS_ACTIVE = 1;
 global.STATUS_BLOCKED = 2;
 global.STATUS_DELETE = 3;
 global.STATUS_PENDING = 4;
-
 
 global.STATUS_PAYMENT_PAID = 1;
 global.STATUS_PAYMENT_UNPAID = 2;
@@ -69,7 +68,7 @@ global.USER_ROLE_ENDUSER = 3;
 
 
 global.SLUG_PROJECT = "du-an";
-global.SLUG_NEWS = "bai-viet";
+global.SLUG_NEWS = "tin-tuc";
 global.SLUG_TAG = "t";
 global.SLUG_SELL_OR_BUY = "chi-tiet-bds";
 global.SLUG_CATEGORY = "bds";

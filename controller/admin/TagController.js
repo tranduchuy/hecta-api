@@ -68,7 +68,7 @@ var TagController = {
         let status = req.body.status;
 
         if (slug && slug.length > 0) {
-            if (await TagModel.count({slug: slug}) > 0) {
+            if (await TagModel.count({slug: slug, _id: {$ne: id}}) > 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -170,7 +170,7 @@ var TagController = {
                 page = 1;
             }
 
-            var query = {status: {$ne: global.STATUS_POST_DETELE}};
+            var query = {status: {$ne: global.STATUS_DELETE}};
 
             if (slug) {
                 query.slug = {"$regex": slug, "$options": "i"};
@@ -190,7 +190,7 @@ var TagController = {
                         return {
                             id: tag._id,
                             slug: tag.slug,
-                            keyword : tag.keyword,
+                            keyword: tag.keyword,
                             metaTitle: tag.metaTitle,
                             metaDescription: tag.metaDescription,
                             metaType: tag.metaType,

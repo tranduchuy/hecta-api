@@ -89,7 +89,7 @@ var PostController = {
                 limit = global.PAGE_SIZE;
             }
 
-            var query = {user: user._id, status: {$ne: global.STATUS_POST_DETELE}};
+            var query = {user: user._id, status: {$ne: global.STATUS_DELETE}};
 
 
             if (postType == global.POST_TYPE_SALE || postType == global.POST_TYPE_BUY) {
@@ -311,7 +311,7 @@ var PostController = {
 
 
             var query = {
-                status: {$ne: global.STATUS_POST_DETELE},
+                status:  global.STATUS_ACTIVE,
                 postType: {"$in": [global.POST_TYPE_BUY, global.POST_TYPE_SALE]}
             };
 
@@ -701,7 +701,7 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {user: accessToken.user, status: {$ne: global.STATUS_POST_DETELE}};
+            var query = {user: accessToken.user, status: {$ne: global.STATUS_DELETE}};
 
             if (toDate && fromDate) {
                 query.date = {

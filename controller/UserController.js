@@ -1385,7 +1385,7 @@ var UserController = {
                 });
             }
 
-            var user = await UserModel.find({confirmToken: token});
+            var user = await UserModel.findOne({confirmToken: token});
 
             if (!user) {
                 return res.json({

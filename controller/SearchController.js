@@ -376,17 +376,17 @@ var SearchController = {
                 if (cat && cat.price) {
                     query.price = cat.price;
                 }
-                if (cat && cat.extra) {
-                    query.extra = cat.extra;
-                }
-                if (cat && cat.text) {
-                    query.text = cat.text;
-                }
+                // if (cat && cat.extra) {
+                //     query.extra = cat.extra;
+                // }
+                // if (cat && cat.text) {
+                //     query.text = cat.text;
+                // }
 
                 query._id = {$ne: post._id};
 
 
-                let related = await post.find(query).limit(10);
+                let related = await PostModel.find(query).limit(10);
 
 
                 if (slug == global.SLUG_NEWS) {
@@ -693,6 +693,17 @@ var SearchController = {
                 return res.json({
                     status: 1,
                     type: post.postType,
+                    seo : {
+                        url: post.url,
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage
+                    },
+
                     isList: false,
                     related: related,
                     params: query,
@@ -703,38 +714,15 @@ var SearchController = {
             }
 
 
-            // if (slug == global.global.SLUG_TAG || slug == global.global.SLUG_CATEGORY) {
 
             if (slug == global.global.SLUG_CATEGORY) {
 
                 var isFound = true;
                 var query = {status: global.STATUS_ACTIVE};
 
-                // if (slug == global.global.SLUG_TAG) {
-                //
-                //     var tag = await TagModel({status: global.STATUS_ACTIVE, slug: slug});
-                //
-                //     if (!tag) {
-                //
-                //         query.tags = tag._id;
-                //
-                //         // posts = await PostModel.find({
-                //         //     status: global.STATUS_ACTIVE,
-                //         //     tags: tag._id
-                //         // }).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-                //         // count = await PostModel.count({status: global.STATUS_ACTIVE, tags: tag._id});
-                //     }
-                //     else {
-                //         isFound = false;
-                //     }
-                // }
-                // if (slug == global.global.SLUG_CATEGORY) {
                 var cat = await UrlParamModel.findOne({param: param});
 
                 if (cat) {
-                    // if (cat.postType) {
-                    //     query.postType = cat.postType;
-                    // }
 
                     if (cat.formality) {
                         query.formality = cat.formality;
@@ -782,17 +770,12 @@ var SearchController = {
                     if (cat.price) {
                         query.price = cat.price;
                     }
-                    // if (cat.extra) {
-                    //     query.extra = cat.extra;
-                    // }
-                    // if (cat.text) {
-                    //     query.text = cat.text;
-                    // }
+
                 }
                 else {
+                    cat = {};
                     isFound = false
                 }
-                // }
                 var results = [];
                 var count = 0;
                 if (isFound) {
@@ -824,6 +807,9 @@ var SearchController = {
 
                         let post = await PostModel.findOne({content_id: item._id});
 
+                        if (!post) {
+                            return {};
+                        }
 
                         if (cat.postType == global.POST_TYPE_SALE) {
 
@@ -882,7 +868,7 @@ var SearchController = {
 
                             };
                         }
-                        else if (cat.postType == global.POST_TYPE_BUY) {
+                        if (cat.postType == global.POST_TYPE_BUY) {
 
 
                             let buy = item;
@@ -941,7 +927,7 @@ var SearchController = {
                             };
                         }
 
-                        else if (cat.postType == global.POST_TYPE_PROJECT) {
+                        if (cat.postType == global.POST_TYPE_PROJECT) {
 
                             let project = item;
 
@@ -967,7 +953,8 @@ var SearchController = {
                                 textEndPage: post.textEndPage
                             };
 
-                        } else {
+                        }
+                        if (cat.postType == global.POST_TYPE_NEWS) {
                             let news = item;
 
                             return {
@@ -1001,6 +988,16 @@ var SearchController = {
                 return res.json({
                     status: 1,
                     type: cat.postType,
+                    seo : {
+                        url: cat.param,
+                        metaTitle: cat.metaTitle,
+                        metaDescription: cat.metaDescription,
+                        metaType: cat.metaType,
+                        metaUrl: cat.metaUrl,
+                        metaImage: cat.metaImage,
+                        canonical: cat.canonical,
+                        textEndPage: cat.textEndPage
+                    },
                     isList: true,
                     params: query,
                     data: {

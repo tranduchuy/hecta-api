@@ -21,7 +21,7 @@ var userSchema = new Schema({
     district: Number,
     ward: Number,
     type: Number,
-    role: Number,
+    role: {type: Number, default: global.USER_ROLE_ENDUSER},
     status: {type: Number, default: global.USER_STATUS_WAIT_COMFIRM},
     date: {type: Number, default: Date.now}
 

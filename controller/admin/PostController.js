@@ -72,7 +72,7 @@ var PostController = {
         let textEndPage = req.body.textEndPage;
 
         if (url && url.length > 0) {
-            if (await PostModel.count({url: url}) > 0) {
+            if (await PostModel.count({url: url, _id: {$ne: id}}) > 0) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -177,7 +177,13 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {status: {$ne: global.STATUS_POST_DETELE}};
+            var query;
+            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED) {
+                query = {status: status};
+            }
+            else {
+                query = {status: {$ne: global.STATUS_DELETE}};
+            }
 
             if (toDate && fromDate) {
                 query.date = {
@@ -218,8 +224,9 @@ var PostController = {
                         if (post.postType == global.POST_TYPE_SALE) {
 
                             let sale = await SaleModel.findOne({_id: post.content_id});
-
-
+                            if (!sale) {
+                                sale = {};
+                            }
                             let keys;
 
 
@@ -292,7 +299,9 @@ var PostController = {
                         if (post.postType == global.POST_TYPE_BUY) {
 
                             let buy = await BuyModel.findOne({_id: post.content_id});
-
+                            if (!buy) {
+                                buy = {};
+                            }
                             let keys;
 
                             if (!buy.keywordList) {
@@ -352,6 +361,10 @@ var PostController = {
 
                             let news = await NewsModel.findOne({_id: post.content_id});
 
+                            if (!news) {
+                                news = {};
+                            }
+
                             return {
 
                                 status: news.status,
@@ -367,7 +380,7 @@ var PostController = {
                                 metaDescription: post.metaDescription,
                                 metaType: post.metaType,
                                 metaUrl: post.metaUrl,
-                                metaImage: metaImage,
+                                metaImage: post.metaImage,
                                 canonical: post.canonical,
                                 textEndPage: post.textEndPage
                             }
@@ -378,7 +391,9 @@ var PostController = {
 
                             let project = await ProjectModel.findOne({_id: post.content_id});
 
-
+                            if (!project) {
+                                project = {};
+                            }
                             return {
 
                                 status: project.status,
@@ -605,7 +620,15 @@ var PostController = {
                         postType: post.postType,
                         status: post.status,
                         paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
+                        refresh: post.refresh,
+
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage,
                     },
                     message: 'request success'
                 });
@@ -648,7 +671,15 @@ var PostController = {
                         postType: post.postType,
                         status: post.status,
                         paymentStatus: post.paymentStatus,
-                        refresh: post.refresh
+                        refresh: post.refresh,
+
+                        metaTitle: post.metaTitle,
+                        metaDescription: post.metaDescription,
+                        metaType: post.metaType,
+                        metaUrl: post.metaUrl,
+                        metaImage: post.metaImage,
+                        canonical: post.canonical,
+                        textEndPage: post.textEndPage,
                     },
                     message: 'request success'
                 });
@@ -716,7 +747,7 @@ var PostController = {
                         projectProgressImages: content.projectProgressImages,
 
                         isShowTabVideo: content.isShowTabVideo,
-                        video: project.video,
+                        video: content.video,
 
                         isShowFinancialSupport: content.isShowFinancialSupport,
                         financialSupport: content.financialSupport,
