@@ -1243,10 +1243,17 @@ var UserController = {
                 data: {},
                 message: 'username invalid'
             });
-
         }
 
         var user = await UserModel.findOne({username: username});
+
+        if (!user) {
+            return res.json({
+                status: 0,
+                message: "User not found",
+                data: {}
+            });
+        }
 
         if (user.status != global.STATUS_ACTIVE || user.role != global.USER_ROLE_ENDUSER) {
             return res.json({
