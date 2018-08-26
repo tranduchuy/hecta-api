@@ -1245,12 +1245,14 @@ var UserController = {
             });
         }
 
-        var user = await UserModel.findOne({username: username});
+        var user = await UserModel.findOne({
+            $or: [{ username: username }, { email: username}]
+        });
 
         if (!user) {
             return res.json({
                 status: 0,
-                message: "User not found",
+                message: 'Username : "' + username + '" is not exist',
                 data: {}
             });
         }
@@ -1262,15 +1264,6 @@ var UserController = {
                 data: {},
                 message: 'status is not active or role invalid!'
             });
-        }
-
-        if (!user) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'username : "' + username + '" is not exist'
-            });
-
         }
 
         if (await bcrypt.compareSync(password, user.hash_password)) {
