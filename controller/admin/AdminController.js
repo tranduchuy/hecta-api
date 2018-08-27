@@ -33,7 +33,7 @@ var AdminController = {
 
         var user = await UserModel.findOne({username: username});
 
-        if (!user || user.status != global.STATUS_ACTIVE || (user.role != global.USER_ROLE_MASTER && user.role != global.USER_ROLE_ADMIN) || await !BCrypt.compareSync(password, user.hash_password)) {
+        if (!user || user.status != global.STATUS.ACTIVE || (user.role != global.USER_ROLE_MASTER && user.role != global.USER_ROLE_ADMIN) || await !BCrypt.compareSync(password, user.hash_password)) {
             return res.json({
                 status: 0,
                 data: {},
@@ -281,7 +281,7 @@ var AdminController = {
             user.email = email;
             user.phone = phone;
             user.name = name;
-            user.status = global.STATUS_ACTIVE;
+            user.status = global.STATUS.ACTIVE;
             user.role = global.USER_ROLE_ADMIN;
             user.hash_password = BCrypt.hashSync(password, 10);
 
@@ -351,7 +351,7 @@ var AdminController = {
 
             var status = req.body.status;
 
-            if (status != global.STATUS_ACTIVE && status != global.STATUS_BLOCKED) {
+            if (status != global.STATUS.ACTIVE && status != global.STATUS.BLOCKED) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -359,7 +359,7 @@ var AdminController = {
                 });
             }
 
-            if (status == global.STATUS_BLOCKED) {
+            if (status == global.STATUS.BLOCKED) {
                 await TokenModel.remove({user: id});
             }
 

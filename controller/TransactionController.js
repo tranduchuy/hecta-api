@@ -41,7 +41,7 @@ var TransactionController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -84,7 +84,7 @@ var TransactionController = {
             }
 
 
-            let child = await ChildModel({status: global.STATUS_ACTIVE, personalId: user._id});
+            let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
             var transaction = new TransactionHistoryModel({
 
                 userId: userId,
@@ -196,7 +196,7 @@ var TransactionController = {
                 });
             }
 
-            let child = await ChildModel({status: global.STATUS_ACTIVE, personalId: user._id});
+            let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
             var transaction = new TransactionHistoryModel({
 
                 userId: userId,
@@ -263,7 +263,7 @@ var TransactionController = {
 
             var user = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: global.USER_ROLE_ENDUSER
             });
 
@@ -333,7 +333,7 @@ var TransactionController = {
 
             var user = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: global.USER_ROLE_ENDUSER
             });
 
@@ -347,7 +347,7 @@ var TransactionController = {
             }
 
             let child = await ChildModel.findOne({
-                status: global.CHILD_STATUS_ACCEPTED,
+                status: global.STATUS.CHILD_ACCEPTED,
                 companyId: user._id,
                 personalId: id
             });

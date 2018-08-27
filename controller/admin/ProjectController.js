@@ -26,7 +26,7 @@ var ProjectController = {
     //
     //         var admin = await UserModel.findOne({
     //             _id: accessToken.user,
-    //             status: global.STATUS_ACTIVE,
+    //             status: global.STATUS.ACTIVE,
     //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
     //         });
     //
@@ -51,7 +51,7 @@ var ProjectController = {
     //
     //         let project = await ProjectModel.findOne({
     //             _id: id,
-    //             status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+    //             status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
     //         });
     //
     //         if (!project) {
@@ -166,7 +166,7 @@ var ProjectController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -223,7 +223,7 @@ var ProjectController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -467,7 +467,7 @@ var ProjectController = {
                 project.detailInvestor = detailInvestor;
             }
 
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED || status == global.STATUS.DELETE) {
                 project.status = status;
             }
 
@@ -479,7 +479,7 @@ var ProjectController = {
             project = await project.save();
 
 
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED || status == global.STATUS.DELETE) {
                 post.status = status;
             }
 
@@ -548,7 +548,7 @@ var ProjectController = {
     //
     //         var admin = await UserModel.findOne({
     //             _id: accessToken.user,
-    //             status: global.STATUS_ACTIVE,
+    //             status: global.STATUS.ACTIVE,
     //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
     //         });
     //
@@ -568,7 +568,7 @@ var ProjectController = {
     //             page = 1;
     //         }
     //
-    //         let projects = await ProjectModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+    //         let projects = await ProjectModel.find({status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
     //
     //         let results = await Promise.all(projects.map(async project => {
     //
@@ -641,7 +641,7 @@ var ProjectController = {
     //         }));
     //
     //
-    //         let count = await ProjectModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
+    //         let count = await ProjectModel.count({status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}});
     //
     //         return res.json({
     //             status: 1,
@@ -681,7 +681,7 @@ var ProjectController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -797,7 +797,7 @@ var ProjectController = {
 
             project.isShowInvestor = isShowInvestor;
             project.detailInvestor = detailInvestor;
-            project.status = global.STATUS_ACTIVE;
+            project.status = global.STATUS.ACTIVE;
             project.admin = [accessToken.user];
 
             project = await project.save();
@@ -863,8 +863,8 @@ var ProjectController = {
             post.url = url;
             post.params = param._id;
 
-            post.status = global.STATUS_ACTIVE;
-            post.paymentStatus = global.STATUS_PAYMENT_FREE;
+            post.status = global.STATUS.ACTIVE;
+            post.paymentStatus = global.STATUS.PAYMENT_FREE;
 
             await post.save();
 

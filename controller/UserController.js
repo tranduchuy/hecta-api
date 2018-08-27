@@ -78,7 +78,7 @@ var UserController = {
 
             if (user.type == global.USER_TYPE_PERSONAL) {
 
-                var child = await ChildModel.find({personalId: user._id, status: global.CHILD_STATUS_ACCEPTED});
+                var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
 
                 if (child) {
                     accountInfo.credit = child.credit;
@@ -174,7 +174,7 @@ var UserController = {
             var child = await ChildModel.findOne({
                 companyId: user._id,
                 personalId: person._id,
-                status: global.CHILD_STATUS_ACCEPTED
+                status: global.STATUS.CHILD_ACCEPTED
             });
 
             if (!child) {
@@ -282,7 +282,7 @@ var UserController = {
             var child = await ChildModel.findOne({
                 companyId: user._id,
                 personalId: person._id,
-                status: global.CHILD_STATUS_ACCEPTED
+                status: global.STATUS.CHILD_ACCEPTED
             });
 
             if (!child) {
@@ -545,7 +545,7 @@ var UserController = {
             let child = new ChildModel({
                 companyId: parrent._id,
                 personalId: user._id,
-                status: global.CHILD_STATUS_ACCEPTED
+                status: global.STATUS.CHILD_ACCEPTED
             });
 
             await child.save();
@@ -637,7 +637,7 @@ var UserController = {
             var child = await ChildModel.findOne({
                 companyId: user._id,
                 personalId: person._id,
-                // status: {$in: [global.CHILD_STATUS_ACCEPTED, global.CHILD_STATUS_WAITING]}
+                // status: {$in: [global.STATUS.CHILD_ACCEPTED, global.STATUS.CHILD_WAITING]}
             });
             if (!child) {
                 return res.json({
@@ -647,7 +647,7 @@ var UserController = {
                 });
             }
 
-            child.status = global.CHILD_STATUS_NONE;
+            child.status = global.STATUS.CHILD_NONE;
 
             await child.save();
 
@@ -716,7 +716,7 @@ var UserController = {
                 });
             }
 
-            if (status == global.CHILD_STATUS_ACCEPTED || status == global.CHILD_STATUS_REJECTED) {
+            if (status == global.STATUS.CHILD_ACCEPTED || status == global.STATUS.CHILD_REJECTED) {
                 child.status = status;
             }
 
@@ -805,9 +805,9 @@ var UserController = {
             var child = await ChildModel.findOne({
                 companyId: user._id,
                 personalId: person._id,
-                // status: {$in: [global.CHILD_STATUS_WAITING, global.CHILD_STATUS_ACCEPTED]}
+                // status: {$in: [global.STATUS.CHILD_WAITING, global.STATUS.CHILD_ACCEPTED]}
             });
-            if (child && (child.status == global.CHILD_STATUS_WAITING || child.status == global.CHILD_STATUS_ACCEPTED)) {
+            if (child && (child.status == global.STATUS.CHILD_WAITING || child.status == global.STATUS.CHILD_ACCEPTED)) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -822,7 +822,7 @@ var UserController = {
                 });
             }
 
-            child.status = global.CHILD_STATUS_WAITING;
+            child.status = global.STATUS.CHILD_WAITING;
 
             await child.save();
 
@@ -887,7 +887,7 @@ var UserController = {
                 });
             }
 
-            var parrents = await ChildModel.find({personalId: user._id, status: global.CHILD_STATUS_WAITING});
+            var parrents = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_WAITING});
 
             let results = await Promise.all(parrents.map(async parrent => {
 
@@ -970,7 +970,7 @@ var UserController = {
 
             var children = await ChildModel.find({
                 companyId: user._id,
-                status: {$in: [global.CHILD_STATUS_WAITING, global.CHILD_STATUS_ACCEPTED, global.CHILD_STATUS_REJECTED]}
+                status: {$in: [global.STATUS.CHILD_WAITING, global.STATUS.CHILD_ACCEPTED, global.STATUS.CHILD_REJECTED]}
             });
 
             let results = await Promise.all(children.map(async child => {
@@ -1090,7 +1090,7 @@ var UserController = {
                     username: personal.username,
                     email: personal.email,
                     name: personal.name,
-                    status: !child ? global.CHILD_STATUS_NONE : child.status,
+                    status: !child ? global.STATUS.CHILD_NONE : child.status,
                     transfer: transfer && transfer.sum ? transfer.sum : 0
                 },
                 message: 'request success'
@@ -1257,7 +1257,7 @@ var UserController = {
             });
         }
 
-        if (user.status != global.STATUS_ACTIVE || user.role != global.USER_ROLE_ENDUSER) {
+        if (user.status != global.STATUS.ACTIVE || user.role != global.USER_ROLE_ENDUSER) {
             return res.json({
                 status: 0,
                 error: user.status,
@@ -1269,7 +1269,7 @@ var UserController = {
         if (await bcrypt.compareSync(password, user.hash_password)) {
 
             var result = {};
-            var requestCount = await ChildModel.count({personalId: user._id, status: global.CHILD_STATUS_WAITING});
+            var requestCount = await ChildModel.count({personalId: user._id, status: global.STATUS.CHILD_WAITING});
 
             var account = await AccountModel.findOne({owner: user._id});
 
@@ -1301,7 +1301,7 @@ var UserController = {
 
             if (user.type == global.USER_TYPE_PERSONAL) {
 
-                var child = await ChildModel.find({personalId: user._id, status: global.CHILD_STATUS_ACCEPTED});
+                var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
 
                 if (child) {
                     accountInfo.credit = child.credit;
@@ -1354,7 +1354,7 @@ var UserController = {
             });
         }
 
-        var user = await UserModel.findOne({email: email, status: global.USER_STATUS_WAIT_COMFIRM});
+        var user = await UserModel.findOne({email: email, status: global.STATUS.PENDING_OR_WAIT_COMFIRM});
         if (!user) {
             return res.json({
                 status: 0,
@@ -1396,7 +1396,7 @@ var UserController = {
             }
 
 
-            user.status = global.USER_STATUS_ACTIVE;
+            user.status = global.STATUS.ACTIVE;
 
             await user.save();
             return res.json({

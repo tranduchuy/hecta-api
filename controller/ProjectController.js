@@ -10,7 +10,7 @@ var ProjectController = {
         try {
 
 
-            let projects = await ProjectModel.find({status: global.STATUS_ACTIVE}).sort({date: -1}).limit(10);
+            let projects = await ProjectModel.find({status: global.STATUS.ACTIVE}).sort({date: -1}).limit(10);
 
             let results = await Promise.all(projects.map(async project => {
 

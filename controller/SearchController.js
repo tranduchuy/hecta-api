@@ -309,7 +309,7 @@ var SearchController = {
                 var data = {};
 
                 let post = await PostModel.findOne({
-                    status: global.STATUS_ACTIVE,
+                    status: global.STATUS.ACTIVE,
                     url: param
                 });
 
@@ -322,7 +322,7 @@ var SearchController = {
                 }
 
                 let cat = await UrlParamModel.findOne({_id: post.params});
-                let query = {status: global.STATUS_ACTIVE};
+                let query = {status: global.STATUS.ACTIVE};
 
                 if (cat && cat.postType) {
                     query.postType = cat.postType;
@@ -718,7 +718,7 @@ var SearchController = {
             if (slug == global.global.SLUG_CATEGORY) {
 
                 var isFound = true;
-                var query = {status: global.STATUS_ACTIVE};
+                var query = {status: global.STATUS.ACTIVE};
 
                 var cat = await UrlParamModel.findOne({param: param});
 

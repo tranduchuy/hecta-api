@@ -27,7 +27,7 @@ var PostController = {
 
         var admin = await UserModel.findOne({
             _id: accessToken.user,
-            status: global.STATUS_ACTIVE,
+            status: global.STATUS.ACTIVE,
             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
         });
 
@@ -142,7 +142,7 @@ var PostController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -178,11 +178,11 @@ var PostController = {
             }
 
             var query;
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED) {
                 query = {status: status};
             }
             else {
-                query = {status: {$ne: global.STATUS_DELETE}};
+                query = {status: {$ne: global.STATUS.DELETE}};
             }
 
             if (toDate && fromDate) {
@@ -509,7 +509,7 @@ var PostController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -533,7 +533,7 @@ var PostController = {
 
             }
 
-            let post = await PostModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
+            let post = await PostModel.findOne({_id: id, status: {$ne: global.STATUS.DELETE}});
 
             if (!post) {
                 return res.json({

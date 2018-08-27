@@ -8,7 +8,7 @@ var childSchema = new Schema({
 
     companyId: String,
     personalId: String,
-    status: {type: Number, default: global.CHILD_STATUS_WAITING},
+    status: {type: Number, default: global.STATUS.CHILD_WAITING},
 
     creditHistory: {type: Array, default: []},
     credit: {type: Number, default: 0},

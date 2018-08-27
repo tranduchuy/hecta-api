@@ -14,7 +14,7 @@ var TagController = {
         try {
 
 
-            let tags = await TagModel.find({status:global.STATUS_ACTIVE}).sort({refresh: -1}).limit(10);
+            let tags = await TagModel.find({status:global.STATUS.ACTIVE}).sort({refresh: -1}).limit(10);
 
             return res.json({
                 status: 1,
@@ -55,8 +55,8 @@ var TagController = {
             }
 
 
-            let tags = await TagModel.find({status : global.STATUS_ACTIVE}).sort({refresh: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-            let count = await TagModel.count({status : global.STATUS_ACTIVE});
+            let tags = await TagModel.find({status : global.STATUS.ACTIVE}).sort({refresh: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            let count = await TagModel.count({status : global.STATUS.ACTIVE});
 
             return res.json({
                 status: 1,
@@ -118,9 +118,9 @@ var TagController = {
 
             var posts = await PostModel.find({
                 tags: tag._id,
-                status: global.STATUS_ACTIVE
+                status: global.STATUS.ACTIVE
             }).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-            var count = await PostModel.count({tags: tag._id, status: global.STATUS_ACTIVE});
+            var count = await PostModel.count({tags: tag._id, status: global.STATUS.ACTIVE});
 
 
             // var posts = await PostModel.find({'_id': {$in: tag.posts.length > global.PAGE_SIZE ? tag.posts.slice(tag.posts.length - global.PAGE_SIZE) : tag.posts}});

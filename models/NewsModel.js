@@ -11,7 +11,7 @@ var newsSchema = new Schema({
     type: Number,
     image: String,
     description: String,
-    status: {type: Number, default: global.STATUS_ACTIVE},
+    status: {type: Number, default: global.STATUS.ACTIVE},
 
 
     // metaTitle: String,

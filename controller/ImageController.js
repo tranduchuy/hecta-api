@@ -17,7 +17,7 @@ var ImageController = {
 
 
                 var image = new ImageModel();
-                image.status = global.STATUS_ACTIVE;
+                image.status = global.STATUS.ACTIVE;
 
                 image = await image.save();
 

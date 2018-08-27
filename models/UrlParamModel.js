@@ -37,7 +37,7 @@ var urlParamSchema = new Schema({
     canonical: String,
     textEndPage: String,
 
-    status: {type: Number, default: global.STATUS_ACTIVE},
+    status: {type: Number, default: global.STATUS.ACTIVE},
 
     updatedBy: {type: Array, default: []}
 

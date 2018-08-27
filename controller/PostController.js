@@ -63,7 +63,7 @@ var PostController = {
             var child = await ChildModel({
                 companyId: company._id,
                 personalId: user._id,
-                status: global.CHILD_STATUS_ACCEPTED
+                status: global.STATUS.CHILD_ACCEPTED
             })
 
             if (!child) {
@@ -89,7 +89,7 @@ var PostController = {
                 limit = global.PAGE_SIZE;
             }
 
-            var query = {user: user._id, status: {$ne: global.STATUS_DELETE}};
+            var query = {user: user._id, status: {$ne: global.STATUS.DELETE}};
 
 
             if (postType == global.POST_TYPE_SALE || postType == global.POST_TYPE_BUY) {
@@ -311,7 +311,7 @@ var PostController = {
 
 
             var query = {
-                status:  global.STATUS_ACTIVE,
+                status:  global.STATUS.ACTIVE,
                 postType: {"$in": [global.POST_TYPE_BUY, global.POST_TYPE_SALE]}
             };
 
@@ -701,7 +701,7 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {user: accessToken.user, status: {$ne: global.STATUS_DELETE}};
+            var query = {user: accessToken.user, status: {$ne: global.STATUS.DELETE}};
 
             if (toDate && fromDate) {
                 query.date = {
