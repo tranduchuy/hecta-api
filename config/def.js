@@ -90,7 +90,9 @@ global.SLUG_PROJECT = "du-an";
 global.SLUG_NEWS = "tin-tuc";
 global.SLUG_TAG = "t";
 global.SLUG_SELL_OR_BUY = "chi-tiet-bds";
-global.SLUG_CATEGORY = "bds";
+global.SLUG_CATEGORY_SELL_OR_BUY = "bds";
+global.SLUG_CATEGORY_PROJECT = "bds";
+global.SLUG_CATEGORY_NEWS = "bds";
 
 
 
