@@ -4,20 +4,20 @@
 // global.STATUS_POST_DETELE = 4;
 
 global.STATUS = {
-  ACTIVE: 1,
-  PENDING_OR_WAIT_COMFIRM: 2,
-  BLOCKED: 3,
-  DELETE: 4,
+    ACTIVE: 1,
+    PENDING_OR_WAIT_COMFIRM: 2,
+    BLOCKED: 3,
+    DELETE: 4,
 
-  PAYMENT_PAID: 5,
-  PAYMENT_UNPAID: 6,
-  PAYMENT_FREE: 7,
+    PAYMENT_PAID: 5,
+    PAYMENT_UNPAID: 6,
+    PAYMENT_FREE: 7,
 
-  CHILD_ACCEPTED: 8,
-  CHILD_WAITING: 9,
-  CHILD_REJECTED: 10,
-  CHILD_DELETED: 11,
-  CHILD_NONE: 12
+    CHILD_ACCEPTED: 8,
+    CHILD_WAITING: 9,
+    CHILD_REJECTED: 10,
+    CHILD_DELETED: 11,
+    CHILD_NONE: 12
 };
 
 // global.CHILD_STATUS_ACCEPTED = 1;
@@ -45,8 +45,8 @@ global.POST_TYPE_BUY = 2;
 global.POST_TYPE_PROJECT = 3;
 global.POST_TYPE_NEWS = 4;
 
-global.IMAGE_DIR = '../files/image';
 global.ROOT_DIR = '/var/www/server/';
+global.IMAGE_DIR = global.ROOT_DIR + 'files/image';
 
 global.USER_TYPE_COMPANY = 1;
 global.USER_TYPE_PERSONAL = 2;
@@ -90,7 +90,9 @@ global.SLUG_PROJECT = "du-an";
 global.SLUG_NEWS = "tin-tuc";
 global.SLUG_TAG = "t";
 global.SLUG_SELL_OR_BUY = "chi-tiet-bds";
-global.SLUG_CATEGORY = "bds";
+global.SLUG_CATEGORY_SELL_OR_BUY = "bds";
+global.SLUG_CATEGORY_PROJECT = "bds";
+global.SLUG_CATEGORY_NEWS = "bds";
 
 
 

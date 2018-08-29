@@ -693,7 +693,7 @@ var SearchController = {
                 return res.json({
                     status: 1,
                     type: post.postType,
-                    seo : {
+                    seo: {
                         url: post.url,
                         metaTitle: post.metaTitle,
                         metaDescription: post.metaDescription,
@@ -714,8 +714,7 @@ var SearchController = {
             }
 
 
-
-            if (slug == global.global.SLUG_CATEGORY) {
+            if (slug == global.global.SLUG_CATEGORY_SELL_OR_BUY || slug == global.global.SLUG_CATEGORY_NEWS || slug == global.global.SLUG_CATEGORY_PROJECT) {
 
                 var isFound = true;
                 var query = {status: global.STATUS.ACTIVE};
@@ -988,7 +987,7 @@ var SearchController = {
                 return res.json({
                     status: 1,
                     type: cat.postType,
-                    seo : {
+                    seo: {
                         url: cat.param,
                         metaTitle: cat.metaTitle,
                         metaDescription: cat.metaDescription,
