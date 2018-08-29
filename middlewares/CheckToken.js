@@ -13,8 +13,10 @@ module.exports = async function (req, res, next) {
   if (urlToPassCheckingToken.indexOf(req.path) !== -1) {
     return next();
   }
+  
+  // TODO: var token = req.headers.access_token || req.query.access_token || req.body.access_token;
 
-  var token = req.headers.access_token || req.query.access_token || req.body.access_token;
+  var token = req.headers.access_token;
 
   if (token == null || typeof token === undefined) {
     return res.json({
