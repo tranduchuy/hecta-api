@@ -87,7 +87,7 @@ global.USER_ROLE_ENDUSER = 3;
 
 
 global.SLUG_PROJECT = "du-an";
-global.SLUG_NEWS = "tin-tuc";
+global.SLUG_NEWS = "bai-viet";
 global.SLUG_TAG = "t";
 global.SLUG_SELL_OR_BUY = "chi-tiet-bds";
 global.SLUG_CATEGORY_SELL_OR_BUY = "bds";
