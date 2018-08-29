@@ -35,7 +35,7 @@ var urlToPassCheckingToken = [
 
 var checkSuitIgnoreUrl = function (path) {
   for(var i = 0; i < urlToPassCheckingToken.length; i++) {
-    if (urlToPassCheckingToken[i].indexOf(path) === 0) {
+    if (path.indexOf(urlToPassCheckingToken[i]) === 0) {
       return true; 
     }
   } 
