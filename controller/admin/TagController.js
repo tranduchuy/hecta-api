@@ -22,7 +22,7 @@ var TagController = {
 
         var admin = await UserModel.findOne({
             _id: accessToken.user,
-            status: global.STATUS_ACTIVE,
+            status: global.STATUS.ACTIVE,
             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
         });
 
@@ -46,7 +46,7 @@ var TagController = {
 
         }
 
-        var tag = await TagModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
+        var tag = await TagModel.findOne({_id: id, status: {$ne: global.STATUS.DELETE}});
 
         if (!tag) {
             return res.json({
@@ -79,7 +79,7 @@ var TagController = {
             tag.slug = slug;
         }
 
-        if (status == global.STATUS_ACTIVE || status == global.STATUS_DELETE || status == global.STATUS_DELETE) {
+        if (status == global.STATUS.ACTIVE || status == global.STATUS.DELETE || status == global.STATUS.DELETE) {
             tag.status = status;
         }
 
@@ -147,7 +147,7 @@ var TagController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -170,7 +170,7 @@ var TagController = {
                 page = 1;
             }
 
-            var query = {status: {$ne: global.STATUS_DELETE}};
+            var query = {status: {$ne: global.STATUS.DELETE}};
 
             if (slug) {
                 query.slug = {"$regex": slug, "$options": "i"};
@@ -249,7 +249,7 @@ var TagController = {
             var admin = await
                 UserModel.findOne({
                     _id: accessToken.user,
-                    status: global.STATUS_ACTIVE,
+                    status: global.STATUS.ACTIVE,
                     role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
                 });
 
@@ -273,7 +273,7 @@ var TagController = {
 
             }
 
-            let tag = await TagModel.findOne({_id: id, status: {$ne: global.STATUS_DELETE}});
+            let tag = await TagModel.findOne({_id: id, status: {$ne: global.STATUS.DELETE}});
 
             if (!tag) {
                 return res.json({

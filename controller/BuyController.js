@@ -259,7 +259,7 @@ var BuyController = {
             post.to = to;
 
             post.status = global.STATUS_PENDING;
-            post.paymentStatus = global.STATUS_PAYMENT_FREE;
+            post.paymentStatus = global.STATUS.PAYMENT_FREE;
 
 
             if (keywordList && keywordList.length > 0) {
@@ -274,7 +274,7 @@ var BuyController = {
                         return;
                     }
 
-                    var tag = await TagModel.findOne({status: global.STATUS_ACTIVE, slug: slug});
+                    var tag = await TagModel.findOne({status: global.STATUS.ACTIVE, slug: slug});
 
                     if (!tag) {
                         tag = new TagModel({
@@ -478,7 +478,7 @@ var BuyController = {
                 buy.receiveMail = receiveMail;
             }
 
-            if (status == global.STATUS_DELETE) {
+            if (status == global.STATUS.DELETE) {
                 buy.status = status;
             }
 
@@ -554,14 +554,14 @@ var BuyController = {
             if (from) {
                 post.from = from;
                 post.status = global.STATUS_POST_PENDING;
-                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.status = global.STATUS.PAYMENT_UNPAID;
                 post.refresh = Date.now();
             }
 
             if (to) {
                 post.to = to;
                 post.status = global.STATUS_POST_PENDING;
-                post.status = global.STATUS_PAYMENT_UNPAID;
+                post.status = global.STATUS.PAYMENT_UNPAID;
             }
 
             if (status == global.STATUS_POST_DETELE) {
@@ -571,7 +571,7 @@ var BuyController = {
             // if (priority) {
             //     post.priority = priority;
             //     post.status = global.STATUS_POST_PENDING;
-            //     post.status = global.STATUS_PAYMENT_UNPAID;
+            //     post.status = global.STATUS.PAYMENT_UNPAID;
             // }
 
             post.tags = [];

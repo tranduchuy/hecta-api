@@ -10,7 +10,7 @@ var postSchema = new Schema({
     minDay: Number,
     costByDay: Number,
     priority: Number,
-    status: {type : Number, default:global.STATUS_ACTIVE},
+    status: {type : Number, default:global.STATUS.ACTIVE},
     date: {type: Number, default: Date.now}
 });
 

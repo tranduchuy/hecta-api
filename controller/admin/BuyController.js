@@ -26,7 +26,7 @@ var BuyController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -177,7 +177,7 @@ var BuyController = {
             // if (receiveMail) {
             //     buy.receiveMail = receiveMail;
             // }
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED || status == global.STATUS.DELETE) {
                 buy.status = status;
             }
 
@@ -286,7 +286,7 @@ var BuyController = {
             //     post.to = to;
             // }
 
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED || status == global.STATUS.DELETE) {
                 post.status = status;
             }
 

@@ -112,7 +112,7 @@ var UserController = {
 
                 if (user.type == global.USER_TYPE_PERSONAL) {
 
-                    var child = await ChildModel.find({personalId: user._id, status: global.CHILD_STATUS_ACCEPTED});
+                    var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
 
                     if (child) {
                         accountInfo.credit = child.credit;
@@ -211,7 +211,7 @@ var UserController = {
             var status = req.body.status;
 
 
-            if (status != global.STATUS_ACTIVE && status != global.STATUS_BLOCKED) {
+            if (status != global.STATUS.ACTIVE && status != global.STATUS.BLOCKED) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -219,7 +219,7 @@ var UserController = {
                 });
             }
 
-            if (status == global.STATUS_BLOCKED) {
+            if (status == global.STATUS.BLOCKED) {
                 await TokenModel.remove({user: id});
             }
 

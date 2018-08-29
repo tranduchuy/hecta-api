@@ -22,7 +22,7 @@ var userSchema = new Schema({
     ward: Number,
     type: Number,
     role: {type: Number, default: global.USER_ROLE_ENDUSER},
-    status: {type: Number, default: global.USER_STATUS_WAIT_COMFIRM},
+    status: {type: Number, default: global.STATUS.PENDING_OR_WAIT_COMFIRM},
     date: {type: Number, default: Date.now}
 
 });
@@ -46,7 +46,7 @@ async function asyncCall() {
         email: 'master@hecta.vn',
         name: 'master',
         hash_password: bcrypt.hashSync('master@hecta.vn', 10),
-        status: global.STATUS_ACTIVE,
+        status: global.STATUS.ACTIVE,
         role: global.USER_ROLE_MASTER
     });
 
