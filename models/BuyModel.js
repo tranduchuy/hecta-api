@@ -37,7 +37,7 @@ var buySchema = new Schema({
     admin: {type: Array, default: []},
 
 
-    status: {type: Number, default: global.STATUS_PENDING},
+    status: {type: Number, default: global.STATUS.PENDING_OR_WAIT_COMFIRM},
     date: {type: Number, default: Date.now}
 });
 

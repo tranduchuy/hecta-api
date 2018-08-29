@@ -42,7 +42,7 @@ var saleSchema = new Schema({
     contactEmail: String,
     admin: {type: Array, default: []},
 
-    status : {type : Number, default:global.STATUS_PENDING},
+    status : {type : Number, default:global.STATUS.PENDING_OR_WAIT_COMFIRM},
     date: {type: Number, default: Date.now},
 
 

@@ -258,7 +258,7 @@ var BuyController = {
             post.from = from;
             post.to = to;
 
-            post.status = global.STATUS_PENDING;
+            post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             post.paymentStatus = global.STATUS.PAYMENT_FREE;
 
 
@@ -553,24 +553,24 @@ var BuyController = {
 
             if (from) {
                 post.from = from;
-                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.status = global.STATUS.PAYMENT_UNPAID;
                 post.refresh = Date.now();
             }
 
             if (to) {
                 post.to = to;
-                post.status = global.STATUS_POST_PENDING;
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.status = global.STATUS.PAYMENT_UNPAID;
             }
 
-            if (status == global.STATUS_POST_DETELE) {
+            if (status == global.STATUS.DELETE) {
                 post.status = status;
             }
 
             // if (priority) {
             //     post.priority = priority;
-            //     post.status = global.STATUS_POST_PENDING;
+            //     post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             //     post.status = global.STATUS.PAYMENT_UNPAID;
             // }
 

@@ -1088,7 +1088,7 @@ var SearchController = {
     //         }
     //
     //
-    //         let query = {status: global.STATUS_POST_ACTIVE};
+    //         let query = {status: global.STATUS.ACTIVE};
     //
     //         if (cat) {
     //             if (cat.formality) {

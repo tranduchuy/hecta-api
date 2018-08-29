@@ -286,7 +286,7 @@ var SaleController = {
             post.to = to;
             post.formality = sale.formality;
 
-            post.status = global.STATUS_PENDING;
+            post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_SALE,
@@ -667,7 +667,7 @@ var SaleController = {
 
             if (from) {
                 post.from = from;
-                post.status = global.STATUS_PENDING;
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
                 post.refresh = Date.now();
 
@@ -675,7 +675,7 @@ var SaleController = {
 
             if (to) {
                 post.to = to;
-                post.status = global.STATUS_PENDING;
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
             }
 
@@ -685,7 +685,7 @@ var SaleController = {
 
             if (priority) {
                 post.priority = priority;
-                post.status = global.STATUS_PENDING;
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
             }
 
