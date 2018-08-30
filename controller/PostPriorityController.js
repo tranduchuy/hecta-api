@@ -357,7 +357,7 @@ var PostPriorityController = {
 
         try {
 
-            var vips = await PostPriorityModel.find({status: global.STATUS_ACTIVE});
+            var vips = await PostPriorityModel.find({status: global.STATUS.ACTIVE});
 
             return res.json({
                 status: 1,

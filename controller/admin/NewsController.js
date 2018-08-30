@@ -25,7 +25,7 @@ var NewsController = {
     //
     //         var admin = await UserModel.findOne({
     //             _id: accessToken.user,
-    //             status: global.STATUS_ACTIVE,
+    //             status: global.STATUS.ACTIVE,
     //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
     //         });
     //
@@ -52,7 +52,7 @@ var NewsController = {
     //
     //         let news = await NewsModel.findOne({
     //             _id: id,
-    //             status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+    //             status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
     //         });
     //
     //         if (!news) {
@@ -130,7 +130,7 @@ var NewsController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -188,7 +188,7 @@ var NewsController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -223,7 +223,7 @@ var NewsController = {
 
             var news = await NewsModel.findOne({
                 _id: post.content_id,
-                status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}
+                status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
             });
 
             if (!news) {
@@ -380,7 +380,7 @@ var NewsController = {
     //
     //         var admin = await UserModel.findOne({
     //             _id: accessToken.user,
-    //             status: global.STATUS_ACTIVE,
+    //             status: global.STATUS.ACTIVE,
     //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
     //         });
     //
@@ -399,7 +399,7 @@ var NewsController = {
     //             page = 1;
     //         }
     //
-    //         let newsList = await NewsModel.find({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+    //         let newsList = await NewsModel.find({status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
     //
     //         let results = await Promise.all(newsList.map(async news => {
     //
@@ -436,7 +436,7 @@ var NewsController = {
     //         }));
     //
     //
-    //         let count = await NewsModel.count({status: {$in: [global.STATUS_ACTIVE, global.STATUS_BLOCKED]}});
+    //         let count = await NewsModel.count({status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}});
     //
     //         return res.json({
     //             status: 1,
@@ -478,7 +478,7 @@ var NewsController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -514,7 +514,7 @@ var NewsController = {
             news.type = cate;
             news.image = image;
             news.description = description;
-            news.status = global.STATUS_ACTIVE;
+            news.status = global.STATUS.ACTIVE;
 
             news.admin = [accessToken.user];
 
@@ -524,8 +524,8 @@ var NewsController = {
 
             post.postType = global.POST_TYPE_NEWS;
             post.type = news.type;
-            post.status = global.STATUS_ACTIVE;
-            post.paymentStatus = global.STATUS_PAYMENT_FREE;
+            post.status = global.STATUS.ACTIVE;
+            post.paymentStatus = global.STATUS.PAYMENT_FREE;
             post.content_id = news._id;
 
 

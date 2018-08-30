@@ -30,7 +30,7 @@ var SaleController = {
 
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
-                status: global.STATUS_ACTIVE,
+                status: global.STATUS.ACTIVE,
                 role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
@@ -213,7 +213,7 @@ var SaleController = {
             //     sale.contactEmail = contactEmail;
             // }
 
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED || status == global.STATUS.DELETE) {
                 sale.status = status;
             }
 
@@ -300,7 +300,7 @@ var SaleController = {
             // if (priority) {
             //     post.priority = priority;
             // }
-            // if (paymentStatus == global.STATUS_PAYMENT_FREE || paymentStatus == global.STATUS_PAYMENT_PAID) {
+            // if (paymentStatus == global.STATUS.PAYMENT_FREE || paymentStatus == global.STATUS.PAYMENT_PAID) {
             //     post.paymentStatus = paymentStatus;
             // }
             //
@@ -313,7 +313,7 @@ var SaleController = {
             //     post.to = to;
             // }
 
-            if (status == global.STATUS_ACTIVE || status == global.STATUS_BLOCKED || status == global.STATUS_DELETE) {
+            if (status == global.STATUS.ACTIVE || status == global.STATUS.BLOCKED || status == global.STATUS.DELETE) {
                 post.status = status;
             }
 

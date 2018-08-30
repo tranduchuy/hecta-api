@@ -160,7 +160,7 @@ var SaleController = {
             var sale = new SaleModel();
             var post = new PostModel();
 
-            post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
+            post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
 
 
             if (token) {
@@ -232,14 +232,9 @@ var SaleController = {
                 }
 
                 if (price == 0) {
-                    post.paymentStatus = global.STATUS_PAYMENT_PAID;
-                    if (account) {
-                        await account.save();
-                    }
-
-                    if (child) {
-                        await child.save();
-                    }
+                    post.paymentStatus = global.STATUS.PAYMENT_PAID;
+                    await account.save();
+                    await child.save();
                     await transaction.save();
                 }
 
@@ -365,7 +360,7 @@ var SaleController = {
                         return;
                     }
 
-                    var tag = await TagModel.findOne({status: global.STATUS_ACTIVE, slug: slug});
+                    var tag = await TagModel.findOne({status: global.STATUS.ACTIVE, slug: slug});
 
                     if (!tag) {
                         tag = new TagModel({
@@ -595,7 +590,7 @@ var SaleController = {
             if (contactEmail) {
                 sale.contactEmail = contactEmail;
             }
-            if (status == global.STATUS_DELETE) {
+            if (status == global.STATUS.DELETE) {
                 sale.status = status;
             }
 
@@ -673,7 +668,7 @@ var SaleController = {
             if (from) {
                 post.from = from;
                 post.status = global.STATUS_PENDING;
-                post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
+                post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
                 post.refresh = Date.now();
 
             }
@@ -681,17 +676,17 @@ var SaleController = {
             if (to) {
                 post.to = to;
                 post.status = global.STATUS_PENDING;
-                post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
+                post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
             }
 
-            if (status == global.STATUS_DELETE) {
+            if (status == global.STATUS.DELETE) {
                 post.status = status;
             }
 
             if (priority) {
                 post.priority = priority;
                 post.status = global.STATUS_PENDING;
-                post.paymentStatus = global.STATUS_PAYMENT_UNPAID;
+                post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
             }
 
 
@@ -705,7 +700,7 @@ var SaleController = {
                         return;
                     }
 
-                    var tag = await TagModel.findOne({status: global.STATUS_ACTIVE, slug: slug});
+                    var tag = await TagModel.findOne({status: global.STATUS.ACTIVE, slug: slug});
 
                     if (!tag) {
                         tag = new TagModel({
