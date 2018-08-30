@@ -45,6 +45,7 @@ router.post('/promos/add/:id', TransactionController.addPromo);
 
 router.get('/users/list', AdminUserController.list);
 router.post('/users/update/:id', AdminUserController.status);
+router.put('/users/user-type/:id', AdminUserController.changeUserType);
 
 router.get('/admins/list', AdminController.list);
 router.post('/admins/create', AdminController.create);

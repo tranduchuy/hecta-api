@@ -3,6 +3,92 @@ var _ = require('lodash');
 var TokenModel = require('../../models/TokenModel');
 var ChildModel = require('../../models/ChildModel');
 var AccountModel = require('../../models/AccountModel');
+var log4js = require('log4js');
+var logger = log4js.getLogger('Controllers');
+var HTTP_CODE = require('../../config/http-code');
+
+var changeUserType = async function (req, res, next) {
+    var newType = req.body.type;
+    logger.info('AdminUserController::changeUserType is called');
+    
+    try {
+        var targetUser = await UserModel.findOne({ _id: req.params.id });
+        if (!targetUser) {
+            logger.error('AdminUserController::changeUserType User not found: ' + req.params.id);
+
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                message: ['User not found'],
+                data: {}
+            });
+        }
+
+        if (targetUser.status == global.STATUS.BLOCKED || targetUser.status == global.STATUS.DELETE) {
+            logger.error('AdminUserController::changeUserType method not allow. User status is: ' + req.user.status);
+
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                message: ['Method not allow'],
+                data: {}
+            });
+        }
+
+        if (targetUser.type == parseInt(newType, 0)) {
+            logger.error('AdminUserController::changeUserType method not allow. Type not change: ' + newType);
+
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                message: ['Type not change'],
+                data: {}
+            });
+        }
+
+        if (targetUser.type == global.USER_TYPE_COMPANY) {
+            var children = await ChildModel.find({ companyId: req.user._id });
+
+            if (children.length != 0) {
+                logger.error('AdminUserController::changeUserType have children, can not change type: ' + newType);
+
+                return res.json({
+                    status: HTTP_CODE.BAD_REQUEST,
+                    message: ['Have childrent. Cannot change type'],
+                    data: {}
+                });
+            }
+        } else if (targetUser.type == global.USER_TYPE_PERSONAL) {
+            var parent = await ChildModel.find({ personalId: req.user._id });
+
+            if (parent.length != 0) {
+                logger.error('AdminUserController::changeUserType have parents, can not change type: ' + newType);
+
+                return res.json({
+                    status: HTTP_CODE.BAD_REQUEST,
+                    message: ['Have parents. Cannot change type'],
+                    data: {}
+                });
+            }
+        }
+
+
+        targetUser.type = parseInt(newType, 0);
+        await req.user.save();
+    }
+    catch (e) {
+        logger.error("AdminUserController::changeUserType something error: " + JSON.stringify(e));
+
+        return res.json({
+            status: HTTP_CODE.BAD_REQUEST,
+            message: [e],
+            data: {}
+        });
+    }
+
+    return res.json({
+        status: HTTP_CODE.SUCCESS,
+        message: ['Update user type successfully'],
+        data: {}
+    });
+}
 
 
 var UserController = {
@@ -21,7 +107,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await  TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -32,7 +118,7 @@ var UserController = {
             }
 
 
-            var admin = await UserModel.findOne({_id: accessToken.user});
+            var admin = await UserModel.findOne({ _id: accessToken.user });
 
             if (!admin) {
 
@@ -64,7 +150,7 @@ var UserController = {
                 limit = limit * 1;
             }
 
-            var query = {role: {$nin: [global.USER_ROLE_ADMIN, global.USER_ROLE_MASTER]}};
+            var query = { role: { $nin: [global.USER_ROLE_ADMIN, global.USER_ROLE_MASTER] } };
 
             if (type == global.USER_TYPE_COMPANY || type == global.USER_TYPE_PERSONAL) {
                 query.type = type;
@@ -79,14 +165,14 @@ var UserController = {
                 query.email = new RegExp(email, "i");
             }
 
-            var users = await UserModel.find(query).sort({date: -1}).skip((page - 1) * limit).limit(limit);
+            var users = await UserModel.find(query).sort({ date: -1 }).skip((page - 1) * limit).limit(limit);
             let results = await Promise.all(users.map(async user => {
 
-                var account = await AccountModel.findOne({owner: user._id});
+                var account = await AccountModel.findOne({ owner: user._id });
 
 
                 if (!account) {
-                    account = new AccountModel({owner: user._id});
+                    account = new AccountModel({ owner: user._id });
                     account = await account.save();
                 }
 
@@ -99,7 +185,7 @@ var UserController = {
                 if (user.type == global.USER_TYPE_COMPANY) {
                     var creditTransferred = 0;
 
-                    var children = await ChildModel.find({companyId: user._id});
+                    var children = await ChildModel.find({ companyId: user._id });
 
                     if (children && children.length > 0) {
                         children.forEach(child => {
@@ -112,7 +198,7 @@ var UserController = {
 
                 if (user.type == global.USER_TYPE_PERSONAL) {
 
-                    var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+                    var child = await ChildModel.find({ personalId: user._id, status: global.STATUS.CHILD_ACCEPTED });
 
                     if (child) {
                         accountInfo.credit = child.credit;
@@ -158,7 +244,7 @@ var UserController = {
 
         }
         catch
-            (e) {
+        (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -174,7 +260,7 @@ var UserController = {
 
             var token = req.headers.access_token;
 
-            var accessToken = await  TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -184,7 +270,7 @@ var UserController = {
                 });
             }
 
-            var admin = await UserModel.findOne({_id: accessToken.user});
+            var admin = await UserModel.findOne({ _id: accessToken.user });
 
             if (!admin || (admin.role != global.USER_ROLE_ADMIN && admin.role != global.USER_ROLE_MASTER)) {
                 return res.json({
@@ -196,7 +282,7 @@ var UserController = {
 
             var id = req.params.id;
 
-            var user = await UserModel.findOne({_id: id});
+            var user = await UserModel.findOne({ _id: id });
 
             if (!user) {
 
@@ -220,7 +306,7 @@ var UserController = {
             }
 
             if (status == global.STATUS.BLOCKED) {
-                await TokenModel.remove({user: id});
+                await TokenModel.remove({ user: id });
             }
 
             user.status = status;
@@ -239,6 +325,8 @@ var UserController = {
                 message: 'unknown error : ' + e.message
             });
         }
-    }
+    },
+
+    changeUserType: changeUserType
 }
 module.exports = UserController
