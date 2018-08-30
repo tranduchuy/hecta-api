@@ -208,14 +208,19 @@ var UserController = {
             }
 
 
-            var status = req.body.status;
+            var status = parseInt(req.body.status, 0);
+            
+            var validStatues = [
+                global.STATUS.ACTIVE,
+                global.STATUS.BLOCKED,
+                global.STATUS.DELETE
+            ];
 
-
-            if (status != global.STATUS.ACTIVE && status != global.STATUS.BLOCKED) {
+            if (validStatues.indexOf(status) === -1) {
                 return res.json({
                     status: 0,
                     data: {},
-                    message: 'status invalid'
+                    message: 'Status invalid'
                 });
             }
 
