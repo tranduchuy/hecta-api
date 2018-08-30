@@ -230,13 +230,18 @@ var SaleController = {
                     price -= account.main;
                     account.main = 0;
                 }
-
-                if (price == 0) {
-                    post.paymentStatus = global.STATUS.PAYMENT_PAID;
-                    await account.save();
-                    await child.save();
-                    await transaction.save();
+  
+              if (price == 0) {
+                post.paymentStatus = global.STATUS.PAYMENT_PAID;
+                if (account) {
+                  await account.save();
                 }
+    
+                if (child) {
+                  await child.save();
+                }
+                await transaction.save();
+              }
 
 
             }
