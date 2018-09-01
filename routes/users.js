@@ -23,7 +23,7 @@ router.get('/request/list', UserController.requestList);
 router.get('/child/detail/:id', UserController.childDetail);
 router.get('/find/:email', UserController.findUserByEmail);
 router.get('/balance', UserController.balance);
-router.post('/transaction/history', TransactionController.list);
+router.get('/transaction/history', TransactionController.list);
 router.get('/child/transactions/:id', TransactionController.childList);
 
 module.exports = router;
