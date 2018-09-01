@@ -120,6 +120,7 @@ var TagController = {
                 tags: tag._id,
                 status: global.STATUS.ACTIVE
             }).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+
             var count = await PostModel.count({tags: tag._id, status: global.STATUS.ACTIVE});
 
 
@@ -255,6 +256,7 @@ var TagController = {
             return res.json({
                 status: 1,
                 data: {
+                    itemCount : count,
                     keyword: tag.keyword,
                     items: results,
                     page: page,

@@ -293,7 +293,7 @@ var UserController = {
                 });
             }
 
-            if (!_.isNumber(amount) || amount == 0) {
+            if (amount == 0) {
                 return res.json({
                     status: 0,
                     data: {amount: amount},
@@ -301,7 +301,7 @@ var UserController = {
                 });
             }
 
-            var sourceAccount = await AccountModel.find({owner: user._id});
+            var sourceAccount = await AccountModel.findOne({owner: user._id});
 
             if (!sourceAccount) {
                 sourceAccount = new AccountModel({
@@ -309,7 +309,9 @@ var UserController = {
                     owner: user._id
 
                 });
-                sourceAccount = sourceAccount.save();
+
+                sourceAccount = await sourceAccount.save();
+
             }
 
             if (amount > 0) {
@@ -380,7 +382,12 @@ var UserController = {
 
             sourceAccount.main -= sharedCredit;
 
+            console.log("xx1");
+
             await sourceAccount.save();
+
+            console.log("xx2");
+
             await transactionChild.save();
             await transactionParrent.save();
 
@@ -1301,7 +1308,7 @@ var UserController = {
 
             if (user.type == global.USER_TYPE_PERSONAL) {
 
-                var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+                var child = await ChildModel.findOne({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
 
                 if (child) {
                     accountInfo.credit = child.credit;
