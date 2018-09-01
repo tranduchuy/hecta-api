@@ -44,19 +44,19 @@ var changeUserType = async function (req, res, next) {
         }
 
         if (targetUser.type == global.USER_TYPE_COMPANY) {
-            var children = await ChildModel.find({ companyId: req.user._id });
+            var children = await ChildModel.find({ companyId: targetUser._id });
 
             if (children.length != 0) {
                 logger.error('AdminUserController::changeUserType have children, can not change type: ' + newType);
 
                 return res.json({
                     status: HTTP_CODE.BAD_REQUEST,
-                    message: ['Have childrent. Cannot change type'],
+                    message: ['Have children. Cannot change type'],
                     data: {}
                 });
             }
         } else if (targetUser.type == global.USER_TYPE_PERSONAL) {
-            var parent = await ChildModel.find({ personalId: req.user._id });
+            var parent = await ChildModel.find({ personalId: targetUser._id });
 
             if (parent.length != 0) {
                 logger.error('AdminUserController::changeUserType have parents, can not change type: ' + newType);
@@ -71,7 +71,7 @@ var changeUserType = async function (req, res, next) {
 
 
         targetUser.type = parseInt(newType, 0);
-        await req.user.save();
+        await targetUser.save();
     }
     catch (e) {
         logger.error("AdminUserController::changeUserType something error: " + JSON.stringify(e));
