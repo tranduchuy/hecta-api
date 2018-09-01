@@ -8,7 +8,8 @@ var ChildModel = require('../models/ChildModel');
 var AccountModel = require('../models/AccountModel');
 var TransactionHistoryModel = require('../models/TransactionHistoryModel');
 var Mailer = require('../commom/Mailer');
-
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 var randomstring = require("randomstring");
 
 
@@ -351,7 +352,7 @@ var UserController = {
             var accountChild = await AccountModel({owner: child.personalId});
             var transactionChild = new TransactionHistoryModel({
 
-                userId: child.personalId,
+                userId: new ObjectId(child.personalId),
                 amount: amount,
                 note: note,
                 type: global.TRANSACTION_TYPE_RECEIVE_CREDIT,
@@ -365,7 +366,7 @@ var UserController = {
 
             var transactionParrent = new TransactionHistoryModel({
 
-                userId: child.companyId,
+                userId: new ObjectId(child.companyId),
                 amount: amount,
                 note: note,
                 type: global.TRANSACTION_TYPE_SHARE_CREDIT,

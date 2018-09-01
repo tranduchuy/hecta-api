@@ -5,17 +5,13 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var paymentSchema = new Schema({
-
-    userId: String,
-    adminId: String,
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    adminId: { type: Schema.Types.ObjectId, ref: 'User' },
     amount: Number,
     note: String,
     info: String,
     type: Number,
-
     current: Object,
-
-
     date: {type: Number, default: Date.now}
 });
 

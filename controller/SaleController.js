@@ -9,6 +9,9 @@ var ChildModel = require('../models/ChildModel');
 var TransactionHistoryModel = require('../models/TransactionHistoryModel');
 var UrlParamModel = require('../models/UrlParamModel');
 var urlSlug = require('url-slug');
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
+
 var SaleController = {
 
 
@@ -186,7 +189,7 @@ var SaleController = {
 
                 var transaction = new TransactionHistoryModel({
 
-                    userId: accessToken.user,
+                    userId: new ObjectId(accessToken.user),
                     amount: price,
                     note: 'date : ' + Date.now(),
                     info: 'buy sale : ' + title,
