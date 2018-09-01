@@ -5,7 +5,7 @@ var ChildModel = require('../../models/ChildModel');
 var AccountModel = require('../../models/AccountModel');
 var log4js = require('log4js');
 var logger = log4js.getLogger('Controllers');
-var HTTP_CODE = require('../../config/http-code');
+var HTTP_CODE = require('../../constants/http-code');
 
 var changeUserType = async function (req, res, next) {
     var newType = req.body.type;

@@ -1,5 +1,5 @@
 var UrlParamModel = require('../models/UrlParamModel');
-var data = require('../files/js/selectorX');
+var data = require('../../files/js/selectorX');
 var urlSlug = require('url-slug');
 const {forEach} = require('p-iteration');
 

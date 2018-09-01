@@ -1,12 +1,12 @@
+require('./src/constants/def');
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var def = require('./config/def');
-var Models = require('./models/');
 var cors = require('cors');
-var rootRouter = require('./routes/root');
+var rootRouter = require('./src/routes/root');
+
 
 // config log4js
 var log4js = require('log4js');
@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(require('./middlewares/CheckToken'));
+app.use(require('./src/middlewares/CheckToken'));
 
 app.use('/', rootRouter);
 

@@ -8,7 +8,7 @@ var _ = require('lodash');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var RequestUtil = require('../utils/RequestUtil');
-var HTTP_CODE = require('../config/http-code');
+var HTTP_CODE = require('../constants/http-code');
 
 var extractSearchCondition = function (req, childId) {
     var cond = {
