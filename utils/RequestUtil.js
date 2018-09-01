@@ -1,0 +1,20 @@
+var extractPaginationCondition = function(req) {
+  var cond = {
+    page: 1,
+    limit: global.PAGE_SIZE
+  };
+
+  if (req.query.page && !isNaN(req.query.page) && parseInt(req.query.page, 0) > 1) {
+    cond.page = parseInt(req.query.page);
+  }
+
+  if (req.query.limit && !isNaN(req.query.limit) && parseInt(req.query.limit, 0) > 0) {
+    cond.limit = parseInt(req.query.limit, 0);
+  }
+
+  return cond;
+}
+
+module.exports = {
+  extractPaginationCondition: extractPaginationCondition
+};

@@ -7,6 +7,29 @@ var UserModel = require('../models/UserModel');
 var _ = require('lodash');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
+var RequestUtil = require('../utils/RequestUtil');
+
+var extractSearchCondition = function(req) {
+    var cond = { 
+        userId: req.user._id 
+    };
+
+    if (req.query.startDay && !isNaN(req.query.startDay)) {
+        cond.date = cond.date || {};
+        cond.date['$gte'] = parseInt(req.query.startDate, 0);
+    }
+
+    if (req.query.endDay && !isNaN(req.query.endDay)) {
+        cond.date = cond.date || {};
+        cond.date['$lte'] = parseInt(req.query.endDay, 0);
+    }
+
+    if (req.query.type && !isNaN(req.query.type)) {
+        cond.type = parseInt(req.query.type, 0);
+    }
+
+    return cond;
+}
 
 var TransactionController = {
 
@@ -238,39 +261,8 @@ var TransactionController = {
     },
 
     list: async function (req, res, next) {
-
-
         try {
-            var token = req.headers.access_token;
-            var page = req.query.page;
-
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({ token: token });
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var user = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: global.USER_ROLE_ENDUSER
-            });
-
-            if (!user) {
-
+            if (req.user.role != global.USER_ROLE_ENDUSER) {
                 return res.json({
                     status: 0,
                     data: {},
@@ -278,30 +270,28 @@ var TransactionController = {
                 });
             }
 
-
-            if (!page || page < 1) {
-                page = 1;
-            }
+            var paginationCond = RequestUtil.extractPaginationCondition(req);
+            var searchCondition = extractSearchCondition(req);
 
             let transactions = await TransactionHistoryModel
-                .find({ userId: user._id })
+                .find(searchCondition)
                 .sort({ date: -1 })
-                .skip((page - 1) * global.PAGE_SIZE)
-                .limit(global.PAGE_SIZE)
+                .skip((paginationCond.page - 1) * paginationCond.limit)
+                .limit(paginationCond.limit)
                 .populate('userId');
 
-            let count = await TransactionHistoryModel.count({ userId: user._id });
+            let count = await TransactionHistoryModel.count(searchCondition);
+
             return res.json({
                 status: 1,
                 data: {
                     items: transactions,
-                    page: page,
+                    page: paginationCond.page,
+                    limit: paginationCond.limit,
                     total: _.ceil(count / global.PAGE_SIZE)
                 },
                 message: 'request success '
             });
-
-
         }
         catch (e) {
             return res.json({
@@ -310,7 +300,6 @@ var TransactionController = {
                 message: 'unknown error : ' + e.message
             });
         }
-
     },
     childList: async function (req, res, next) {
 

@@ -74,7 +74,11 @@ module.exports = async function (req, res, next) {
     });
   }
 
-  var user = await UserModel.findOne({ _id: accessToken.user });
+  var user = await UserModel.findOne({ 
+    _id: accessToken.user,
+    status: global.STATUS.ACTIVE
+  });
+
   if (!user) {
     return res.json({
       status: 0,
