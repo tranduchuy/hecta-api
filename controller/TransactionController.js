@@ -8,10 +8,11 @@ var _ = require('lodash');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var RequestUtil = require('../utils/RequestUtil');
+var HTTP_CODE = require('../config/http-code');
 
-var extractSearchCondition = function(req) {
-    var cond = { 
-        userId: req.user._id 
+var extractSearchCondition = function (req, childId) {
+    var cond = {
+        userId: childId || req.user._id
     };
 
     if (req.query.startDay && !isNaN(req.query.startDay)) {
@@ -33,7 +34,7 @@ var extractSearchCondition = function(req) {
 
 var TransactionController = {
 
-    addMain: async function (req, res, next) {
+    addMain: async function (req, res) {
 
         var token = req.headers.access_token;
         var userId = req.params.id;
@@ -150,7 +151,8 @@ var TransactionController = {
         }
 
     },
-    addPromo: async function (req, res, next) {
+    
+    addPromo: async function (req, res) {
 
         var token = req.headers.access_token;
         var userId = req.params.id;
@@ -260,7 +262,7 @@ var TransactionController = {
 
     },
 
-    list: async function (req, res, next) {
+    list: async function (req, res) {
         try {
             if (req.user.role != global.USER_ROLE_ENDUSER) {
                 return res.json({
@@ -283,106 +285,79 @@ var TransactionController = {
             let count = await TransactionHistoryModel.count(searchCondition);
 
             return res.json({
+                status: HTTP_CODE.SUCCESS,
+                data: {
+                    items: transactions,
+                    page: paginationCond.page,
+                    limit: paginationCond.limit,
+                    total: _.ceil(count / paginationCond.limit)
+                },
+                message: 'Success'
+            });
+        }
+        catch (e) {
+            return res.json({
+                status: HTTP_CODE.ERROR,
+                data: {},
+                message: 'Unknown error : ' + e.message
+            });
+        }
+    },
+
+    childList: async function (req, res) {
+        try {
+            if (req.user.status != global.STATUS.ACTIVE) {
+                return res.json({
+                    status: HTTP_CODE.ERROR,
+                    data: {},
+                    message: 'Permission denied'
+                });
+            }
+
+            var childId = req.query.id;
+            var child = await ChildModel.findOne({
+                status: global.STATUS.CHILD_ACCEPTED,
+                companyId: req.user._id,
+                personalId: childId
+            });
+
+            if (!child) {
+                return res.json({
+                    status: HTTP_CODE.ERROR,
+                    data: {},
+                    message: 'Child is not exist'
+                });
+            }
+
+            var paginationCond = RequestUtil.extractPaginationCondition(req);
+            var searchCondition = extractSearchCondition(req, childId);
+
+            var transactions = await TransactionHistoryModel
+                .find(searchCondition)
+                .sort({ date: -1 })
+                .skip((paginationCond.page - 1) * paginationCond.limit)
+                .limit(paginationCond.limit)
+                .populate('userId');
+
+            let count = await TransactionHistoryModel.count(searchCondition);
+            return res.json({
                 status: 1,
                 data: {
                     items: transactions,
                     page: paginationCond.page,
                     limit: paginationCond.limit,
-                    total: _.ceil(count / global.PAGE_SIZE)
+                    total: _.ceil(count / paginationCond.limit)
                 },
-                message: 'request success '
+                message: 'Success'
             });
         }
         catch (e) {
             return res.json({
-                status: 0,
+                status: HTTP_CODE.ERROR,
                 data: {},
-                message: 'unknown error : ' + e.message
+                message: 'Unknow error : ' + e.message
             });
         }
-    },
-    childList: async function (req, res, next) {
-
-
-        try {
-            var token = req.headers.access_token;
-            var page = req.query.page;
-            var id = req.query.id;
-
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({ token: token });
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var user = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: global.USER_ROLE_ENDUSER
-            });
-
-            if (!user) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user is not exist'
-                });
-            }
-
-            let child = await ChildModel.findOne({
-                status: global.STATUS.CHILD_ACCEPTED,
-                companyId: user._id,
-                personalId: id
-            });
-
-            if (!child) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'child not exist'
-                });
-            }
-
-            if (!page || page < 1) {
-                page = 1;
-            }
-
-            let transactions = await TransactionHistoryModel.find({ userId: id }).sort({ date: -1 }).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-            let count = await TransactionHistoryModel.count({ userId: id });
-            return res.json({
-                status: 1,
-                data: {
-                    items: transactions,
-                    page: page,
-                    total: _.ceil(count / global.PAGE_SIZE)
-                },
-                message: 'request success '
-            });
-
-
-        }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
     }
 
 }
