@@ -1,0 +1,8 @@
+mongo:
+  host: 127.0.0.1
+  port: 27018
+  databaseName: bds_v1
+
+
+app:
+  port: 2000
