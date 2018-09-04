@@ -315,6 +315,8 @@ var UserController = {
 
             }
 
+
+
             if (amount > 0) {
 
                 var sharedCredit = 0;
@@ -350,47 +352,55 @@ var UserController = {
 
 
             var accountChild = await AccountModel({owner: child.personalId});
-            var transactionChild = new TransactionHistoryModel({
+            // var transactionChild = new TransactionHistoryModel({
+            //
+            //     userId: new ObjectId(child.personalId),
+            //     amount: amount,
+            //     note: note,
+            //     type: global.TRANSACTION_TYPE_RECEIVE_CREDIT,
+            //
+            //     current: {
+            //         credit: child.credit - child.creditUsed,
+            //         main: accountChild ? accountChild.main : 0,
+            //         promo: accountChild ? accountChild.promo : 0
+            //     }
+            // });
 
-                userId: new ObjectId(child.personalId),
-                amount: amount,
-                note: note,
-                type: global.TRANSACTION_TYPE_RECEIVE_CREDIT,
 
-                current: {
-                    credit: child.credit - child.creditUsed,
-                    main: accountChild ? accountChild.main : 0,
-                    promo: accountChild ? accountChild.promo : 0
-                }
-            });
+            var beforeUser = {
+                credit: child.credit,
+                main: accountChild ? accountChild.main : 0,
+                promo: accountChild ? accountChild.promo : 0
+            };
 
-            var transactionParrent = new TransactionHistoryModel({
-
-                userId: new ObjectId(child.companyId),
-                amount: amount,
-                note: note,
-                type: global.TRANSACTION_TYPE_SHARE_CREDIT,
-
-                current: {
-                    credit: 0,
-                    main: sourceAccount.main,
-                    promo: sourceAccount.promo
-                }
-            });
+            var beforeParrent = {
+                credit: child.credit,
+                main: accountChild ? accountChild.main : 0,
+                promo: accountChild ? accountChild.promo : 0
+            };
 
             child.credit += amount;
             child.creditHistory.push({date: Date.now(), amount: amount, note: note});
 
             sourceAccount.main -= sharedCredit;
 
-            console.log("xx1");
-
             await sourceAccount.save();
 
-            console.log("xx2");
+            var afterUser = {
+                credit: child.credit,
+                main: accountChild ? accountChild.main : 0,
+                promo: accountChild ? accountChild.promo : 0
+            };
 
-            await transactionChild.save();
-            await transactionParrent.save();
+            var afterParrent = {
+                credit: 0,
+                main: sourceAccount.main,
+                promo: sourceAccount.promo
+            };
+
+            await TransactionHistoryModel.addTransaction(user.personalId, undefined,amount,note, child.companyId,global.TRANSACTION_TYPE_RECEIVE_CREDIT,  beforeUser, afterUser);
+            await TransactionHistoryModel.addTransaction(user.companyId, undefined,amount,note, child.personalId,global.TRANSACTION_TYPE_SHARE_CREDIT,  beforeParrent, afterParrent);
+
 
             await child.save();
             return res.json({
