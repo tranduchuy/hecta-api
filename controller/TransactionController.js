@@ -99,7 +99,7 @@ var TransactionController = {
                 });
             }
 
-            var account = await AccountModel.findOne({owner: user._id})
+            var account = await AccountModel.findOne({owner: user._id});
 
             if (!account) {
 
@@ -111,27 +111,38 @@ var TransactionController = {
 
 
             let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
-            var transaction = new TransactionHistoryModel({
+            // var transaction = new TransactionHistoryModel({
+            //
+            //     userId: new ObjectId(userId),
+            //     adminId: new ObjectId(admin._id),
+            //     amount: amount,
+            //     note: note,
+            //     info: info,
+            //     type: global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT,
+            //
+            //     current: {
+            //         credit: child ? (child.credit - child.creditUsed) : 0,
+            //         main: account.main,
+            //         promo: account.promo
+            //     }
+            // });
 
-                userId: new ObjectId(userId),
-                adminId: new ObjectId(admin._id),
-                amount: amount,
-                note: note,
-                info: info,
-                type: global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT,
-
-                current: {
-                    credit: child ? (child.credit - child.creditUsed) : 0,
-                    main: account.main,
-                    promo: account.promo
-                }
-            });
-
-
+            let before = {
+                credit: child ? (child.credit - child.creditUsed) : 0,
+                main: account.main,
+                promo: account.promo
+            }
             account.main += amount;
 
+            let after = {
+                credit: child ? (child.credit - child.creditUsed) : 0,
+                main: account.main,
+                promo: account.promo
+            }
+
+
             await account.save();
-            await transaction.save();
+            await TransactionHistoryModel.addTransaction(user._id, admin._id, amount, note, info, global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT, before, after);
 
 
             return res.json({
@@ -224,26 +235,38 @@ var TransactionController = {
             }
 
             let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
-            var transaction = new TransactionHistoryModel({
+            // var transaction = new TransactionHistoryModel({
+            //
+            //     userId: new ObjectId(userId),
+            //     adminId: new ObjectId(admin._id),
+            //     amount: amount,
+            //     note: note,
+            //     info: info,
+            //     type: global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT,
+            //
+            //     current: {
+            //         credit: child ? (child.credit - child.creditUsed) : 0,
+            //         main: account.main,
+            //         promo: account.promo
+            //     }
+            // });
 
-                userId: new ObjectId(userId),
-                adminId: new ObjectId(admin._id),
-                amount: amount,
-                note: note,
-                info: info,
-                type: global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT,
-
-                current: {
-                    credit: child ? (child.credit - child.creditUsed) : 0,
-                    main: account.main,
-                    promo: account.promo
-                }
-            });
-
+            let before = {
+                credit: child ? (child.credit - child.creditUsed) : 0,
+                main: account.main,
+                promo: account.promo
+            }
             account.promo += amount;
 
-            transaction.save();
+            let after = {
+                credit: child ? (child.credit - child.creditUsed) : 0,
+                main: account.main,
+                promo: account.promo
+            }
+
+
             await account.save();
+            await TransactionHistoryModel.addTransaction(user._id, admin._id, amount, note, info, global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT, before, after);
             return res.json({
                 status: 1,
                 data: {},
@@ -310,7 +333,7 @@ var TransactionController = {
                     after: transaction.after,
                     before: transaction.before,
                     note: transaction.note,
-                    type : transaction.type
+                    type: transaction.type
                 };
 
                 return result;
