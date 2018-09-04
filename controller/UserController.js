@@ -11,6 +11,82 @@ var Mailer = require('../commom/Mailer');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var randomstring = require("randomstring");
+var HTTP_CODE = require('../config/http-code');
+
+var forgetPassword = async function(req, res, next) {
+    var email = req.body.email;
+
+    try {
+        var user = await UserModel.findOne({ email: email });
+
+        if (!user) {
+            return res.json({
+                status: HTTP_CODE.ERROR,
+                message: ['Không tìm thấy người dùng!'],
+                data: {}
+            });
+        }
+
+        user.resetPasswordToken = randomstring.generate(30) + new Date().getTime();
+        user.save();
+
+        Mailer.sendEmailResetPassword(user.email, user.resetPasswordToken, function(err) {
+            if (err) {
+                return res.json({
+                    status: HTTP_CODE.ERROR,
+                    message: [err],
+                    data: {}
+                });
+            }
+
+            return res.json({
+                status: HTTP_CODE.SUCCESS,
+                message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
+                data: {}
+            });
+        });
+    }
+    catch(e) {
+        return res.json({
+            status: HTTP_CODE.ERROR,
+            message: [e.message],
+            data: {}
+        });
+    }
+    
+}
+
+var resetPassword = async function(req, res, next) {
+    var resetToken = req.body.resetToken;
+    var password = req.body.password;
+
+    try {
+        var user = await UserModel.findOne({resetPasswordToken: resetToken});
+        if (!user) {
+            return res.json({
+                status: HTTP_CODE.ERROR,
+                message: ['Token đổi mật khẩu không hợp lệ'],
+                data: {}
+            });
+        }
+
+        user.hash_password = bcrypt.hashSync(password, 10);
+        user.save();
+
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: ['Đổi mật khẩu thành công. Vui lòng đăng nhập lại!'],
+            data: {}
+        });
+    }
+    catch(e) {
+        return res.json({
+            status: HTTP_CODE.ERROR,
+            message: [e.message],
+            data: {}
+        });
+    }
+}
 
 
 var UserController = {
@@ -1714,6 +1790,9 @@ var UserController = {
                 message: 'unknown error : ' + e.message
             });
         }
-    }
+    },
+
+    forgetPassword: forgetPassword,
+    resetPassword: resetPassword
 }
 module.exports = UserController

@@ -1,8 +1,6 @@
 /**
  * Created by android@3forcom on 10/18/2016.
  */
-
-
 var nodemailer = require('nodemailer');
 
 var transporter = nodemailer.createTransport({
@@ -23,18 +21,12 @@ var transporter = nodemailer.createTransport({
 
 
 var Mailer = {
-
-
     sendConfirmEmail: function (email, token) {
-
-
         var mailOptions = {
             from: 'snowyflowervietnam.com@gmail.com',
             to: email,
-            subject: "Hecta Register Confirm",
+            subject: "Hecta VN - Xác nhận đăng kí",
             text: "http://hecta.vn/account-confirm/" + token
-
-
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
@@ -44,10 +36,17 @@ var Mailer = {
                 console.log('Email sent: ' + info.response);
             }
         });
+    },
+    sendEmailResetPassword: function(email, token, cb) {
+        var mailOptions = {
+            from: 'snowyflowervietnam.com@gmail.com',
+            to: email,
+            subject: "Hecta VN - Đổi mật khẩu",
+            text: "http://hecta.vn/reset-password/" + token
+        };
+
+        transporter.sendMail(mailOptions, cb);
     }
-
-
 }
-
 
 module.exports = Mailer
