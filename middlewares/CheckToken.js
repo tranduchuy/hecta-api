@@ -8,6 +8,8 @@ var urlToPassCheckingToken = [
   '/api/v1/users/confirm/resend',
   '/api/v1/users/check/',
   '/api/v1/users/highlight',
+  '/api/v1/users/forget-password',
+  '/api/v1/users/reset-password',
 
   '/api/v1/sales/add',
   '/api/v1/buys/add',

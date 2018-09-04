@@ -23,8 +23,8 @@ var userSchema = new Schema({
     type: Number,
     role: {type: Number, default: global.USER_ROLE_ENDUSER},
     status: {type: Number, default: global.STATUS.PENDING_OR_WAIT_COMFIRM},
-    date: {type: Number, default: Date.now}
-
+    date: {type: Number, default: Date.now},
+    resetPasswordToken: String
 });
 
 
