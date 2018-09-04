@@ -398,8 +398,8 @@ var UserController = {
                 promo: sourceAccount.promo
             };
 
-            await TransactionHistoryModel.addTransaction(user.personalId, undefined,amount,note, child.companyId,global.TRANSACTION_TYPE_RECEIVE_CREDIT,  beforeUser, afterUser);
-            await TransactionHistoryModel.addTransaction(user.companyId, undefined,amount,note, child.personalId,global.TRANSACTION_TYPE_SHARE_CREDIT,  beforeParrent, afterParrent);
+            await TransactionHistoryModel.addTransaction(child.personalId, undefined,amount,note, child.companyId,global.TRANSACTION_TYPE_RECEIVE_CREDIT,  beforeUser, afterUser);
+            await TransactionHistoryModel.addTransaction(child.companyId, undefined,amount,note, child.personalId,global.TRANSACTION_TYPE_SHARE_CREDIT,  beforeParrent, afterParrent);
 
 
             await child.save();

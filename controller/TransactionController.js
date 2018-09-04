@@ -17,7 +17,7 @@ var extractSearchCondition = function (req, childId) {
 
     if (req.query.startDay && !isNaN(req.query.startDay)) {
         cond.date = cond.date || {};
-        cond.date['$gte'] = parseInt(req.query.startDate, 0);
+        cond.date['$gte'] = parseInt(req.query.startDay, 0);
     }
 
     if (req.query.endDay && !isNaN(req.query.endDay)) {
@@ -298,6 +298,9 @@ var TransactionController = {
             var paginationCond = RequestUtil.extractPaginationCondition(req);
             var searchCondition = extractSearchCondition(req);
 
+            console.log("searchCondition ", searchCondition);
+            console.log("paginationCond ", paginationCond);
+
             let transactions = await TransactionHistoryModel
                 .find(searchCondition)
                 .sort({date: -1})
@@ -345,6 +348,7 @@ var TransactionController = {
             return res.json({
                 status: HTTP_CODE.SUCCESS,
                 data: {
+                    itemCount : count,
                     items: results,
                     page: paginationCond.page,
                     limit: paginationCond.limit,
