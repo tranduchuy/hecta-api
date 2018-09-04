@@ -54,7 +54,7 @@ var TransactionController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({ token: token });
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
@@ -68,7 +68,7 @@ var TransactionController = {
             var admin = await UserModel.findOne({
                 _id: accessToken.user,
                 status: global.STATUS.ACTIVE,
-                role: { $in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN] }
+                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
             });
 
             if (!admin) {
@@ -80,7 +80,7 @@ var TransactionController = {
                 });
             }
 
-            var user = await UserModel.findOne({ _id: userId });
+            var user = await UserModel.findOne({_id: userId});
 
             if (!user) {
 
@@ -94,12 +94,12 @@ var TransactionController = {
             if (!_.isNumber(amount) && amount > 0) {
                 return res.json({
                     status: 0,
-                    data: { amount: amount },
+                    data: {amount: amount},
                     message: 'mount is invalid'
                 });
             }
 
-            var account = await AccountModel.findOne({ owner: user._id })
+            var account = await AccountModel.findOne({owner: user._id})
 
             if (!account) {
 
@@ -110,7 +110,7 @@ var TransactionController = {
             }
 
 
-            let child = await ChildModel({ status: global.STATUS.ACTIVE, personalId: user._id });
+            let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
             var transaction = new TransactionHistoryModel({
 
                 userId: new ObjectId(userId),
@@ -151,7 +151,7 @@ var TransactionController = {
         }
 
     },
-    
+
     addPromo: async function (req, res) {
 
         var token = req.headers.access_token;
@@ -172,7 +172,7 @@ var TransactionController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({ token: token });
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
@@ -183,7 +183,7 @@ var TransactionController = {
             }
 
 
-            var admin = await UserModel.findOne({ _id: accessToken.user });
+            var admin = await UserModel.findOne({_id: accessToken.user});
 
             if (!admin) {
 
@@ -194,7 +194,7 @@ var TransactionController = {
                 });
             }
 
-            var user = await UserModel.findOne({ _id: userId });
+            var user = await UserModel.findOne({_id: userId});
 
             if (!user) {
 
@@ -208,12 +208,12 @@ var TransactionController = {
             if (!_.isNumber(amount) && amount > 0) {
                 return res.json({
                     status: 0,
-                    data: { amount: amount },
+                    data: {amount: amount},
                     message: 'mount is invalid'
                 });
             }
 
-            var account = await AccountModel.findOne({ owner: user._id });
+            var account = await AccountModel.findOne({owner: user._id});
 
             if (!account) {
 
@@ -223,7 +223,7 @@ var TransactionController = {
                 });
             }
 
-            let child = await ChildModel({ status: global.STATUS.ACTIVE, personalId: user._id });
+            let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
             var transaction = new TransactionHistoryModel({
 
                 userId: new ObjectId(userId),
@@ -277,17 +277,52 @@ var TransactionController = {
 
             let transactions = await TransactionHistoryModel
                 .find(searchCondition)
-                .sort({ date: -1 })
+                .sort({date: -1})
                 .skip((paginationCond.page - 1) * paginationCond.limit)
                 .limit(paginationCond.limit)
                 .populate('userId');
 
             let count = await TransactionHistoryModel.count(searchCondition);
 
+            let results = await Promise.all(transactions.map(async transaction => {
+
+
+                if (!transaction.before) {
+                    transaction.before = {
+                        credit: 0,
+                        main: 0,
+                        promo: 0
+                    };
+                }
+                if (!transaction.after) {
+                    transaction.after = {
+                        credit: 0,
+                        main: 0,
+                        promo: 0
+                    };
+                }
+                let result = {
+
+                    date: transaction.date,
+                    main: transaction.after.main - transaction.before.main,
+                    credit: transaction.after.credit - transaction.before.credit,
+                    promo: transaction.after.promo - transaction.before.promo,
+                    after: transaction.after,
+                    before: transaction.before,
+                    note: transaction.note,
+                    type : transaction.type
+                };
+
+                return result;
+
+
+            }));
+
+
             return res.json({
                 status: HTTP_CODE.SUCCESS,
                 data: {
-                    items: transactions,
+                    items: results,
                     page: paginationCond.page,
                     limit: paginationCond.limit,
                     total: _.ceil(count / paginationCond.limit)
@@ -334,7 +369,7 @@ var TransactionController = {
 
             var transactions = await TransactionHistoryModel
                 .find(searchCondition)
-                .sort({ date: -1 })
+                .sort({date: -1})
                 .skip((paginationCond.page - 1) * paginationCond.limit)
                 .limit(paginationCond.limit)
                 .populate('userId');

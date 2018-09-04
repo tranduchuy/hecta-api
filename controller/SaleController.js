@@ -6,11 +6,96 @@ var TokenModel = require('../models/TokenModel');
 var AccountModel = require('../models/AccountModel');
 var PostPriorityModel = require('../models/PostPriorityModel');
 var ChildModel = require('../models/ChildModel');
+var UserModel = require('../models/UserModel');
+
 var TransactionHistoryModel = require('../models/TransactionHistoryModel');
 var UrlParamModel = require('../models/UrlParamModel');
 var urlSlug = require('url-slug');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
+
+var checkUserPayment = async function (user, post, price) {
+
+
+    if (!user) {
+
+        console.log('!user');
+        return;
+    }
+
+
+    post.user = user._id;
+
+    var child = await ChildModel.findOne({personalId: user._id});
+    var account = await AccountModel.findOne({owner: user._id});
+
+    console.log('child : ', child);
+
+    var before = {
+        credit: child ? child.credit : 0,
+        main: account ? account.main : 0,
+        promo: account ? account.promo : 0
+    };
+
+    if (child) {
+        if (price <= child.credit) {
+            child.credit -= price;
+            price = 0;
+        }
+        else {
+            price -= child.credit;
+            child.creditUsed += child.credit;
+            child.credit = 0;
+
+        }
+    }
+
+
+    if (price <= account.promo) {
+        account.promo -= price;
+        price = 0;
+    }
+    else {
+        price -= account.promo;
+        account.promo = 0;
+    }
+
+    if (price <= account.main) {
+        account.main -= price;
+        price = 0;
+    }
+    else {
+        price -= account.main;
+        account.main = 0;
+    }
+
+    console.log('price ' + price);
+
+
+    if (price == 0) {
+        post.paymentStatus = global.STATUS.PAYMENT_PAID;
+        if (account) {
+            await account.save();
+        }
+
+        if (child) {
+            await child.save();
+        }
+
+        var after = {
+            credit: child ? child.credit : 0,
+            main: account ? account.main : 0,
+            promo: account ? account.promo : 0
+        };
+
+        await TransactionHistoryModel.addTransaction(user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_PAY_POST, before, after);
+    }
+
+    await post.save();
+
+
+}
+
 
 var SaleController = {
 
@@ -18,7 +103,20 @@ var SaleController = {
     add: async function (req, res, next) {
 
         var token = req.headers.access_token;
+        var user = undefined;
 
+        if (token) {
+            var accessToken = await  TokenModel.findOne({token: token});
+            if (!accessToken) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'access token invalid'
+                });
+            }
+
+            user = await UserModel.findOne({_id: accessToken.user});
+        }
 
         var title = req.body.title;
 
@@ -163,91 +261,7 @@ var SaleController = {
             var sale = new SaleModel();
             var post = new PostModel();
 
-            post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
-
-
-            if (token) {
-
-
-                var accessToken = await  TokenModel.findOne({token: token});
-
-                if (!accessToken) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'access token invalid'
-                    });
-
-                }
-
-                post.user = accessToken.user;
-
-                var price = priority.costByDay * dateCount;
-
-                var child = await ChildModel.findOne({personalId: accessToken.user});
-                var account = await AccountModel.findOne({owner: accessToken.user});
-
-                var transaction = new TransactionHistoryModel({
-
-                    userId: new ObjectId(accessToken.user),
-                    amount: price,
-                    note: 'date : ' + Date.now(),
-                    info: 'buy sale : ' + title,
-                    type: global.TRANSACTION_TYPE_PAY_POST,
-
-                    current: {
-                        credit: child ? (child.credit - child.creditUsed) : 0,
-                        main: account ? account.main : 0,
-                        promo: account ? account.promo : 0
-                    }
-                });
-
-                if (child) {
-                    if (price <= child.credit) {
-                        child.credit -= price;
-                        price = 0;
-                    }
-                    else {
-                        price -= child.credit;
-                        child.creditUsed += child.credit;
-                        child.credit = 0;
-
-                    }
-                }
-
-
-                if (price <= account.promo) {
-                    account.promo -= price;
-                    price = 0;
-                }
-                else {
-                    price -= account.promo;
-                    account.promo = 0;
-                }
-
-                if (price <= account.main) {
-                    account.main -= price;
-                    price = 0;
-                }
-                else {
-                    price -= account.main;
-                    account.main = 0;
-                }
-  
-              if (price == 0) {
-                post.paymentStatus = global.STATUS.PAYMENT_PAID;
-                if (account) {
-                  await account.save();
-                }
-    
-                if (child) {
-                  await child.save();
-                }
-                await transaction.save();
-              }
-
-
-            }
+            // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
 
             sale.title = title;
 
@@ -381,7 +395,10 @@ var SaleController = {
                     post.tags.push(tag._id);
                 }
             }
+
+
             post = await post.save();
+            await checkUserPayment(user, post, dateCount * priority.costByDay);
 
 
             return res.json({
@@ -723,7 +740,6 @@ var SaleController = {
             }
 
             await post.save();
-
             return res.json({
                 status: 1,
                 data: sale,

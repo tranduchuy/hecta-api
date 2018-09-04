@@ -14,7 +14,7 @@ var postSchema = new Schema({
 
     admin: String,
     status: Number,
-    paymentStatus: Number,
+    paymentStatus: {type : Number, default : global.STATUS.PAYMENT_UNPAID},
     price: Number,
 
     priority: Number,
