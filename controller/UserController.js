@@ -492,9 +492,9 @@ var UserController = {
             };
 
             var beforeParrent = {
-                credit: child.credit,
-                main: accountChild ? accountChild.main : 0,
-                promo: accountChild ? accountChild.promo : 0
+                credit: 0,
+                main: sourceAccount.main,
+                promo: sourceAccount.promo
             };
 
             child.credit += amount;
