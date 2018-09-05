@@ -500,7 +500,7 @@ var UserController = {
             child.credit += amount;
             child.creditHistory.push({ date: Date.now(), amount: amount, note: note });
 
-            sourceAccount.main -= sharedCredit;
+            sourceAccount.main -= amount;
 
             await sourceAccount.save();
 
