@@ -482,6 +482,7 @@ var BuyController = {
                 buy.status = status;
             }
 
+            buy.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             buy = await buy.save();
 
 

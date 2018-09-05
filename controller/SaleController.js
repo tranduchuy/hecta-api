@@ -619,6 +619,7 @@ var SaleController = {
                 sale.status = status;
             }
 
+            sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             sale = await sale.save();
 
 
