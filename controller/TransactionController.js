@@ -336,8 +336,31 @@ var TransactionController = {
                     after: transaction.after,
                     before: transaction.before,
                     note: transaction.note,
-                    type: transaction.type
+                    type: transaction.type,
+                    amount: transaction.amount
                 };
+
+
+                if (type == global.TRANSACTION_TYPE_SHARE_CREDIT || type == global.TRANSACTION_TYPE_RECEIVE_CREDIT || type == global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT || type == global.TRANSACTION_TYPE_ADD_PROMO_ACCOUNT) {
+                    var user = await UserModel.findOne({_id: transaction.info});
+
+                    if (!user) {
+                        result.info = {
+                            username: user.username,
+                            email: user.email,
+                            phone: user.phone,
+                            name: user.name
+                        };
+                    }
+
+                }
+
+                if(type == global.TRANSACTION_TYPE_PAY_POST)
+                {
+
+
+
+                }
 
                 return result;
 
@@ -348,7 +371,7 @@ var TransactionController = {
             return res.json({
                 status: HTTP_CODE.SUCCESS,
                 data: {
-                    itemCount : count,
+                    itemCount: count,
                     items: results,
                     page: paginationCond.page,
                     limit: paginationCond.limit,
