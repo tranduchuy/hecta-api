@@ -344,7 +344,7 @@ var TransactionController = {
                 if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT || transaction.type == global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT || transaction.type == global.TRANSACTION_TYPE_ADD_PROMO_ACCOUNT) {
                     var user = await UserModel.findOne({_id: transaction.info});
 
-                    if (!user) {
+                    if (user) {
                         result.info = {
                             username: user.username,
                             email: user.email,
