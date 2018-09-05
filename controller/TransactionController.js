@@ -341,7 +341,7 @@ var TransactionController = {
                 };
 
 
-                if (type == global.TRANSACTION_TYPE_SHARE_CREDIT || type == global.TRANSACTION_TYPE_RECEIVE_CREDIT || type == global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT || type == global.TRANSACTION_TYPE_ADD_PROMO_ACCOUNT) {
+                if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT || transaction.type == global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT || transaction.type == global.TRANSACTION_TYPE_ADD_PROMO_ACCOUNT) {
                     var user = await UserModel.findOne({_id: transaction.info});
 
                     if (!user) {
@@ -355,7 +355,7 @@ var TransactionController = {
 
                 }
 
-                if(type == global.TRANSACTION_TYPE_PAY_POST)
+                if(transaction.type == global.TRANSACTION_TYPE_PAY_POST)
                 {
 
 
