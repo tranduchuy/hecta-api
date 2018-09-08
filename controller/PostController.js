@@ -81,8 +81,8 @@ var PostController = {
             var toDate = req.query.toDate;
             var fromDate = req.query.fromDate;
 
-            if (!page || page < 0) {
-                page = 0;
+            if (!page || page < 1) {
+                page = 1;
             }
 
             if (!limit || limit < 0) {
@@ -103,8 +103,10 @@ var PostController = {
                 };
             }
 
-            let posts = await PostModel.find(query).sort({date: -1}).skip((page) * limit).limit(limit);
+            let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1)  * limit).limit(limit);
 
+
+            console.log(query);
 
             let results = await Promise.all(posts.map(async post => {
 
@@ -114,9 +116,7 @@ var PostController = {
                     let sale = await SaleModel.findOne({_id: post.content_id});
 
 
-                    return await
-                        // {sale, post};
-                        {
+                    return {
 
                             title: sale.title,
                             formality: sale.formality,
@@ -165,7 +165,7 @@ var PostController = {
                     let buy = await BuyModel.findOne({_id: post.content_id});
 
 
-                    return await {
+                    return {
 
                         title: buy.title,
                         description: buy.description,
@@ -214,7 +214,7 @@ var PostController = {
                 status: 1,
                 data: {
                     items: results,
-                    page: page + 1,
+                    page: page,
                     total: _.ceil(count / limit)
                 },
                 message: 'request success '

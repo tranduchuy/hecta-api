@@ -5,6 +5,7 @@ var SaleController = require('../controller/SaleController');
 
 router.post('/add', SaleController.add);
 router.post('/update/:id', SaleController.update);
+router.post('/upnew/:id', SaleController.upNew);
 
 
 module.exports = router;
