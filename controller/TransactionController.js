@@ -411,22 +411,14 @@ var TransactionController = {
 
             var childId = req.params.id;
 
-            console.log({
-                status: global.STATUS.CHILD_ACCEPTED,
-                companyId: req.user._id,
-                personalId: childId
-            });
+
             var child = await ChildModel.findOne({
                 status: global.STATUS.CHILD_ACCEPTED,
                 companyId: req.user._id,
                 personalId: childId
             });
 
-            console.log({
-                status: global.STATUS.CHILD_ACCEPTED,
-                companyId: req.user._id,
-                personalId: childId
-            });
+
 
             if (!child) {
                 return res.json({
@@ -447,10 +439,75 @@ var TransactionController = {
                 .populate('userId');
 
             let count = await TransactionHistoryModel.count(searchCondition);
+
+
+            let results = await Promise.all(transactions.map(async transaction => {
+
+
+                    if (!transaction.before) {
+                        transaction.before = {
+                            credit: 0,
+                            main: 0,
+                            promo: 0
+                        };
+                    }
+                    if (!transaction.after) {
+                        transaction.after = {
+                            credit: 0,
+                            main: 0,
+                            promo: 0
+                        };
+                    }
+                    let result = {
+
+                        date: transaction.date,
+                        main: transaction.after.main - transaction.before.main,
+                        credit: transaction.after.credit - transaction.before.credit,
+                        promo: transaction.after.promo - transaction.before.promo,
+                        after: transaction.after,
+                        before: transaction.before,
+                        note: transaction.note,
+                        type: transaction.type,
+                        amount: transaction.amount
+                    };
+
+
+                    if (ObjectId.isValid(transaction.info)) {
+                        if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT) {
+                            var user = await UserModel.findOne({_id: transaction.info});
+
+                            if (user) {
+                                result.info = {
+                                    username: user.username,
+                                    email: user.email,
+                                    phone: user.phone,
+                                    name: user.name
+                                };
+                            }
+
+                        }
+
+                        if (transaction.type == global.TRANSACTION_TYPE_PAY_POST || transaction.type == global.TRANSACTION_TYPE_UP_NEW) {
+                            let post = await PostModel.findOne({_id: transaction.info});
+                            if (post) {
+                                let sale = await SaleModel.findOne({_id: post.content_id});
+                                if (sale) {
+                                    result.info = {
+                                        id: post._id,
+                                        title: sale.title
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    return result;
+                }
+            ));
+
             return res.json({
                 status: 1,
                 data: {
-                    items: transactions,
+                    items: results,
                     page: paginationCond.page,
                     limit: paginationCond.limit,
                     total: _.ceil(count / paginationCond.limit)
