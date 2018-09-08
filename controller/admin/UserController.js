@@ -10,9 +10,9 @@ var HTTP_CODE = require('../../config/http-code');
 var changeUserType = async function (req, res, next) {
     var newType = req.body.type;
     logger.info('AdminUserController::changeUserType is called');
-    
+
     try {
-        var targetUser = await UserModel.findOne({ _id: req.params.id });
+        var targetUser = await UserModel.findOne({_id: req.params.id});
         if (!targetUser) {
             logger.error('AdminUserController::changeUserType User not found: ' + req.params.id);
 
@@ -44,7 +44,7 @@ var changeUserType = async function (req, res, next) {
         }
 
         if (targetUser.type == global.USER_TYPE_COMPANY) {
-            var children = await ChildModel.find({ companyId: targetUser._id });
+            var children = await ChildModel.find({companyId: targetUser._id});
 
             if (children.length != 0) {
                 logger.error('AdminUserController::changeUserType have children, can not change type: ' + newType);
@@ -56,7 +56,7 @@ var changeUserType = async function (req, res, next) {
                 });
             }
         } else if (targetUser.type == global.USER_TYPE_PERSONAL) {
-            var parent = await ChildModel.find({ personalId: targetUser._id });
+            var parent = await ChildModel.find({personalId: targetUser._id});
 
             if (parent.length != 0) {
                 logger.error('AdminUserController::changeUserType have parents, can not change type: ' + newType);
@@ -107,7 +107,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({ token: token });
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
@@ -118,7 +118,7 @@ var UserController = {
             }
 
 
-            var admin = await UserModel.findOne({ _id: accessToken.user });
+            var admin = await UserModel.findOne({_id: accessToken.user});
 
             if (!admin) {
 
@@ -150,7 +150,7 @@ var UserController = {
                 limit = limit * 1;
             }
 
-            var query = { role: { $nin: [global.USER_ROLE_ADMIN, global.USER_ROLE_MASTER] } };
+            var query = {role: {$nin: [global.USER_ROLE_ADMIN, global.USER_ROLE_MASTER]}};
 
             if (type == global.USER_TYPE_COMPANY || type == global.USER_TYPE_PERSONAL) {
                 query.type = type;
@@ -165,14 +165,14 @@ var UserController = {
                 query.email = new RegExp(email, "i");
             }
 
-            var users = await UserModel.find(query).sort({ date: -1 }).skip((page - 1) * limit).limit(limit);
+            var users = await UserModel.find(query).sort({date: -1}).skip((page - 1) * limit).limit(limit);
             let results = await Promise.all(users.map(async user => {
 
-                var account = await AccountModel.findOne({ owner: user._id });
+                var account = await AccountModel.findOne({owner: user._id});
 
 
                 if (!account) {
-                    account = new AccountModel({ owner: user._id });
+                    account = new AccountModel({owner: user._id});
                     account = await account.save();
                 }
 
@@ -185,7 +185,7 @@ var UserController = {
                 if (user.type == global.USER_TYPE_COMPANY) {
                     var creditTransferred = 0;
 
-                    var children = await ChildModel.find({ companyId: user._id });
+                    var children = await ChildModel.find({companyId: user._id});
 
                     if (children && children.length > 0) {
                         children.forEach(child => {
@@ -198,7 +198,7 @@ var UserController = {
 
                 if (user.type == global.USER_TYPE_PERSONAL) {
 
-                    var child = await ChildModel.find({ personalId: user._id, status: global.STATUS.CHILD_ACCEPTED });
+                    var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
 
                     if (child) {
                         accountInfo.credit = child.credit;
@@ -244,7 +244,7 @@ var UserController = {
 
         }
         catch
-        (e) {
+            (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -254,13 +254,13 @@ var UserController = {
     },
 
 
-    status: async function (req, res, next) {
+    update: async function (req, res, next) {
 
         try {
 
             var token = req.headers.access_token;
 
-            var accessToken = await TokenModel.findOne({ token: token });
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
@@ -270,7 +270,7 @@ var UserController = {
                 });
             }
 
-            var admin = await UserModel.findOne({ _id: accessToken.user });
+            var admin = await UserModel.findOne({_id: accessToken.user});
 
             if (!admin || (admin.role != global.USER_ROLE_ADMIN && admin.role != global.USER_ROLE_MASTER)) {
                 return res.json({
@@ -282,7 +282,7 @@ var UserController = {
 
             var id = req.params.id;
 
-            var user = await UserModel.findOne({ _id: id });
+            var user = await UserModel.findOne({_id: id});
 
             if (!user) {
 
@@ -294,27 +294,49 @@ var UserController = {
             }
 
 
-            var status = parseInt(req.body.status, 0);
-            
-            var validStatues = [
-                global.STATUS.ACTIVE,
-                global.STATUS.BLOCKED,
-                global.STATUS.DELETE
-            ];
+            // var status = parseInt(req.body.status, 0);
+            // var expirationDate = parseInt(req.body.expirationDate, 0);
 
-            if (validStatues.indexOf(status) === -1) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'Status invalid'
-                });
+            var status = req.body.status;
+
+            if (status != undefined && status != null) {
+                var validStatues = [
+                    global.STATUS.ACTIVE,
+                    global.STATUS.BLOCKED,
+                    global.STATUS.DELETE
+                ];
+
+                if (validStatues.indexOf(status) === -1) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'Status invalid'
+                    });
+                }
+
+                if (status == global.STATUS.BLOCKED) {
+                    await TokenModel.remove({user: id});
+                }
+
+                user.status = status;
             }
 
-            if (status == global.STATUS.BLOCKED) {
-                await TokenModel.remove({ user: id });
+            var expirationDate = req.body.expirationDate;
+
+            if (expirationDate != undefined && expirationDate != null) {
+
+                if(expirationDate < Date.now())
+                {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'ExpirationDate invalid'
+                    });
+                }
+                user.expirationDate = expirationDate;
             }
 
-            user.status = status;
+
             await user.save();
 
             return res.json({

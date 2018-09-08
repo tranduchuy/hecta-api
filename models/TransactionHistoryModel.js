@@ -38,7 +38,6 @@ module.exports = TransactionHistory;
 module.exports.Model = transactionHistorySchema;
 module.exports.addTransaction = async function (user, admin, amount, note, info, type, before, after) {
 
-    console.log('addTransaction ');
 
     let transaction = new TransactionHistory({
         userId: new ObjectId(user),
@@ -51,7 +50,6 @@ module.exports.addTransaction = async function (user, admin, amount, note, info,
         after: after
     });
     await transaction.save();
-    console.log('transaction ', transaction);
 
 
 };

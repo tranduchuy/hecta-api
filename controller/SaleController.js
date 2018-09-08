@@ -14,83 +14,22 @@ var urlSlug = require('url-slug');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
+
+
 var checkUserPayment = async function (user, post, price) {
 
 
     if (!user) {
-
-        console.log('!user');
         return;
     }
-
-
     post.user = user._id;
 
-    var child = await ChildModel.findOne({personalId: user._id});
-    var account = await AccountModel.findOne({owner: user._id});
+    let purchaseStatus = await UserModel.purchase(user._id, price);
 
-    console.log('child : ', child);
-
-    var before = {
-        credit: child ? child.credit : 0,
-        main: account ? account.main : 0,
-        promo: account ? account.promo : 0
-    };
-
-    if (child) {
-        if (price <= child.credit) {
-            child.credit -= price;
-            price = 0;
-        }
-        else {
-            price -= child.credit;
-            child.creditUsed += child.credit;
-            child.credit = 0;
-
-        }
-    }
-
-
-    if (price <= account.promo) {
-        account.promo -= price;
-        price = 0;
-    }
-    else {
-        price -= account.promo;
-        account.promo = 0;
-    }
-
-    if (price <= account.main) {
-        account.main -= price;
-        price = 0;
-    }
-    else {
-        price -= account.main;
-        account.main = 0;
-    }
-
-    console.log('price ' + price);
-
-
-    if (price == 0) {
+    if (purchaseStatus) {
         post.paymentStatus = global.STATUS.PAYMENT_PAID;
-        if (account) {
-            await account.save();
-        }
-
-        if (child) {
-            await child.save();
-        }
-
-        var after = {
-            credit: child ? child.credit : 0,
-            main: account ? account.main : 0,
-            promo: account ? account.promo : 0
-        };
-
-        await TransactionHistoryModel.addTransaction(user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_PAY_POST, before, after);
+        await TransactionHistoryModel.addTransaction(user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_PAY_POST, purchaseStatus.before, purchaseStatus.after);
     }
-
     await post.save();
 
 
@@ -418,8 +357,66 @@ var SaleController = {
         }
 
 
-    }
+    },
 
+    upNew: async function (req, res, next) {
+
+        try {
+            let id = req.params.id;
+
+            let post = await PostModel.findOne({_id: id});
+
+            if (!post || post.postType != global.POST_TYPE_SALE) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'post not exist '
+                });
+            }
+
+            if (post.user != req.user._id.toString()) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'user does not have permission !'
+                });
+            }
+
+            let priority = await PostPriorityModel.findOne({priority: post.priority});
+            var price = 0;
+            if (priority) {
+                price = priority.costByDay;
+            }
+
+            let purchaseStatus = UserModel.purchase(req.user._id, price);
+            if (!purchaseStatus) {
+                return res.json({
+                    status: 0,
+                    data: {},
+                    message: 'not enough money'
+                });
+            }
+
+            post.refresh = Date.now();
+            await TransactionHistoryModel.addTransaction(req.user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_UP_NEW, purchaseStatus.before, purchaseStatus.after);
+
+            return res.json({
+                status: 1,
+                data: {},
+                message: 'success !'
+            });
+
+        }
+
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    }
     ,
     update: async function (req, res, next) {
 

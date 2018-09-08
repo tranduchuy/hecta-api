@@ -10,6 +10,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/add', SaleController.add);
 router.post('/update/:id', SaleController.update);
+router.post('/upnew/:id', SaleController.upNew);
 
 
 module.exports = router;
