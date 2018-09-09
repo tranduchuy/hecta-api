@@ -68,13 +68,13 @@ module.exports = async function (req, res, next) {
     var token = req.headers.access_token;
 
     if (token == null || typeof token === undefined) {
-        returnInvalidToken(req, res, next);
+        return returnInvalidToken(req, res, next);
     }
 
     var accessToken = await TokenModel.findOne({token: token});
 
     if (!accessToken) {
-        returnInvalidToken(req, res, next);
+        return returnInvalidToken(req, res, next);
     }
 
     var user = await UserModel.findOne({
@@ -83,7 +83,7 @@ module.exports = async function (req, res, next) {
     });
 
     if (!user) {
-        returnInvalidToken(req, res, next);
+        return returnInvalidToken(req, res, next);
     }
 
     req.user = user;
