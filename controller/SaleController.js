@@ -388,7 +388,7 @@ var SaleController = {
                 price = priority.costByDay;
             }
 
-            let purchaseStatus = UserModel.purchase(req.user._id, price);
+            let purchaseStatus = await UserModel.purchase(req.user._id, price);
             if (!purchaseStatus) {
                 return res.json({
                     status: 0,
