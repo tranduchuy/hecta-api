@@ -572,6 +572,7 @@ var PostController = {
                         postType: post.postType,
                         status: post.status,
                         paymentStatus: post.paymentStatus,
+
                         refresh: post.refresh
                     },
                     message: 'request success'
@@ -632,6 +633,7 @@ var PostController = {
                         postType: post.postType,
                         status: post.status,
                         paymentStatus: post.paymentStatus,
+
                         refresh: post.refresh
 
                     },
@@ -784,6 +786,7 @@ var PostController = {
                             postType: post.postType,
                             status: post.status,
                             paymentStatus: post.paymentStatus,
+
                             refresh: post.refresh
                         };
                 }
