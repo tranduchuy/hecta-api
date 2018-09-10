@@ -388,7 +388,13 @@ var SaleController = {
                 price = priority.costByDay;
             }
 
+            console.log('req.user ',req.user);
+            console.log('req.user._id ',req.user._id);
+
             let purchaseStatus = await UserModel.purchase(req.user._id, price);
+
+            console.log('purchaseStatus ',purchaseStatus);
+
             if (!purchaseStatus) {
                 return res.json({
                     status: 0,
@@ -398,6 +404,7 @@ var SaleController = {
             }
 
             post.refresh = Date.now();
+            post.save();
             await TransactionHistoryModel.addTransaction(req.user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_UP_NEW, purchaseStatus.before, purchaseStatus.after);
 
             return res.json({
