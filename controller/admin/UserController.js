@@ -223,6 +223,9 @@ var UserController = {
                     district: user.district,
                     ward: user.ward,
                     type: user.type,
+                  
+                    expirationDate: user.expirationDate,
+                  
                     balance: accountInfo
                 };
 
