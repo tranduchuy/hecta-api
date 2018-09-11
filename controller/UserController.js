@@ -727,7 +727,7 @@ var UserController = {
                 child = await ChildModel.findOne({
                     companyId: user._id,
                     personalId: id,
-                    status : global.STATUS.CHILD_ACCEPTED
+                    status: global.STATUS.CHILD_ACCEPTED
 
                 });
 
@@ -736,7 +736,7 @@ var UserController = {
 
                 child = await ChildModel.findOne({
                     personalId: user._id,
-                    status : global.STATUS.CHILD_ACCEPTED
+                    status: global.STATUS.CHILD_ACCEPTED
                 });
             }
 
@@ -749,22 +749,60 @@ var UserController = {
             }
 
 
-
             var parentAccount = await AccountModel.findOne({owner: child.companyId});
             if (!parentAccount) {
                 parentAccount = new AccountModel({
-                    owner: user._id,
+                    owner: child.companyId,
                     main: 0
                 });
             }
+
+            var parentBefore = {
+                main: parentAccount.main,
+                promo: parentAccount.promo,
+                credit: 0
+
+            };
+
+            var childAccount = await AccountModel.findOne({owner: child.personalId});
+            if (!childAccount) {
+                childAccount = new AccountModel({
+                    owner: child.personalId,
+                    main: 0
+                });
+                await childAccount.save();
+            }
+
+
+            var childBefore = {
+                main: childAccount.main,
+                promo: childAccount.promo,
+                credit: child.credit
+
+            };
 
             parentAccount.main += child.credit;
 
             child.status = global.STATUS.CHILD_NONE;
             child.credit = 0;
 
-            parentAccount.save();
+
+            var parentAfter = {
+                main: parentAccount.main,
+                promo: parentAccount.promo,
+                credit: 0
+            };
+
+            var childAfter = {
+                main: childAccount.main,
+                promo: childAccount.promo,
+                credit: 0
+            };
+            await parentAccount.save();
             await child.save();
+
+            await TransactionHistoryModel.addTransaction(child.companyId, undefined, childBefore.credit, "", child.personalId, global.TRANSACTION_TYPE_TAKE_BACK_MONEY, parentBefore, parentAfter);
+            await TransactionHistoryModel.addTransaction(child.personalId, undefined, childBefore.credit, "", child.companyId, global.TRANSACTION_TYPE_GIVE_MONEY_BACK, childBefore, childAfter);
 
             return res.json({
                 status: 1,
@@ -1403,7 +1441,7 @@ var UserController = {
             if (user.type == global.USER_TYPE_COMPANY) {
                 var creditTransferred = 0;
 
-                var children = await ChildModel.find({companyId: user._id,status: global.STATUS.CHILD_ACCEPTED});
+                var children = await ChildModel.find({companyId: user._id, status: global.STATUS.CHILD_ACCEPTED});
 
                 if (children && children.length > 0) {
                     children.forEach(child => {
@@ -1776,11 +1814,9 @@ var UserController = {
             if (avatar) {
                 user.avatar = avatar;
             }
-            console.log('gender 1', gender);
 
             if (gender != undefined) {
 
-                console.log('gender 2', gender);
                 user.gender = gender;
             }
             if (city) {

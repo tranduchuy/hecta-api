@@ -16,7 +16,7 @@ router.post('/update', UserController.update);
 router.post('/child/request/:id', UserController.childRequest);
 router.post('/child/response/:id', UserController.childResponse);
 router.post('/child/credit/share/:id', UserController.creditShare);
-router.post('/child/remove/:id', UserController.childRemove);
+router.post('/child/remove/:id?', UserController.childRemove);
 router.post('/forget-password', UserController.forgetPassword);
 router.post('/reset-password', UserController.resetPassword);
 

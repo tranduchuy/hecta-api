@@ -50,6 +50,7 @@ var returnInvalidToken = function (req, res, next) {
     if (checkSuitIgnoreUrl(req.path)) {
         return next();
     }
+
     return res.json({
         status: 0,
         message: 'Invalid token',
@@ -68,13 +69,16 @@ module.exports = async function (req, res, next) {
     var token = req.headers.access_token;
 
     if (token == null || typeof token === undefined) {
-        return returnInvalidToken(req, res, next);
+        returnInvalidToken(req, res, next);
+        return;
     }
 
     var accessToken = await TokenModel.findOne({token: token});
 
     if (!accessToken) {
-        return returnInvalidToken(req, res, next);
+        returnInvalidToken(req, res, next);
+        return;
+
     }
 
     var user = await UserModel.findOne({
@@ -83,7 +87,9 @@ module.exports = async function (req, res, next) {
     });
 
     if (!user) {
-        return returnInvalidToken(req, res, next);
+        returnInvalidToken(req, res, next);
+        return;
+
     }
 
     req.user = user;

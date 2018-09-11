@@ -344,7 +344,7 @@ var TransactionController = {
 
 
                     if (ObjectId.isValid(transaction.info)) {
-                        if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT) {
+                        if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT || transaction.type == global.TRANSACTION_TYPE_GIVE_MONEY_BACK || transaction.type == global.TRANSACTION_TYPE_TAKE_BACK_MONEY) {
                             var user = await UserModel.findOne({_id: transaction.info});
 
                             if (user) {
@@ -408,7 +408,6 @@ var TransactionController = {
             }
 
 
-
             var childId = req.params.id;
 
 
@@ -417,7 +416,6 @@ var TransactionController = {
                 companyId: req.user._id,
                 personalId: childId
             });
-
 
 
             if (!child) {
