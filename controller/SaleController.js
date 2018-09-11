@@ -14,6 +14,8 @@ var urlSlug = require('url-slug');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
+var ImageService = require('../services/ImageService')
+
 
 
 var checkUserPayment = async function (user, post, price) {
@@ -235,7 +237,9 @@ var SaleController = {
             sale.contactPhone = contactPhone;
             sale.contactMobile = contactMobile;
             sale.contactEmail = contactEmail;
-
+  
+            ImageService.postConfirmImage(images);
+            
             sale = await sale.save();
 
 
