@@ -1,26 +1,46 @@
-var request = require('request');
-var log4js = require('log4js');
-var logger = log4js.getLogger('Controllers');
+const request = require('request');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Services');
 
+const postConfirmImage = function (paths) {
+  logger.info('ImageService::postConfirmImage was called with: ' + JSON.stringify(paths));
 
-var ImageService = {
-  postConfirmImage: function (paths) {
-    request.post({url: global.API_COMFIRM_IMAGE, form: {paths}}, function (req, httpResponse, body) {
-      if (body.status != 1)
-        logger.error(['POST CONFIRM IMAGE error', body, global.API_COMFIRM_IMAGE, paths]);
-      else
-        logger.info(['POST CONFIRM IMAGE info', global.API_COMFIRM_IMAGE, paths]);
-    })
-  },
-  
-  putUpdateImage: function (oldImages, newImages) {
-    request.put({url: global.API_COMFIRM_IMAGE, form: {oldImages, newImages}}, function (err, httpResponse, body) {
-      if (body.status!= 1)
-        logger.error(['PUT UPDATE IMAGE error', body, global.API_COMFIRM_IMAGE, paths]);
-      else
-        logger.info(['PUST UPDATE IMAGE info', global.API_COMFIRM_IMAGE, paths]);
-    })
-  }
+  const option = {
+    uri: global.API_COMFIRM_IMAGE,
+    json: { paths },
+    method: 'POST'
+  };
+
+  request(option, (err, httpResponse, body) => {
+    console.log(httpResponse);
+    console.log(body);
+    if (body.status != 1) {
+      logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(err)}. Params: ${JSON.stringify(option)}`);
+    } else {
+      logger.info('POST CONFIRM IMAGE info' + JSON.stringify(option));
+    }
+  });
+};
+
+const putUpdateImage = (oldImages, newImages) => {
+  logger.info('ImageService::putUpdateImage was called with: ' + JSON.stringify({ oldImages, newImages }));
+
+  const option = {
+    uri: global.API_COMFIRM_IMAGE,
+    method: 'PUT',
+    json: { oldImages, newImages }
+  };
+
+  request.put(option, (err, httpResponse, body) => {
+    if (body.status != 1) {
+      logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(err)}. Params: ${JSON.stringify(option)}`);
+    } else {
+      logger.info(['PUST UPDATE IMAGE info', global.API_COMFIRM_IMAGE, paths]);
+    }
+  })
 }
 
-module.exports = ImageService
+module.exports = {
+  postConfirmImage,
+  putUpdateImage
+}
