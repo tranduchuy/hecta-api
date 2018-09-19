@@ -14,8 +14,8 @@ log4js.configure('./config/log4js.json');
 
 var app = express();
 
-
 app.use(cors());
+// init socket
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -31,12 +31,12 @@ app.use(require('./middlewares/CheckToken'));
 app.use('/', rootRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
