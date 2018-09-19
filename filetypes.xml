@@ -3,12 +3,13 @@
     <extensionMap>
       <mapping pattern="insert-update-user" type="PLAIN_TEXT" />
       <mapping ext="eot" type="PLAIN_TEXT" />
-      <mapping ext="2018-09-14" type="PLAIN_TEXT" />
+      <mapping ext="2018-09-10" type="PLAIN_TEXT" />
       <mapping ext="woff2" type="PLAIN_TEXT" />
       <mapping ext="2018-09-11" type="PLAIN_TEXT" />
-      <mapping ext="woff" type="PLAIN_TEXT" />
+      <mapping ext="2018-09-14" type="PLAIN_TEXT" />
       <mapping ext="2018-09-13" type="PLAIN_TEXT" />
       <mapping ext="ttf" type="PLAIN_TEXT" />
+      <mapping ext="woff" type="PLAIN_TEXT" />
     </extensionMap>
   </component>
 </application>
