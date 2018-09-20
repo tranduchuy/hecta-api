@@ -14,6 +14,8 @@ var randomstring = require("randomstring");
 var HTTP_CODE = require('../config/http-code');
 var log4js = require('log4js');
 var logger = log4js.getLogger('Controllers');
+const NotifyController = require('./NotifyController');
+const notifyContent = require('../config/notify-content');
 
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
@@ -978,6 +980,12 @@ var UserController = {
             child.status = global.STATUS.CHILD_WAITING;
 
             await child.save();
+            await NotifyController.createNotify({
+                fromUserId: user._id,
+                toUerId: person._id,
+                title: notifyContent.RequestChild.title,
+                content: notifyContent.RequestChild.content
+            });
 
             return res.json({
                 status: 1,

@@ -16,6 +16,7 @@ var news = require('../routes/news');
 var admin = require('../routes/admin');
 var tags = require('../routes/tags');
 var vips = require('../routes/vips');
+var notify = require('../routes/notify');
 
 
 router.use('/', index);
@@ -31,6 +32,7 @@ router.use('/api/v1/tags', tags);
 router.use('/api/v1/script', script);
 router.use('/api/v1/news', news);
 router.use('/api/v1/vips', vips);
+router.use('/api/v1/notify', notify);
 
 router.use('/admin/v1/', admin);
 
