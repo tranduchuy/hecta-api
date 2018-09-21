@@ -10,8 +10,9 @@ const httpCode = require('../config/http-code');
  * @return {Boolean}
  */
 const isValidStatusForUpdating = (status) => {
+  // TODO: will update this list when new status of notify appeared
   return [
-    global.STATUS.NOTIFY_NONE, 
+    global.STATUS.NOTIFY_NONE,
     global.STATUS.NOTIFY_READ
   ].indexOf(status) !== -1;
 }
@@ -25,15 +26,15 @@ const isValidStatusForUpdating = (status) => {
 const createNotify = async (params) => {
   logger.info('NotifyController::createNotify is called', params);
 
-  var newNotify = await new NotifyModel({
-    fromUser: new mongoose.Types.ObjectId(params.fromUserId),
-    toUser: new mongoose.Types.ObjectId(params.toUserId),
-    status: global.STATUS.NOTIFY_NONE,
-    title: params.title.toString().trim(),
-    content: params.content.toString().trim(),
-    createdTime: new Date(),
-    updatedTime: new Date()
-  });
+  var newNotify = await new NotifyModel();
+  newNotify.fromUser = new mongoose.Types.ObjectId(params.fromUserId);
+  newNotify.toUser = new mongoose.Types.ObjectId(params.toUserId);
+  newNotify.status = global.STATUS.NOTIFY_NONE;
+  newNotify.title = params.title.toString().trim();
+  newNotify.content = params.content.toString().trim();
+  newNotify.createdTime = new Date();
+  newNotify.updatedTime = new Date();
+  await newNotify.save();
 
   return newNotify;
 }

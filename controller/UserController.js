@@ -686,6 +686,12 @@ var UserController = {
             });
 
             await child.save();
+            await NotifyController.createNotify({
+                fromUserId: parrent._id,
+                toUerId: user._id,
+                title: notifyContent.RequestChild.title,
+                content: notifyContent.RequestChild.content
+            });
 
 
             return res.json({
