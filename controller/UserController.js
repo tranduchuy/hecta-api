@@ -16,6 +16,8 @@ var log4js = require('log4js');
 var logger = log4js.getLogger('Controllers');
 const NotifyController = require('./NotifyController');
 const notifyContent = require('../config/notify-content');
+const socket = require('../utils/Socket');
+const socketEvents = require('../config/socket-event');
 
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
@@ -30,7 +32,7 @@ var forgetPassword = async function (req, res, next) {
     }
 
     try {
-        var user = await UserModel.findOne({email: email});
+        var user = await UserModel.findOne({ email: email });
 
         if (!user) {
             return res.json({
@@ -47,7 +49,7 @@ var forgetPassword = async function (req, res, next) {
 
         // xoá tất cả các token của user này
         await TokenModel
-            .find({user: user._id})
+            .find({ user: user._id })
             .remove()
 
         logger.info('UserController::forgetPassword Remove all token of user', user.email);
@@ -102,7 +104,7 @@ var resetPassword = async function (req, res, next) {
     }
 
     try {
-        var user = await UserModel.findOne({resetPasswordToken: resetToken});
+        var user = await UserModel.findOne({ resetPasswordToken: resetToken });
         if (!user) {
             return res.json({
                 status: HTTP_CODE.ERROR,
@@ -147,7 +149,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -158,7 +160,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -169,11 +171,11 @@ var UserController = {
                 });
             }
 
-            var account = await AccountModel.findOne({owner: user._id});
+            var account = await AccountModel.findOne({ owner: user._id });
 
 
             if (!account) {
-                account = new AccountModel({owner: user._id});
+                account = new AccountModel({ owner: user._id });
                 account = await account.save();
             }
 
@@ -186,7 +188,7 @@ var UserController = {
             if (user.type == global.USER_TYPE_COMPANY) {
                 var creditTransferred = 0;
 
-                var children = await ChildModel.find({companyId: user._id});
+                var children = await ChildModel.find({ companyId: user._id });
 
                 if (children && children.length > 0) {
                     children.forEach(child => {
@@ -199,7 +201,7 @@ var UserController = {
 
             if (user.type == global.USER_TYPE_PERSONAL) {
 
-                var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+                var child = await ChildModel.find({ personalId: user._id, status: global.STATUS.CHILD_ACCEPTED });
 
                 if (child) {
                     accountInfo.credit = child.credit;
@@ -217,7 +219,7 @@ var UserController = {
 
         }
         catch
-            (e) {
+        (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -243,7 +245,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -254,7 +256,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -274,7 +276,7 @@ var UserController = {
             }
 
 
-            var person = await UserModel.findOne({_id: id});
+            var person = await UserModel.findOne({ _id: id });
             if (!person) {
 
                 return res.json({
@@ -325,7 +327,7 @@ var UserController = {
             });
         }
         catch
-            (e) {
+        (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -351,7 +353,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -362,7 +364,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -382,7 +384,7 @@ var UserController = {
             }
 
 
-            var person = await UserModel.findOne({_id: id});
+            var person = await UserModel.findOne({ _id: id });
             if (!person) {
 
                 return res.json({
@@ -417,12 +419,12 @@ var UserController = {
             if (amount == 0) {
                 return res.json({
                     status: 0,
-                    data: {amount: amount},
+                    data: { amount: amount },
                     message: 'amount is invalid'
                 });
             }
 
-            var sourceAccount = await AccountModel.findOne({owner: user._id});
+            var sourceAccount = await AccountModel.findOne({ owner: user._id });
 
             if (!sourceAccount) {
                 sourceAccount = new AccountModel({
@@ -440,7 +442,7 @@ var UserController = {
 
                 var sharedCredit = 0;
 
-                var sharedChildren = await ChildModel.find({companyId: user._id});
+                var sharedChildren = await ChildModel.find({ companyId: user._id });
 
 
                 if (sharedChildren) {
@@ -470,7 +472,7 @@ var UserController = {
             }
 
 
-            var accountChild = await AccountModel({owner: child.personalId});
+            var accountChild = await AccountModel({ owner: child.personalId });
             // var transactionChild = new TransactionHistoryModel({
             //
             //     userId: new ObjectId(child.personalId),
@@ -499,7 +501,7 @@ var UserController = {
             };
 
             child.credit += amount;
-            child.creditHistory.push({date: Date.now(), amount: amount, note: note});
+            child.creditHistory.push({ date: Date.now(), amount: amount, note: note });
 
             sourceAccount.main -= amount;
 
@@ -529,7 +531,7 @@ var UserController = {
             });
         }
         catch
-            (e) {
+        (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -568,7 +570,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -579,7 +581,7 @@ var UserController = {
             }
 
 
-            var parrent = await UserModel.findOne({_id: accessToken.user});
+            var parrent = await UserModel.findOne({ _id: accessToken.user });
 
             if (!parrent) {
 
@@ -652,7 +654,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({username: username});
+            var user = await UserModel.findOne({ username: username });
 
             if (user) {
                 return res.json({
@@ -686,13 +688,21 @@ var UserController = {
             });
 
             await child.save();
-            await NotifyController.createNotify({
-                fromUserId: parrent._id,
-                toUerId: user._id,
-                title: notifyContent.RequestChild.title,
-                content: notifyContent.RequestChild.content
-            });
 
+            // create notify
+            const notifyParam = {
+                fromUserId: parrent._id,
+                toUserId: user._id,
+                title: notifyContent.RequestChild.Title,
+                content: notifyContent.RequestChild.Content
+            };
+
+            await NotifyController.createNotify(notifyParam);
+
+            // send socket
+            const socketContents = { ...notifyParam, toUserIds: [user._id] };
+            delete socketContents.toUserId;
+            socket.broadcast(socketEvents.NOTIFY, socketContents);
 
             return res.json({
                 status: 1,
@@ -757,7 +767,7 @@ var UserController = {
             }
 
 
-            var parentAccount = await AccountModel.findOne({owner: child.companyId});
+            var parentAccount = await AccountModel.findOne({ owner: child.companyId });
             if (!parentAccount) {
                 parentAccount = new AccountModel({
                     owner: child.companyId,
@@ -772,7 +782,7 @@ var UserController = {
 
             };
 
-            var childAccount = await AccountModel.findOne({owner: child.personalId});
+            var childAccount = await AccountModel.findOne({ owner: child.personalId });
             if (!childAccount) {
                 childAccount = new AccountModel({
                     owner: child.personalId,
@@ -843,7 +853,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -854,7 +864,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -882,6 +892,22 @@ var UserController = {
             }
 
             await child.save();
+
+            const { Title, Content } = status == global.STATUS.CHILD_ACCEPTED ?
+                notifyContent.ResponseChildStatusAccepted :
+                notifyContent.ResponseChildStatusRejected;
+
+            const notifyParam = {
+                fromUserId: user._id,
+                toUserId: child.companyId,
+                title: Title,
+                content: Content
+            };
+            await NotifyController.createNotify(notifyParam);
+
+            const socketContents = { ...notifyParam, toUserIds: [child.companyId] };
+            delete socketContents.toUserId;
+            socket.broadcast(socketEvents.NOTIFY, socketContents);
 
             return res.json({
                 status: 1,
@@ -914,7 +940,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -925,7 +951,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -945,7 +971,7 @@ var UserController = {
             }
 
 
-            var person = await UserModel.findOne({_id: id});
+            var person = await UserModel.findOne({ _id: id });
             if (!person) {
 
                 return res.json({
@@ -986,12 +1012,18 @@ var UserController = {
             child.status = global.STATUS.CHILD_WAITING;
 
             await child.save();
-            await NotifyController.createNotify({
+
+            const notifyParam = {
                 fromUserId: user._id,
-                toUerId: person._id,
-                title: notifyContent.RequestChild.title,
-                content: notifyContent.RequestChild.content
-            });
+                toUserId: person._id,
+                title: notifyContent.RequestChild.Title,
+                content: notifyContent.RequestChild.Content
+            };
+            await NotifyController.createNotify(notifyParam);
+
+            const socketContents = { ...notifyParam, toUserIds: [person._id] };
+            delete socketContents.toUserId;
+            socket.broadcast(socketEvents.NOTIFY, socketContents);
 
             return res.json({
                 status: 1,
@@ -1024,7 +1056,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -1035,7 +1067,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -1054,11 +1086,11 @@ var UserController = {
                 });
             }
 
-            var parrents = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_WAITING});
+            var parrents = await ChildModel.find({ personalId: user._id, status: global.STATUS.CHILD_WAITING });
 
             let results = await Promise.all(parrents.map(async parrent => {
 
-                let company = await UserModel.findOne({_id: parrent.companyId});
+                let company = await UserModel.findOne({ _id: parrent.companyId });
 
 
                 return {
@@ -1083,7 +1115,7 @@ var UserController = {
 
         }
         catch
-            (e) {
+        (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -1105,7 +1137,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -1116,7 +1148,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -1137,18 +1169,18 @@ var UserController = {
 
             var children = await ChildModel.find({
                 companyId: user._id,
-                status: {$in: [global.STATUS.CHILD_WAITING, global.STATUS.CHILD_ACCEPTED, global.STATUS.CHILD_REJECTED]}
+                status: { $in: [global.STATUS.CHILD_WAITING, global.STATUS.CHILD_ACCEPTED, global.STATUS.CHILD_REJECTED] }
             });
 
             let results = await Promise.all(children.map(async child => {
 
-                let personal = await UserModel.findOne({_id: child.personalId});
+                let personal = await UserModel.findOne({ _id: child.personalId });
 
-                var account = await AccountModel.findOne({owner: child.personalId});
+                var account = await AccountModel.findOne({ owner: child.personalId });
 
 
                 if (!account) {
-                    account = new AccountModel({owner: child.personalId});
+                    account = new AccountModel({ owner: child.personalId });
                     account = await account.save();
                 }
 
@@ -1206,7 +1238,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -1217,7 +1249,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
@@ -1236,7 +1268,7 @@ var UserController = {
                 });
             }
 
-            var personal = await UserModel.findOne({email: email});
+            var personal = await UserModel.findOne({ email: email });
             if (!personal || personal.type != global.USER_TYPE_PERSONAL) {
                 return res.json({
                     status: 0,
@@ -1245,7 +1277,7 @@ var UserController = {
                 });
             }
 
-            var child = await ChildModel.findOne({companyId: user._id, personalId: personal._id});
+            var child = await ChildModel.findOne({ companyId: user._id, personalId: personal._id });
 
             var transfer = undefined;
 
@@ -1282,7 +1314,7 @@ var UserController = {
 
 
             let users = await
-                UserModel.find({phone: {$ne: null}, avatar: {$ne: null}}).sort({date: -1}).limit(10);
+                UserModel.find({ phone: { $ne: null }, avatar: { $ne: null } }).sort({ date: -1 }).limit(10);
 
             let results = await
                 Promise.all(users.map(async user => {
@@ -1361,7 +1393,7 @@ var UserController = {
 
         try {
 
-            let user = await UserModel.findOne(username ? {username: username} : {email: email});
+            let user = await UserModel.findOne(username ? { username: username } : { email: email });
 
 
             if (user) {
@@ -1413,7 +1445,7 @@ var UserController = {
         }
 
         var user = await UserModel.findOne({
-            $or: [{username: username}, {email: username}]
+            $or: [{ username: username }, { email: username }]
         });
 
         if (!user) {
@@ -1436,13 +1468,13 @@ var UserController = {
         if (await bcrypt.compareSync(password, user.hash_password)) {
 
             var result = {};
-            var requestCount = await ChildModel.count({personalId: user._id, status: global.STATUS.CHILD_WAITING});
+            var requestCount = await ChildModel.count({ personalId: user._id, status: global.STATUS.CHILD_WAITING });
 
-            var account = await AccountModel.findOne({owner: user._id});
+            var account = await AccountModel.findOne({ owner: user._id });
 
 
             if (!account) {
-                account = new AccountModel({owner: user._id});
+                account = new AccountModel({ owner: user._id });
                 account = await account.save();
             }
 
@@ -1455,7 +1487,7 @@ var UserController = {
             if (user.type == global.USER_TYPE_COMPANY) {
                 var creditTransferred = 0;
 
-                var children = await ChildModel.find({companyId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+                var children = await ChildModel.find({ companyId: user._id, status: global.STATUS.CHILD_ACCEPTED });
 
                 if (children && children.length > 0) {
                     children.forEach(child => {
@@ -1468,7 +1500,7 @@ var UserController = {
 
             if (user.type == global.USER_TYPE_PERSONAL) {
 
-                var child = await ChildModel.findOne({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+                var child = await ChildModel.findOne({ personalId: user._id, status: global.STATUS.CHILD_ACCEPTED });
 
                 if (child) {
                     accountInfo.credit = child.credit;
@@ -1521,7 +1553,7 @@ var UserController = {
             });
         }
 
-        var user = await UserModel.findOne({email: email, status: global.STATUS.PENDING_OR_WAIT_COMFIRM});
+        var user = await UserModel.findOne({ email: email, status: global.STATUS.PENDING_OR_WAIT_COMFIRM });
         if (!user) {
             return res.json({
                 status: 0,
@@ -1552,7 +1584,7 @@ var UserController = {
                 });
             }
 
-            var user = await UserModel.findOne({confirmToken: token});
+            var user = await UserModel.findOne({ confirmToken: token });
 
             if (!user) {
                 return res.json({
@@ -1655,7 +1687,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({username: username});
+            var user = await UserModel.findOne({ username: username });
 
             if (user) {
                 return res.json({
@@ -1666,7 +1698,7 @@ var UserController = {
 
             }
 
-            user = await UserModel.findOne({email: email});
+            user = await UserModel.findOne({ email: email });
 
             if (user) {
                 return res.json({
@@ -1730,7 +1762,7 @@ var UserController = {
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({ token: token });
 
             if (!accessToken) {
                 return res.json({
@@ -1741,7 +1773,7 @@ var UserController = {
             }
 
 
-            var user = await UserModel.findOne({_id: accessToken.user});
+            var user = await UserModel.findOne({ _id: accessToken.user });
 
             if (!user) {
 
