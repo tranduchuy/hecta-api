@@ -32,7 +32,7 @@ router.use('/api/v1/tags', tags);
 router.use('/api/v1/script', script);
 router.use('/api/v1/news', news);
 router.use('/api/v1/vips', vips);
-router.use('/api/v1/notify', notify);
+router.use('/api/v1/notifies', notify);
 
 router.use('/admin/v1/', admin);
 

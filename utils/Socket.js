@@ -1,5 +1,4 @@
-const { encrypt, decrypt } = require('./Encrypt');
-const socketEvent = require('../config/socket-event');
+const { encrypt } = require('./Encrypt');
 
 let io = null;
 
@@ -18,7 +17,7 @@ const init = (ioInput) => {
   }
 }
 
-const broadcast = (type, content) => {
+const broadcast = async (type, content) => {
   if (!io) {
     return;
   }

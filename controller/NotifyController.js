@@ -3,6 +3,7 @@ const NotifyModel = require('../models/Notify');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const httpCode = require('../config/http-code');
+const requestUtil = require('../utils/RequestUtil');
 
 /**
  * 
@@ -97,7 +98,53 @@ const updateNotify = async (req, res, next) => {
   }
 }
 
+/**
+ * Api get list notify
+ * @param {*} req body: {status, title, content}, params: {notifyId}
+ * @param {*} res 
+ * @param {*} next 
+ */
+const getListNotifies = async (req, res, next) => {
+  logger.info('NotifyController::getListNotifies is called');
+  try {
+    const { page, limit } = requestUtil.extractPaginationCondition(req);
+    const query = {
+      toUser: new mongoose.Types.ObjectId(req.user._id)
+    }
+
+    let countUnRead = await NotifyModel.count({
+      toUser: new mongoose.Types.ObjectId(req.user._id),
+      status: global.STATUS.NOTIFY_NONE
+    });
+
+    let notifies = await NotifyModel
+      .find(query)
+      .sort({createdTime: -1})
+      .skip((page - 1)  * limit)
+      .limit(limit);
+    
+    return res.json({
+      status: httpCode.SUCCESS,
+      message: [],
+      data: {
+        meta: {
+          page,
+          limit,
+          sortBy: 'createdTime',
+          unRead: countUnRead
+        },
+        entry: notifies
+      }
+    })
+
+  } catch (e) {
+    logger.error('NotifyController::getListNotifies error', e);
+    return next(e);
+  }
+}
+
 module.exports = {
   createNotify,
-  updateNotify
+  updateNotify,
+  getListNotifies
 };
