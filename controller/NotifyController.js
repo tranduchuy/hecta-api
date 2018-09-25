@@ -16,19 +16,19 @@ const isValidStatusForUpdating = (status) => {
     global.STATUS.NOTIFY_NONE,
     global.STATUS.NOTIFY_READ
   ].indexOf(status) !== -1;
-}
+};
 
 
 /**
  * @description Create a notify from fromUser to toUser
  * @param {*} params {fromUserId, toUserId, title, content}
- * @return {Notify}
+ * @return {Object}
  */
 const createNotify = async (params) => {
   logger.info('NotifyController::createNotify is called', params);
 
-  var newNotify = await new NotifyModel();
-  newNotify.fromUser = new mongoose.Types.ObjectId(params.fromUserId);
+  const newNotify = await new NotifyModel();
+  newNotify.fromUser = params.fromUserId ? new mongoose.Types.ObjectId(params.fromUserId) : null;
   newNotify.toUser = new mongoose.Types.ObjectId(params.toUserId);
   newNotify.status = global.STATUS.NOTIFY_NONE;
   newNotify.title = params.title.toString().trim();
@@ -50,7 +50,7 @@ const updateNotify = async (req, res, next) => {
   logger.info('NotifyController::updateNotify is called');
 
   try {
-    const notify = await NotifyModel.findOne({ _id: req.params.notifyId });
+    const notify = await NotifyModel.findOne({ _id: req.params['notifyId'] });
 
     let { title, content, status } = req.body;
     if (isNaN(status)) {
@@ -110,7 +110,7 @@ const getListNotifies = async (req, res, next) => {
     const { page, limit } = requestUtil.extractPaginationCondition(req);
     const query = {
       toUser: new mongoose.Types.ObjectId(req.user._id)
-    }
+    };
 
     let countUnRead = await NotifyModel.count({
       toUser: new mongoose.Types.ObjectId(req.user._id),

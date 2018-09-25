@@ -13,7 +13,11 @@ var UrlParamModel = require('../models/UrlParamModel');
 var urlSlug = require('url-slug');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-
+const NotifyController = require('../controller/NotifyController');
+const Socket = require('../utils/Socket');
+const NotifyContent = require('../config/notify-content');
+const NotifyEvents = require('../config/socket-event');
+const HTTP_CODE = require('../config/http-code');
 
 
 var checkUserPayment = async function (user, post, price) {
@@ -339,24 +343,33 @@ var SaleController = {
             post = await post.save();
             await checkUserPayment(user, post, dateCount * priority.costByDay);
 
+            // notify
+            const notifyParams = {
+                fromUserId: null,
+                toUserId: user._id,
+                title: NotifyContent.PayPost.Title,
+                content: NotifyContent.PayPost.Content
+            };
+            NotifyController.createNotify(notifyParams);
+
+            // send socket
+            notifyParams.toUserIds = [notifyParams.toUserId];
+            delete notifyParams.toUserId;
+            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
 
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: post,
                 message: 'request  post sale success !'
             });
-
-
         }
         catch (e) {
             return res.json({
-                status: 0,
+                status: HTTP_CODE.ERROR,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
-
-
     },
 
     upNew: async function (req, res, next) {

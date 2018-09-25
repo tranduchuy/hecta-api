@@ -18,5 +18,9 @@ module.exports = {
     AddPromo: {
         Title: 'Cập nhật tài khoản khuyến mãi',
         Content: 'Cập nhật tài khoản khuyến mãi'
+    },
+    PayPost: {
+        Title: 'Hệ thống trừ tiền đăng bài',
+        Content: 'Hệ thống trừ tiền đăng bài'
     }
 };
