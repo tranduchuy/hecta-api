@@ -22,5 +22,9 @@ module.exports = {
     PayPost: {
         Title: 'Hệ thống trừ tiền đăng bài',
         Content: 'Hệ thống trừ tiền đăng bài'
+    },
+    CreditShare: {
+        Title: 'Chia sẻ tài khoản cho bạn',
+        Content: 'Chia sẻ tài khoản cho bạn'
     }
 };

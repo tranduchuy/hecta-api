@@ -15,9 +15,9 @@ var HTTP_CODE = require('../config/http-code');
 var log4js = require('log4js');
 var logger = log4js.getLogger('Controllers');
 const NotifyController = require('./NotifyController');
-const notifyContent = require('../config/notify-content');
-const socket = require('../utils/Socket');
-const socketEvents = require('../config/socket-event');
+const NotifyContent = require('../config/notify-content');
+const Socket = require('../utils/Socket');
+const SocketEvents = require('../config/Socket-event');
 
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
@@ -338,55 +338,12 @@ var UserController = {
     ,
 
     creditShare: async function (req, res, next) {
-
+        logger.info('UserController::creditShare is called');
         try {
-            var token = req.headers.access_token;
-            var amount = req.body.amount;
-            var note = req.body.note;
-            var id = req.params.id;
-
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({ token: token });
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var user = await UserModel.findOne({ _id: accessToken.user });
-
-            if (!user) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user is not exist'
-                });
-            }
-
-            if (user.type != global.USER_TYPE_COMPANY) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user does not have permission !'
-                });
-            }
-
-
-            var person = await UserModel.findOne({ _id: id });
+            let { amount, note, id } = req.body;
+            const user = req.user;
+            const person = await UserModel.findOne({ _id: id });
             if (!person) {
-
                 return res.json({
                     status: 0,
                     data: {},
@@ -394,15 +351,15 @@ var UserController = {
                 });
             }
 
-            if (person.type != global.USER_TYPE_PERSONAL) {
+            if (person.type !== global.USER_TYPE_PERSONAL) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.ERROR,
                     data: {},
-                    message: 'person invalid !'
+                    message: 'Person invalid !'
                 });
             }
 
-            var child = await ChildModel.findOne({
+            let child = await ChildModel.findOne({
                 companyId: user._id,
                 personalId: person._id,
                 status: global.STATUS.CHILD_ACCEPTED
@@ -410,40 +367,43 @@ var UserController = {
 
             if (!child) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
                     message: 'relation in valid'
                 });
             }
 
-            if (amount == 0) {
+            if (isNaN(amount)) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: { amount: amount },
-                    message: 'amount is invalid'
+                    message: 'Amount is invalid'
                 });
             }
 
-            var sourceAccount = await AccountModel.findOne({ owner: user._id });
+            amount = parseInt(amount, 0);
+
+            if (amount < 0) {
+                return res.json({
+                    status: HTTP_CODE.BAD_REQUEST,
+                    data: { amount: amount },
+                    message: 'Amount is invalid'
+                });
+            }
+
+            let sourceAccount = await AccountModel.findOne({ owner: user._id });
 
             if (!sourceAccount) {
                 sourceAccount = new AccountModel({
-
                     owner: user._id
-
                 });
 
                 sourceAccount = await sourceAccount.save();
-
             }
 
-
             if (amount > 0) {
-
-                var sharedCredit = 0;
-
-                var sharedChildren = await ChildModel.find({ companyId: user._id });
-
+                let sharedCredit = 0;
+                const sharedChildren = await ChildModel.find({ companyId: user._id });
 
                 if (sharedChildren) {
                     sharedChildren.forEach(sharedChild => {
@@ -453,48 +413,28 @@ var UserController = {
 
                 if (sourceAccount.main - sharedCredit < amount) {
                     return res.json({
-                        status: 0,
+                        status: HTTP_CODE.ERROR,
                         data: {},
                         message: 'account not enough'
                     });
                 }
-
             } else {
-
                 if (child.credit - child.creditUsed < amount) {
                     return res.json({
-                        status: 0,
+                        status: HTTP_CODE.ERROR,
                         data: {},
                         message: 'credit left not enough'
                     });
                 }
-
             }
 
-
-            var accountChild = await AccountModel({ owner: child.personalId });
-            // var transactionChild = new TransactionHistoryModel({
-            //
-            //     userId: new ObjectId(child.personalId),
-            //     amount: amount,
-            //     note: note,
-            //     type: global.TRANSACTION_TYPE_RECEIVE_CREDIT,
-            //
-            //     current: {
-            //         credit: child.credit - child.creditUsed,
-            //         main: accountChild ? accountChild.main : 0,
-            //         promo: accountChild ? accountChild.promo : 0
-            //     }
-            // });
-
-
-            var beforeUser = {
+            const accountChild = await AccountModel({ owner: child.personalId });
+            const beforeUser = {
                 credit: child.credit,
                 main: accountChild ? accountChild.main : 0,
                 promo: accountChild ? accountChild.promo : 0
             };
-
-            var beforeParrent = {
+            const beforeParent = {
                 credit: 0,
                 main: sourceAccount.main,
                 promo: sourceAccount.promo
@@ -507,39 +447,47 @@ var UserController = {
 
             await sourceAccount.save();
 
-            var afterUser = {
+            const afterUser = {
                 credit: child.credit,
                 main: accountChild ? accountChild.main : 0,
                 promo: accountChild ? accountChild.promo : 0
             };
 
-            var afterParrent = {
+            const afterParrent = {
                 credit: 0,
                 main: sourceAccount.main,
                 promo: sourceAccount.promo
             };
 
             await TransactionHistoryModel.addTransaction(child.personalId, undefined, amount, note, child.companyId, global.TRANSACTION_TYPE_RECEIVE_CREDIT, beforeUser, afterUser);
-            await TransactionHistoryModel.addTransaction(child.companyId, undefined, amount, note, child.personalId, global.TRANSACTION_TYPE_SHARE_CREDIT, beforeParrent, afterParrent);
-
-
+            await TransactionHistoryModel.addTransaction(child.companyId, undefined, amount, note, child.personalId, global.TRANSACTION_TYPE_SHARE_CREDIT, beforeParent, afterParrent);
             await child.save();
+
+            // notify
+            const notifyParams = {
+                fromUserId: child.companyId,
+                toUserId: child.personalId,
+                title: NotifyContent.CreditShare.Title,
+                content: NotifyContent.CreditShare.Content
+            };
+            NotifyController.createNotify(notifyParams);
+
+            // send Socket
+            notifyParams.toUserIds = [notifyParams.toUserId];
+            delete notifyParams.toUserId;
+            Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
+
+
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: child,
-                message: 'request success'
+                message: 'Request success'
             });
+        } catch (e) {
+            logger.error('UserController::creditShare::error', e);
+            return next(e);
         }
-        catch
-        (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-    }
-    ,
+    },
 
 
     registerChild: async function (req, res, next) {
@@ -693,16 +641,16 @@ var UserController = {
             const notifyParam = {
                 fromUserId: parrent._id,
                 toUserId: user._id,
-                title: notifyContent.RequestChild.Title,
-                content: notifyContent.RequestChild.Content
+                title: NotifyContent.RequestChild.Title,
+                content: NotifyContent.RequestChild.Content
             };
 
             await NotifyController.createNotify(notifyParam);
 
-            // send socket
+            // send Socket
             const socketContents = { ...notifyParam, toUserIds: [user._id] };
             delete socketContents.toUserId;
-            socket.broadcast(socketEvents.NOTIFY, socketContents);
+            Socket.broadcast(SocketEvents.NOTIFY, socketContents);
 
             return res.json({
                 status: 1,
@@ -894,8 +842,8 @@ var UserController = {
             await child.save();
 
             const { Title, Content } = status == global.STATUS.CHILD_ACCEPTED ?
-                notifyContent.ResponseChildStatusAccepted :
-                notifyContent.ResponseChildStatusRejected;
+                NotifyContent.ResponseChildStatusAccepted :
+                NotifyContent.ResponseChildStatusRejected;
 
             const notifyParam = {
                 fromUserId: user._id,
@@ -907,7 +855,7 @@ var UserController = {
 
             const socketContents = { ...notifyParam, toUserIds: [child.companyId] };
             delete socketContents.toUserId;
-            socket.broadcast(socketEvents.NOTIFY, socketContents);
+            Socket.broadcast(SocketEvents.NOTIFY, socketContents);
 
             return res.json({
                 status: 1,
@@ -1016,14 +964,14 @@ var UserController = {
             const notifyParam = {
                 fromUserId: user._id,
                 toUserId: person._id,
-                title: notifyContent.RequestChild.Title,
-                content: notifyContent.RequestChild.Content
+                title: NotifyContent.RequestChild.Title,
+                content: NotifyContent.RequestChild.Content
             };
             await NotifyController.createNotify(notifyParam);
 
             const socketContents = { ...notifyParam, toUserIds: [person._id] };
             delete socketContents.toUserId;
-            socket.broadcast(socketEvents.NOTIFY, socketContents);
+            Socket.broadcast(SocketEvents.NOTIFY, socketContents);
 
             return res.json({
                 status: 1,
