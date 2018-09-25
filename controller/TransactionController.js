@@ -23,7 +23,7 @@ const extractSearchCondition = function (req, childId) {
         userId: childId || req.user._id
     };
 
-    const { startDay, endDay, type } = req.query;
+    const {startDay, endDay, type} = req.query;
 
     if (startDay && !isNaN(startDay)) {
         cond.date = cond.date || {};
@@ -46,7 +46,7 @@ const TransactionController = {
     addMain: async function (req, res, next) {
         logger.info('TransactionController::addMain is called');
         const userId = req.params.id;
-        const { amount, note, info } = req.body;
+        const {amount, note, info} = req.body;
 
         try {
             const admin = req.user;
@@ -123,78 +123,39 @@ const TransactionController = {
                 data: {},
                 message: 'Request success!'
             });
-        }
-        catch (e) {
+        } catch (e) {
             logger.error('TransactionController::addMain::error', e);
             return next(e);
         }
     },
 
-    addPromo: async function (req, res) {
-
-        var token = req.headers.access_token;
-        var userId = req.params.id;
-        var amount = req.body.amount;
-        var note = req.body.note;
-        var info = req.body.info;
-
+    addPromo: async function (req, res, next) {
+        logger.info('TransactionController::addPromo is called');
+        const userId = req.params.id;
+        const {amount, note, info} = req.body.amount;
 
         try {
-
-
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var admin = await UserModel.findOne({_id: accessToken.user});
-
-            if (!admin) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin is not exist'
-                });
-            }
-
-            var user = await UserModel.findOne({_id: userId});
+            const admin = req.user;
+            const user = await UserModel.findOne({_id: userId});
 
             if (!user) {
-
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
-                    message: 'user is not exist'
+                    message: 'User is not exist'
                 });
             }
 
-            if (!_.isNumber(amount) && amount > 0) {
+            if (!_.isNumber(amount) || amount < 0) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {amount: amount},
-                    message: 'mount is invalid'
+                    message: 'Amount is invalid'
                 });
             }
 
-            var account = await AccountModel.findOne({owner: user._id});
-
+            let account = await AccountModel.findOne({owner: user._id});
             if (!account) {
-
                 account = new AccountModel({
                     owner: user._id,
                     promo: 0
@@ -202,54 +163,46 @@ const TransactionController = {
             }
 
             let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
-            // var transaction = new TransactionHistoryModel({
-            //
-            //     userId: new ObjectId(userId),
-            //     adminId: new ObjectId(admin._id),
-            //     amount: amount,
-            //     note: note,
-            //     info: info,
-            //     type: global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT,
-            //
-            //     current: {
-            //         credit: child ? (child.credit - child.creditUsed) : 0,
-            //         main: account.main,
-            //         promo: account.promo
-            //     }
-            // });
-
             let before = {
                 credit: child ? (child.credit - child.creditUsed) : 0,
                 main: account.main,
                 promo: account.promo
-            }
+            };
+
             account.promo += amount;
 
             let after = {
                 credit: child ? (child.credit - child.creditUsed) : 0,
                 main: account.main,
                 promo: account.promo
-            }
-
+            };
 
             await account.save();
             await TransactionHistoryModel.addTransaction(user._id, admin._id, amount, note, info, global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT, before, after);
+
+            // notify
+            const notifyParams = {
+                fromUserId: admin._id,
+                toUserId: user._id,
+                title: NotifyContent.AddPromo.Title,
+                content: NotifyContent.AddPromo.Content
+            };
+            NotifyController.createNotify(notifyParams);
+
+            // send socket
+            notifyParams.toUserIds = [notifyParams.toUserId];
+            delete notifyParams.toUserId;
+            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
+
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: {},
-                message: 'request success!'
+                message: 'Request success!'
             });
-
-
+        } catch (e) {
+            logger.error('TransactionController::addMain::error', e);
+            return next(e);
         }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
     },
 
     list: async function (req, res) {
