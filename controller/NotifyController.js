@@ -20,7 +20,7 @@ const isValidStatusForUpdating = (status) => {
 
 
 /**
- * Create a notify from fromUser to toUser
+ * @description Create a notify from fromUser to toUser
  * @param {*} params {fromUserId, toUserId, title, content}
  * @return {Notify}
  */
@@ -38,7 +38,7 @@ const createNotify = async (params) => {
   await newNotify.save();
 
   return newNotify;
-}
+};
 
 /**
  * 
@@ -96,7 +96,7 @@ const updateNotify = async (req, res, next) => {
     logger.error('NotifyController::updateNotify:error', e);
     return next(e);
   }
-}
+};
 
 /**
  * Api get list notify
@@ -141,7 +141,7 @@ const getListNotifies = async (req, res, next) => {
     logger.error('NotifyController::getListNotifies error', e);
     return next(e);
   }
-}
+};
 
 module.exports = {
   createNotify,

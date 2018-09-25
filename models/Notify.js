@@ -1,7 +1,7 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-var notifySchema = new Schema({
+const notifySchema = new Schema({
   fromUser: {
     type: Schema.Types.ObjectId,
     ref: 'User'
@@ -27,6 +27,6 @@ var notifySchema = new Schema({
   updatedTime: Date
 });
 
-var NotidyModel = mongoose.model('Notifies', notifySchema);
+const NotidyModel = mongoose.model('Notifies', notifySchema);
 module.exports = NotidyModel;
 module.exports.Model = notifySchema;

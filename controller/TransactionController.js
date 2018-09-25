@@ -1,3 +1,4 @@
+const NotifyController = require('../controller/NotifyController');
 var PaymentModel = require('../models/TransactionHistoryModel');
 var AccountModel = require('../models/AccountModel');
 var TransactionHistoryModel = require('../models/TransactionHistoryModel');
@@ -11,158 +12,122 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var RequestUtil = require('../utils/RequestUtil');
 var HTTP_CODE = require('../config/http-code');
+const Socket = require('../utils/Socket');
+const NotifyContent = require('../config/notify-content');
+const NotifyEvents = require('../config/socket-event');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Controllers');
 
-var extractSearchCondition = function (req, childId) {
-    var cond = {
+const extractSearchCondition = function (req, childId) {
+    const cond = {
         userId: childId || req.user._id
     };
 
-    if (req.query.startDay && !isNaN(req.query.startDay)) {
+    const { startDay, endDay, type } = req.query;
+
+    if (startDay && !isNaN(startDay)) {
         cond.date = cond.date || {};
-        cond.date['$gte'] = parseInt(req.query.startDay, 0);
+        cond.date['$gte'] = parseInt(startDay, 0);
     }
 
-    if (req.query.endDay && !isNaN(req.query.endDay)) {
+    if (endDay && !isNaN(endDay)) {
         cond.date = cond.date || {};
-        cond.date['$lte'] = parseInt(req.query.endDay, 0);
+        cond.date['$lte'] = parseInt(endDay, 0);
     }
 
-    if (req.query.type && !isNaN(req.query.type)) {
-        cond.type = parseInt(req.query.type, 0);
+    if (type && !isNaN(type)) {
+        cond.type = parseInt(type, 0);
     }
 
     return cond;
-}
+};
 
-var TransactionController = {
-
-    addMain: async function (req, res) {
-
-        var token = req.headers.access_token;
-        var userId = req.params.id;
-        var amount = req.body.amount;
-        var note = req.body.note;
-        var info = req.body.info;
-
+const TransactionController = {
+    addMain: async function (req, res, next) {
+        logger.info('TransactionController::addMain is called');
+        const userId = req.params.id;
+        const { amount, note, info } = req.body;
 
         try {
-
-
-            if (!token) {
+            const admin = req.user;
+            if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
                 return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
+                    status: HTTP_CODE.ERROR,
+                    message: 'Permission denied',
+                    data: {}
                 });
             }
 
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin is not exist'
-                });
-            }
-
-            var user = await UserModel.findOne({_id: userId});
-
+            const user = await UserModel.findOne({_id: userId});
             if (!user) {
-
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
-                    message: 'user is not exist'
+                    message: 'User is not exist'
                 });
             }
 
-            if (!_.isNumber(amount) && amount > 0) {
+            if (!_.isNumber(amount) || amount < 0) {
                 return res.json({
-                    status: 0,
-                    data: {amount: amount},
-                    message: 'mount is invalid'
+                    status: HTTP_CODE.BAD_REQUEST,
+                    data: {amount},
+                    message: 'Amount is invalid'
                 });
             }
 
-            var account = await AccountModel.findOne({owner: user._id});
-
+            let account = await AccountModel.findOne({owner: user._id});
             if (!account) {
-
                 account = new AccountModel({
                     owner: user._id,
                     main: 0
                 });
             }
 
-
-            let child = await ChildModel({status: global.STATUS.ACTIVE, personalId: user._id});
-            // var transaction = new TransactionHistoryModel({
-            //
-            //     userId: new ObjectId(userId),
-            //     adminId: new ObjectId(admin._id),
-            //     amount: amount,
-            //     note: note,
-            //     info: info,
-            //     type: global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT,
-            //
-            //     current: {
-            //         credit: child ? (child.credit - child.creditUsed) : 0,
-            //         main: account.main,
-            //         promo: account.promo
-            //     }
-            // });
+            let child = await ChildModel({
+                status: global.STATUS.ACTIVE,
+                personalId: user._id
+            });
 
             let before = {
                 credit: child ? (child.credit - child.creditUsed) : 0,
                 main: account.main,
                 promo: account.promo
-            }
+            };
             account.main += amount;
 
             let after = {
                 credit: child ? (child.credit - child.creditUsed) : 0,
                 main: account.main,
                 promo: account.promo
-            }
-
+            };
 
             await account.save();
             await TransactionHistoryModel.addTransaction(user._id, admin._id, amount, note, info, global.TRANSACTION_TYPE_ADD_MAIN_ACCOUNT, before, after);
 
+            // notify
+            const notifyParams = {
+                fromUserId: admin._id,
+                toUserId: user._id,
+                title: NotifyContent.AddMain.Title,
+                content: NotifyContent.AddMain.Content
+            };
+            NotifyController.createNotify(notifyParams);
+
+            // send socket
+            notifyParams.toUserIds = [notifyParams.toUserId];
+            delete notifyParams.toUserId;
+            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
 
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: {},
-                message: 'request success!'
+                message: 'Request success!'
             });
-
-
         }
         catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
+            logger.error('TransactionController::addMain::error', e);
+            return next(e);
         }
-
     },
 
     addPromo: async function (req, res) {
@@ -521,6 +486,6 @@ var TransactionController = {
             });
         }
     }
+};
 
-}
-module.exports = TransactionController
+module.exports = TransactionController;

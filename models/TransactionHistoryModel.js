@@ -1,12 +1,14 @@
 /**
  * Created by duong_000 on 10/18/2016.
  */
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var ObjectId = mongoose.Types.ObjectId;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const ObjectId = mongoose.Types.ObjectId;
+const log4js = require('log4js');
+const logger = log4js.getLogger('Models');
 
 
-var transactionHistorySchema = new Schema({
+const transactionHistorySchema = new Schema({
     userId: {type: Schema.Types.ObjectId, ref: 'User'},
     adminId: {type: Schema.Types.ObjectId, ref: 'User'},
     amount: Number,
@@ -14,7 +16,8 @@ var transactionHistorySchema = new Schema({
     info: String,// receiver or sender or sale
     type: Number,
     before: {
-        type: Object, default: {
+        type: Object,
+        default: {
             credit: 0,
             main: 0,
             promo: 0
@@ -22,7 +25,8 @@ var transactionHistorySchema = new Schema({
 
     },
     after: {
-        type: Object, default: {
+        type: Object,
+        default: {
             credit: 0,
             main: 0,
             promo: 0
@@ -33,13 +37,12 @@ var transactionHistorySchema = new Schema({
 });
 
 
-var TransactionHistory = mongoose.model('TransactionHistory', transactionHistorySchema);
+const TransactionHistory = mongoose.model('TransactionHistory', transactionHistorySchema);
 module.exports = TransactionHistory;
 module.exports.Model = transactionHistorySchema;
+
 module.exports.addTransaction = async function (user, admin, amount, note, info, type, before, after) {
-
-
-    let transaction = new TransactionHistory({
+    const params = {
         userId: new ObjectId(user),
         adminId: new ObjectId(admin),
         amount: amount,
@@ -48,8 +51,9 @@ module.exports.addTransaction = async function (user, admin, amount, note, info,
         type: type,
         before: before,
         after: after
-    });
+    };
+
+    logger.info('TransactionHistoryModel::addTransaction is call with params', params);
+    const transaction = new TransactionHistory(params);
     await transaction.save();
-
-
 };
