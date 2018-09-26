@@ -413,6 +413,20 @@ var SaleController = {
             post.save();
             await TransactionHistoryModel.addTransaction(req.user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_UP_NEW, purchaseStatus.before, purchaseStatus.after);
 
+            // notify
+            const notifyParams = {
+                fromUserId: null,
+                toUserId: req.user._id,
+                title: NotifyContent.UpNew.Title,
+                content: NotifyContent.UpNew.Content
+            };
+            NotifyController.createNotify(notifyParams);
+
+            // send socket
+            notifyParams.toUserIds = [notifyParams.toUserId];
+            delete notifyParams.toUserId;
+            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
+
 
             return res.json({
                 status: HTTP_CODE.SUCCESS,
