@@ -770,6 +770,20 @@ var UserController = {
             await TransactionHistoryModel.addTransaction(child.companyId, undefined, childBefore.credit, "", child.personalId, global.TRANSACTION_TYPE_TAKE_BACK_MONEY, parentBefore, parentAfter);
             await TransactionHistoryModel.addTransaction(child.personalId, undefined, childBefore.credit, "", child.companyId, global.TRANSACTION_TYPE_GIVE_MONEY_BACK, childBefore, childAfter);
 
+            // notify
+            const notifyParams = {
+                fromUserId: child.companyId,
+                toUserId: child.personalId,
+                title: NotifyContent.ReturnMoneyToCompany.Title,
+                content: NotifyContent.ReturnMoneyToCompany.Content
+            };
+            NotifyController.createNotify(notifyParams);
+
+            // send socket
+            notifyParams.toUserIds = [notifyParams.toUserId];
+            delete notifyParams.toUserId;
+            Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
+
             return res.json({
                 status: 1,
                 data: child,

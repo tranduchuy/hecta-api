@@ -26,5 +26,17 @@ module.exports = {
     CreditShare: {
         Title: 'Chia sẻ tài khoản cho bạn',
         Content: 'Chia sẻ tài khoản cho bạn'
+    },
+    UpNew: {
+        Title: 'UpNew',
+        Content: 'UpNew'
+    },
+    CompanyGetBackMoney: {
+        Title: 'CompanyGetBackMoney',
+        Content: 'CompanyGetBackMoney'
+    },
+    ReturnMoneyToCompany: {
+        Title: 'CompanyGetBackMoney',
+        Content: 'CompanyGetBackMoney'
     }
 };

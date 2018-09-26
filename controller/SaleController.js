@@ -373,15 +373,13 @@ var SaleController = {
     },
 
     upNew: async function (req, res, next) {
-
         try {
             let id = req.params.id;
-
             let post = await PostModel.findOne({_id: id});
 
             if (!post || post.postType != global.POST_TYPE_SALE) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
                     message: 'post not exist '
                 });
@@ -389,28 +387,23 @@ var SaleController = {
 
             if (post.user != req.user._id.toString()) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
                     message: 'user does not have permission !'
                 });
             }
 
             let priority = await PostPriorityModel.findOne({priority: post.priority});
-            var price = 0;
+            let price = 0;
+            let purchaseStatus = await UserModel.purchase(req.user._id, price);
+
             if (priority) {
                 price = priority.costByDay;
             }
 
-            console.log('req.user ',req.user);
-            console.log('req.user._id ',req.user._id);
-
-            let purchaseStatus = await UserModel.purchase(req.user._id, price);
-
-            console.log('purchaseStatus ',purchaseStatus);
-
             if (!purchaseStatus) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
                     message: 'not enough money'
                 });
@@ -420,24 +413,18 @@ var SaleController = {
             post.save();
             await TransactionHistoryModel.addTransaction(req.user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_UP_NEW, purchaseStatus.before, purchaseStatus.after);
 
+
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: {},
                 message: 'success !'
             });
 
+        } catch (e) {
+            return next(e);
         }
+    },
 
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-    }
-    ,
     update: async function (req, res, next) {
 
 
