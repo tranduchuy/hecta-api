@@ -35,6 +35,8 @@ const createNotify = async (params) => {
   newNotify.content = params.content.toString().trim();
   newNotify.createdTime = new Date();
   newNotify.updatedTime = new Date();
+  newNotify.type = params.type;
+  newNotify.params = params.params;
   await newNotify.save();
 
   return newNotify;

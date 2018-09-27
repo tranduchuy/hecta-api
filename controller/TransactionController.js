@@ -14,7 +14,8 @@ var RequestUtil = require('../utils/RequestUtil');
 var HTTP_CODE = require('../config/http-code');
 const Socket = require('../utils/Socket');
 const NotifyContent = require('../config/notify-content');
-const NotifyEvents = require('../config/socket-event');
+const SocketEvents = require('../config/socket-event');
+const NotifyTypes = require('../config/notify-type');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 
@@ -109,14 +110,19 @@ const TransactionController = {
                 fromUserId: admin._id,
                 toUserId: user._id,
                 title: NotifyContent.AddMain.Title,
-                content: NotifyContent.AddMain.Content
+                content: NotifyContent.AddMain.Content,
+                type: NotifyTypes.CHANGE_TRANSACTION,
+                params: {
+                    before,
+                    after
+                }
             };
             NotifyController.createNotify(notifyParams);
 
             // send socket
             notifyParams.toUserIds = [notifyParams.toUserId];
             delete notifyParams.toUserId;
-            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
+            Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
 
             return res.json({
                 status: HTTP_CODE.SUCCESS,
@@ -185,14 +191,19 @@ const TransactionController = {
                 fromUserId: admin._id,
                 toUserId: user._id,
                 title: NotifyContent.AddPromo.Title,
-                content: NotifyContent.AddPromo.Content
+                content: NotifyContent.AddPromo.Content,
+                type: NotifyTypes.CHANGE_TRANSACTION,
+                params: {
+                    before,
+                    after
+                }
             };
             NotifyController.createNotify(notifyParams);
 
             // send socket
             notifyParams.toUserIds = [notifyParams.toUserId];
             delete notifyParams.toUserId;
-            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
+            Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
 
             return res.json({
                 status: HTTP_CODE.SUCCESS,

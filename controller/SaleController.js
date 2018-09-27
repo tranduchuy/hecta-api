@@ -16,7 +16,8 @@ var ObjectId = mongoose.Types.ObjectId;
 const NotifyController = require('../controller/NotifyController');
 const Socket = require('../utils/Socket');
 const NotifyContent = require('../config/notify-content');
-const NotifyEvents = require('../config/socket-event');
+const NotifyTypes = require('../config/notify-type');
+const SocketEvents = require('../config/socket-event');
 const HTTP_CODE = require('../config/http-code');
 
 
@@ -348,14 +349,18 @@ var SaleController = {
                 fromUserId: null,
                 toUserId: user._id,
                 title: NotifyContent.PayPost.Title,
-                content: NotifyContent.PayPost.Content
+                content: NotifyContent.PayPost.Content,
+                type: NotifyTypes.CHANGE_TRANSACTION,
+                params: {
+                    cost: dateCount * priority.costByDay
+                }
             };
             NotifyController.createNotify(notifyParams);
 
             // send socket
             notifyParams.toUserIds = [notifyParams.toUserId];
             delete notifyParams.toUserId;
-            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
+            Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
 
             return res.json({
                 status: HTTP_CODE.SUCCESS,
@@ -418,14 +423,18 @@ var SaleController = {
                 fromUserId: null,
                 toUserId: req.user._id,
                 title: NotifyContent.UpNew.Title,
-                content: NotifyContent.UpNew.Content
+                content: NotifyContent.UpNew.Content,
+                type: NotifyTypes.CHANGE_TRANSACTION,
+                params: {
+                    price
+                }
             };
             NotifyController.createNotify(notifyParams);
 
             // send socket
             notifyParams.toUserIds = [notifyParams.toUserId];
             delete notifyParams.toUserId;
-            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
+            Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
 
 
             return res.json({

@@ -18,6 +18,7 @@ const NotifyController = require('./NotifyController');
 const NotifyContent = require('../config/notify-content');
 const Socket = require('../utils/Socket');
 const SocketEvents = require('../config/Socket-event');
+const NotifyTypes = require('../config/notify-type');
 
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
@@ -468,7 +469,12 @@ var UserController = {
                 fromUserId: child.companyId,
                 toUserId: child.personalId,
                 title: NotifyContent.CreditShare.Title,
-                content: NotifyContent.CreditShare.Content
+                content: NotifyContent.CreditShare.Content,
+                type: NotifyTypes.CHANGE_TRANSACTION,
+                params: {
+                    before: beforeUser,
+                    after: afterUser
+                }
             };
             NotifyController.createNotify(notifyParams);
 
@@ -642,7 +648,9 @@ var UserController = {
                 fromUserId: parrent._id,
                 toUserId: user._id,
                 title: NotifyContent.RequestChild.Title,
-                content: NotifyContent.RequestChild.Content
+                content: NotifyContent.RequestChild.Content,
+                type: NotifyTypes.PARENT_CHILD.REQUEST,
+                params: {}
             };
 
             await NotifyController.createNotify(notifyParam);
@@ -775,7 +783,9 @@ var UserController = {
                 fromUserId: child.companyId,
                 toUserId: child.personalId,
                 title: NotifyContent.ReturnMoneyToCompany.Title,
-                content: NotifyContent.ReturnMoneyToCompany.Content
+                content: NotifyContent.ReturnMoneyToCompany.Content,
+                type: NotifyTypes.PARENT_CHILD.REMOVE,
+                params: {}
             };
             NotifyController.createNotify(notifyParams);
 
@@ -863,7 +873,11 @@ var UserController = {
                 fromUserId: user._id,
                 toUserId: child.companyId,
                 title: Title,
-                content: Content
+                content: Content,
+                type: NotifyTypes.PARENT_CHILD.RESPONSE,
+                params: {
+                    status // show status of child's response
+                }
             };
             await NotifyController.createNotify(notifyParam);
 
@@ -979,7 +993,9 @@ var UserController = {
                 fromUserId: user._id,
                 toUserId: person._id,
                 title: NotifyContent.RequestChild.Title,
-                content: NotifyContent.RequestChild.Content
+                content: NotifyContent.RequestChild.Content,
+                type: NotifyTypes.PARENT_CHILD.REQUEST,
+                params: {}
             };
             await NotifyController.createNotify(notifyParam);
 
