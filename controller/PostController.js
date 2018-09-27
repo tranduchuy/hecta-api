@@ -7,10 +7,12 @@ var UserModel = require('../models/UserModel');
 var UrlParamModel = require('../models/UrlParamModel');
 var ChildModel = require('../models/ChildModel');
 var urlSlug = require('url-slug');
+const HTTP_CODE = require('../config/http-code');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Controllers');
+const ViewUtils = require('../utils/View');
 
 var PostController = {
-
-
     child: async function (req, res, next) {
         try {
 
@@ -231,9 +233,7 @@ var PostController = {
             });
         }
 
-    }
-    ,
-
+    },
     topCity: async function (req, res, next) {
         try {
 
@@ -301,9 +301,7 @@ var PostController = {
             });
         }
 
-    }
-    ,
-
+    },
     latest: async function (req, res, next) {
 
 
@@ -474,54 +472,47 @@ var PostController = {
     },
     detail: async function (req, res, next) {
         let id = req.params.id;
+        logger.info('PostController::detail is called with id', id);
 
         try {
-
             if (!id || id.length == 0) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
-                    message: 'id null error'
+                    message: 'ID is invalid'
                 });
-
             }
 
             let post = await PostModel.findOne({_id: id});
 
             if (!post) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
-                    message: 'post not exist'
+                    message: 'Post not exist'
                 });
             }
 
             let model = post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
-
             let content = await model.findOne({_id: post.content_id});
 
-
             if (!content) {
-
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
                     message: 'data not exist'
                 });
-
-
             }
 
-            if (post.postType == global.POST_TYPE_SALE) {
+            await ViewUtils.createOrUpdateViewObj(post._id, post.postType);
 
+            if (post.postType == global.POST_TYPE_SALE) {
                 let keys;
 
                 if (!content.keywordList) {
                     keys = [];
-                }
-                else {
+                } else {
                     keys = await Promise.all(content.keywordList.map(async key => {
-
                             return {
                                 keyword: key,
                                 slug: urlSlug(key)
@@ -531,9 +522,8 @@ var PostController = {
                 }
 
                 return res.json({
-                    status: 1,
+                    status: HTTP_CODE.SUCCESS,
                     data: {
-
                         title: content.title,
                         formality: content.formality,
                         type: content.type,
@@ -579,15 +569,12 @@ var PostController = {
                 });
             }
             else {
-
                 let keys;
 
                 if (!content.keywordList) {
                     keys = [];
-                }
-                else {
+                } else {
                     keys = await Promise.all(content.keywordList.map(async key => {
-
                             return {
                                 keyword: key,
                                 slug: urlSlug(key)
@@ -597,9 +584,8 @@ var PostController = {
                 }
 
                 return res.json({
-                    status: 1,
+                    status: HTTP_CODE.SUCCESS,
                     data: {
-
                         title: content.title,
                         description: content.description,
                         keywordList: keys,
@@ -640,21 +626,12 @@ var PostController = {
                     message: 'request success'
                 });
             }
-
-
-        }
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
+        } catch (e) {
+            return next(e);
         }
 
 
     },
-
     list: async function (req, res, next) {
 
         var page = req.query.page;
@@ -863,7 +840,6 @@ var PostController = {
 
 
     }
+};
 
-
-}
-module.exports = PostController
+module.exports = PostController;

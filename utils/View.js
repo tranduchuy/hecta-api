@@ -28,7 +28,7 @@ const createOrUpdateViewObj = (objectId, target, callback) => {
 
         record.save(callback);
     });
-}
+};
 
 module.exports = {
     createOrUpdateViewObj
