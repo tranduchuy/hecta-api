@@ -24,9 +24,9 @@ const isValidStatusForUpdating = (status) => {
  * @param {*} params {fromUserId, toUserId, title, content}
  * @return {Object}
  */
-const createNotify = async (params) => {
+const createNotify = async (_params) => {
+  const params = {..._params};
   logger.info('NotifyController::createNotify is called', params);
-
   const newNotify = await new NotifyModel();
   newNotify.fromUser = params.fromUserId ? new mongoose.Types.ObjectId(params.fromUserId) : null;
   newNotify.toUser = new mongoose.Types.ObjectId(params.toUserId);
@@ -111,11 +111,13 @@ const getListNotifies = async (req, res, next) => {
   try {
     const { page, limit } = requestUtil.extractPaginationCondition(req);
     const query = {
-      toUser: new mongoose.Types.ObjectId(req.user._id)
+      toUser: req.user._id
     };
 
+    console.log(query);
+
     let countUnRead = await NotifyModel.count({
-      toUser: new mongoose.Types.ObjectId(req.user._id),
+      toUser: req.user._id,
       status: global.STATUS.NOTIFY_NONE
     });
 

@@ -1,3 +1,4 @@
+require('./config/def');
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -5,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var rootRouter = require('./routes/root');
+require('./models');
 const HTTP_CODE = require('./config/http-code');
 
 // config log4js

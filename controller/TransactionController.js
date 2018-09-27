@@ -138,7 +138,7 @@ const TransactionController = {
     addPromo: async function (req, res, next) {
         logger.info('TransactionController::addPromo is called');
         const userId = req.params.id;
-        const {amount, note, info} = req.body.amount;
+        const {amount, note, info} = req.body;
 
         try {
             const admin = req.user;
