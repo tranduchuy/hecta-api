@@ -17,7 +17,7 @@ var logger = log4js.getLogger('Controllers');
 const NotifyController = require('./NotifyController');
 const NotifyContent = require('../config/notify-content');
 const Socket = require('../utils/Socket');
-const SocketEvents = require('../config/socket-event');
+const SocketEvents = require('../config/Socket-event');
 
 var ImageService = require('../services/ImageService');
 
