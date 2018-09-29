@@ -5,7 +5,6 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('bds:server');
 var http = require('http');
 var db = require('../config/db');
 var log4js = require('log4js');
@@ -16,7 +15,7 @@ const config = require('config');
  * Get port from environment and store in Express.
  */
 
-var port = config.get('app').port;
+var port = config.get('app').port || 3000;
 app.set('port', port);
 
 /**
@@ -74,9 +73,5 @@ function onError(error) {
  */
 
 function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
-    debug('Listening on ' + bind);
+    console.log('Server is running on port, ', port);
 }
