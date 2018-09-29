@@ -1,6 +1,8 @@
 mongo:
-  host: 127.0.0.1
-  port: 270187
+  host: localhost
+  username: admin
+  password: abc1233VF8YLwUWjegMwyxzLv3bFu2
+  port: 27017
   databaseName: bds_v1
 
 
