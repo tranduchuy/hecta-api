@@ -19,6 +19,8 @@ const NotifyContent = require('../config/notify-content');
 const Socket = require('../utils/Socket');
 const SocketEvents = require('../config/Socket-event');
 
+var ImageService = require('../services/ImageService');
+
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
     var email = (req.body.email || '').toString();
@@ -1758,6 +1760,8 @@ var UserController = {
             var ward = req.body.ward;
             var type = req.body.type;
             var avatar = req.body.avatar;
+            ImageService.putUpdateImage([user.avatar], [avatar]);
+            
             var oldPassword = req.body.oldPassword;
 
 

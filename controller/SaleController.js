@@ -19,6 +19,9 @@ const NotifyContent = require('../config/notify-content');
 const NotifyEvents = require('../config/socket-event');
 const HTTP_CODE = require('../config/http-code');
 
+var ImageService = require('../services/ImageService');
+
+
 
 var checkUserPayment = async function (user, post, price) {
 
@@ -239,7 +242,9 @@ var SaleController = {
             sale.contactPhone = contactPhone;
             sale.contactMobile = contactMobile;
             sale.contactEmail = contactEmail;
-
+  
+            ImageService.postConfirmImage(images);
+            
             sale = await sale.save();
 
 
@@ -343,43 +348,36 @@ var SaleController = {
             post = await post.save();
             await checkUserPayment(user, post, dateCount * priority.costByDay);
 
-            // notify
-            const notifyParams = {
-                fromUserId: null,
-                toUserId: user._id,
-                title: NotifyContent.PayPost.Title,
-                content: NotifyContent.PayPost.Content
-            };
-            NotifyController.createNotify(notifyParams);
-
-            // send socket
-            notifyParams.toUserIds = [notifyParams.toUserId];
-            delete notifyParams.toUserId;
-            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
 
             return res.json({
-                status: HTTP_CODE.SUCCESS,
+                status: 1,
                 data: post,
                 message: 'request  post sale success !'
             });
+
+
         }
         catch (e) {
             return res.json({
-                status: HTTP_CODE.ERROR,
+                status: 0,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
+
+
     },
 
     upNew: async function (req, res, next) {
+
         try {
             let id = req.params.id;
+
             let post = await PostModel.findOne({_id: id});
 
             if (!post || post.postType != global.POST_TYPE_SALE) {
                 return res.json({
-                    status: HTTP_CODE.BAD_REQUEST,
+                    status: 0,
                     data: {},
                     message: 'post not exist '
                 });
@@ -387,23 +385,28 @@ var SaleController = {
 
             if (post.user != req.user._id.toString()) {
                 return res.json({
-                    status: HTTP_CODE.BAD_REQUEST,
+                    status: 0,
                     data: {},
                     message: 'user does not have permission !'
                 });
             }
 
             let priority = await PostPriorityModel.findOne({priority: post.priority});
-            let price = 0;
-            let purchaseStatus = await UserModel.purchase(req.user._id, price);
-
+            var price = 0;
             if (priority) {
                 price = priority.costByDay;
             }
 
+            console.log('req.user ',req.user);
+            console.log('req.user._id ',req.user._id);
+
+            let purchaseStatus = await UserModel.purchase(req.user._id, price);
+
+            console.log('purchaseStatus ',purchaseStatus);
+
             if (!purchaseStatus) {
                 return res.json({
-                    status: HTTP_CODE.BAD_REQUEST,
+                    status: 0,
                     data: {},
                     message: 'not enough money'
                 });
@@ -413,32 +416,24 @@ var SaleController = {
             post.save();
             await TransactionHistoryModel.addTransaction(req.user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_UP_NEW, purchaseStatus.before, purchaseStatus.after);
 
-            // notify
-            const notifyParams = {
-                fromUserId: null,
-                toUserId: req.user._id,
-                title: NotifyContent.UpNew.Title,
-                content: NotifyContent.UpNew.Content
-            };
-            NotifyController.createNotify(notifyParams);
-
-            // send socket
-            notifyParams.toUserIds = [notifyParams.toUserId];
-            delete notifyParams.toUserId;
-            Socket.broadcast(NotifyEvents.NOTIFY, notifyParams);
-
-
             return res.json({
-                status: HTTP_CODE.SUCCESS,
+                status: 1,
                 data: {},
                 message: 'success !'
             });
 
-        } catch (e) {
-            return next(e);
         }
-    },
 
+
+        catch (e) {
+            return res.json({
+                status: 0,
+                data: {},
+                message: 'unknown error : ' + e.message
+            });
+        }
+    }
+    ,
     update: async function (req, res, next) {
 
 
@@ -528,6 +523,7 @@ var SaleController = {
             var furniture = req.body.furniture;
 
             var images = req.body.images;
+            ImageService.putUpdateImage(sale.images, images);
 
             var contactName = req.body.contactName;
             var contactAddress = req.body.contactAddress;

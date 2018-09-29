@@ -30,6 +30,20 @@
       "filename": "./logs/Middleware.log",
       "category": "Middleware",
       "alwaysIncludePattern": true
+    },
+    {
+      "type": "dateFile",
+      "maxLogSize": 20480,
+      "filename": "./logs/Services.log",
+      "category": "Services",
+      "alwaysIncludePattern": true
+    },
+    {
+      "type": "dateFile",
+      "maxLogSize": 20480,
+      "filename": "./logs/Utils.log",
+      "category": "Utils",
+      "alwaysIncludePattern": true
     }
   ]
 }
