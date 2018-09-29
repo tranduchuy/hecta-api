@@ -1,11 +1,4 @@
-var mongoose = require('mongoose');
-var requireAll = require('require-all');
-var mongoose = require('mongoose');
-var server = require('../config/server');
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://'+server.DATABASE_SERVER+'/'+server.DATABASE_NAME,{ useNewUrlParser: true }, function (err) {
-    console.log('Connected mongodb : ','mongodb://'+server.DATABASE_SERVER+'/'+server.DATABASE_NAME);
-});
+const requireAll = require('require-all');
 
 module.exports = requireAll(
   {
