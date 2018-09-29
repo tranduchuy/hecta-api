@@ -930,7 +930,7 @@ var ProjectController = {
             
             return res.json({
                 status: 1,
-                data: post,
+                data: {},
                 message: 'request post project success !'
             });
         }
