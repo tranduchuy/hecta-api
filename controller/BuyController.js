@@ -6,6 +6,8 @@ var _ = require('lodash');
 var urlSlug = require('url-slug');
 var UrlParamModel = require('../models/UrlParamModel');
 
+var ImageService = require('../services/ImageService');
+
 var BuyController = {
 
     add: async function (req, res, next) {
@@ -33,6 +35,7 @@ var BuyController = {
         var address = req.body.address;
 
         var images = req.body.images;
+        ImageService.postConfirmImage(images);
 
         var contactName = req.body.contactName;
         var contactAddress = req.body.contactAddress;
@@ -388,6 +391,7 @@ var BuyController = {
             var address = req.body.address;
 
             var images = req.body.images;
+            ImageService.putUpdateImage(buy.images, images);
 
             var contactName = req.body.contactName;
             var contactAddress = req.body.contactAddress;

@@ -15,6 +15,8 @@ var HTTP_CODE = require('../config/http-code');
 var log4js = require('log4js');
 var logger = log4js.getLogger('Controllers');
 
+var ImageService = require('../services/ImageService');
+
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
     var email = (req.body.email || '').toString();
@@ -1750,6 +1752,8 @@ var UserController = {
             var ward = req.body.ward;
             var type = req.body.type;
             var avatar = req.body.avatar;
+            ImageService.putUpdateImage([user.avatar], [avatar]);
+            
             var oldPassword = req.body.oldPassword;
 
 

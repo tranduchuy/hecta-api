@@ -14,7 +14,7 @@ var urlSlug = require('url-slug');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
-var ImageService = require('../services/ImageService')
+var ImageService = require('../services/ImageService');
 
 
 
@@ -518,6 +518,7 @@ var SaleController = {
             var furniture = req.body.furniture;
 
             var images = req.body.images;
+            ImageService.putUpdateImage(sale.images, images);
 
             var contactName = req.body.contactName;
             var contactAddress = req.body.contactAddress;
