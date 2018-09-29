@@ -35,11 +35,11 @@ server.on('listening', onListening);
 db(() => {
     console.log('Connect to mongodb successfully');
     server.listen(port);
-});
 
-var io = require('socket.io').listen(server);
-const Socket = require('../utils/Socket');
-Socket.init(io);
+    var io = require('socket.io').listen(server);
+    const Socket = require('../utils/Socket');
+    Socket.init(io);
+});
 
 /**
  * Normalize a port into a number, string, or false.
