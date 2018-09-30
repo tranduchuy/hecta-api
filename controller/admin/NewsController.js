@@ -573,7 +573,7 @@ var NewsController = {
 
             return res.json({
                 status: 1,
-                data: {},
+                data: post,
                 message: 'request post news success !'
             });
         }
