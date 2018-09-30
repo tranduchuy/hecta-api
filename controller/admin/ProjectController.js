@@ -271,14 +271,17 @@ var ProjectController = {
             
             var type = req.body.type;
             var introImages = req.body.introImages;
-            ImageService.putUpdateImage(
-                project.introImages.map(o => {
-                    return o.id
-                }),
-                introImages.map(n => {
-                    return n.id
-                }),
-            );
+            if (introImages) {
+                ImageService.putUpdateImage(
+                    project.introImages.map(o => {
+                        return o.id
+                    }),
+                    introImages.map(n => {
+                        return n.id
+                    }),
+                );
+            }
+            
             
             var title = req.body.title;
             var address = req.body.address;
@@ -296,35 +299,42 @@ var ProjectController = {
             
             var isShowGround = req.body.isShowGround;
             var overallSchema = req.body.overallSchema;
-            ImageService.putUpdateImage(
-                project.overallSchema.map(o => {
-                    return o.id
-                }),
-                overallSchema.map(n => {
-                    return n.id
-                }),
-            );
+            if (overallSchema) {
+                ImageService.putUpdateImage(
+                    project.overallSchema.map(o => {
+                        return o.id
+                    }),
+                    overallSchema.map(n => {
+                        return n.id
+                    }),
+                );
+            }
             
             var groundImages = req.body.groundImages;
-            ImageService.putUpdateImage(
-                project.groundImages.map(o => {
-                    return o.id
-                }),
-                groundImages.map(n => {
-                    return n.id
-                }),
-            );
+            if (groundImages) {
+                ImageService.putUpdateImage(
+                    project.groundImages.map(o => {
+                        return o.id
+                    }),
+                    groundImages.map(n => {
+                        return n.id
+                    }),
+                );
+            }
             
             var isShowImageLibs = req.body.isShowImageLibs;
             var imageAlbums = req.body.imageAlbums;
-            ImageService.putUpdateImage(
-                project.imageAlbums.map(o => {
-                    return o.id
-                }),
-                imageAlbums.map(n => {
-                    return n.id
-                }),
-            );
+            if (imageAlbums) {
+                ImageService.putUpdateImage(
+                    project.imageAlbums.map(o => {
+                        return o.id
+                    }),
+                    imageAlbums.map(n => {
+                        return n.id
+                    }),
+                );
+            }
+            
             
             var isShowProjectProgress = req.body.isShowProjectProgress;
             var projectProgressTitle = req.body.projectProgressTitle;
@@ -332,14 +342,17 @@ var ProjectController = {
             var projectProgressEndDate = req.body.projectProgressEndDate;
             var projectProgressDate = req.body.projectProgressDate;
             var projectProgressImages = req.body.projectProgressImages;
-            ImageService.putUpdateImage(
-                project.projectProgressImages.map(o => {
-                    return o.id
-                }),
-                projectProgressImages.map(n => {
-                    return n.id
-                }),
-            );
+            if (projectProgressImages) {
+                ImageService.putUpdateImage(
+                    project.projectProgressImages.map(o => {
+                        return o.id
+                    }),
+                    projectProgressImages.map(n => {
+                        return n.id
+                    }),
+                );
+            }
+            
             
             var isShowTabVideo = req.body.isShowTabVideo;
             var video = req.body.video;
