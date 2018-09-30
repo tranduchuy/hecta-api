@@ -17,8 +17,9 @@ var logger = log4js.getLogger('Controllers');
 const NotifyController = require('./NotifyController');
 const NotifyContent = require('../config/notify-content');
 const Socket = require('../utils/Socket');
-const SocketEvents = require('../config/Socket-event');
+const SocketEvents = require('../config/socket-event');
 const NotifyTypes = require('../config/notify-type');
+var ImageService = require('../services/ImageService');
 
 var forgetPassword = async function (req, res, next) {
     logger.info('UserController::forgetPassword is called');
@@ -1774,6 +1775,8 @@ var UserController = {
             var ward = req.body.ward;
             var type = req.body.type;
             var avatar = req.body.avatar;
+            ImageService.putUpdateImage([user.avatar], [avatar]);
+
             var oldPassword = req.body.oldPassword;
 
 

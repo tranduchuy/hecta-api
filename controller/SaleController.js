@@ -20,6 +20,9 @@ const NotifyTypes = require('../config/notify-type');
 const SocketEvents = require('../config/socket-event');
 const HTTP_CODE = require('../config/http-code');
 
+var ImageService = require('../services/ImageService');
+
+
 
 var checkUserPayment = async function (user, post, price) {
 
@@ -240,6 +243,8 @@ var SaleController = {
             sale.contactPhone = contactPhone;
             sale.contactMobile = contactMobile;
             sale.contactEmail = contactEmail;
+
+            ImageService.postConfirmImage(images);
 
             sale = await sale.save();
 
@@ -537,6 +542,7 @@ var SaleController = {
             var furniture = req.body.furniture;
 
             var images = req.body.images;
+            ImageService.putUpdateImage(sale.images, images);
 
             var contactName = req.body.contactName;
             var contactAddress = req.body.contactAddress;

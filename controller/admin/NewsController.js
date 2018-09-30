@@ -6,6 +6,8 @@ var UserModel = require('../../models/UserModel');
 var UrlParamModel = require('../../models/UrlParamModel');
 var urlSlug = require('url-slug');
 
+var ImageService = require('../../services/ImageService');
+
 var NewsController = {
 
     // detail: async function (req, res, next) {
@@ -239,6 +241,7 @@ var NewsController = {
             var content = req.body.content;
             var cate = req.body.cate;
             var image = req.body.image;
+            ImageService.putUpdateImage([news.image], [image]);
 
             var status = req.body.status;
             var description = req.body.description;
@@ -517,6 +520,8 @@ var NewsController = {
             news.status = global.STATUS.ACTIVE;
 
             news.admin = [accessToken.user];
+  
+            ImageService.postConfirmImage([image]);
 
             news = await news.save();
 
@@ -573,7 +578,7 @@ var NewsController = {
 
             return res.json({
                 status: 1,
-                data: {},
+                data: post,
                 message: 'request post news success !'
             });
         }
