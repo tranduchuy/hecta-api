@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const NotifyModel = require('../models/Notify');
+const ChildModel = require('../models/ChildModel');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const httpCode = require('../config/http-code');
 const requestUtil = require('../utils/RequestUtil');
-
+const async = require('async');
+const NotifyType = require('../config/notify-type');
 /**
  *
  * @param {*} status
@@ -114,7 +116,7 @@ const getListNotifies = async (req, res, next) => {
             toUser: req.user._id
         };
 
-        const total = await NotifyModel.estimatedDocumentCount(query);
+        const total = await NotifyModel.countDocuments(query);
 
         let notifies = await NotifyModel
             .find(query)
@@ -123,20 +125,50 @@ const getListNotifies = async (req, res, next) => {
             .limit(limit)
             .populate('fromUser');
 
-        return res.json({
-            status: httpCode.SUCCESS,
-            message: [],
-            data: {
-                meta: {
-                    total,
-                    page,
-                    limit,
-                    sortBy: 'createdTime'
-                },
-                entry: notifies
-            }
-        })
+        const requestTypes = [
+            NotifyType.PARENT_CHILD.REQUEST,
+            NotifyType.PARENT_CHILD.RESPONSE,
+            NotifyType.PARENT_CHILD.REMOVE,
+        ];
 
+        notifies = JSON.parse(JSON.stringify(notifies));
+        const results = [];
+
+        async.eachSeries(notifies, (notify, cb) => {
+            if (requestTypes.indexOf(notify.type) !== -1) {
+                ChildModel.findOne({_id: notify.params.requestId}, (err, child) => {
+                    if (err) {
+                        logger.error('NotifyController::getListNotifies::error', err);
+                    }
+
+                    notify.params.request = child;
+                    results.push(notify);
+                    cb(null);
+                });
+            } else {
+                results.push(notify);
+                cb(null);
+            }
+        }, (err) => {
+            if (err) {
+                logger.error('NotifyController::getListNotifies::error', err);
+                return next(err);
+            }
+
+            return res.json({
+                status: httpCode.SUCCESS,
+                message: [],
+                data: {
+                    meta: {
+                        total,
+                        page,
+                        limit,
+                        sortBy: 'createdTime'
+                    },
+                    entry: results
+                }
+            })
+        });
     } catch (e) {
         logger.error('NotifyController::getListNotifies::error', e);
         return next(e);

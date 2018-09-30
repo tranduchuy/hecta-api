@@ -651,7 +651,9 @@ var UserController = {
                 title: NotifyContent.RequestChild.Title,
                 content: NotifyContent.RequestChild.Content,
                 type: NotifyTypes.PARENT_CHILD.REQUEST,
-                params: {}
+                params: {
+                    requestId: child._id
+                }
             };
 
             await NotifyController.createNotify(notifyParam);
@@ -786,7 +788,9 @@ var UserController = {
                 title: NotifyContent.ReturnMoneyToCompany.Title,
                 content: NotifyContent.ReturnMoneyToCompany.Content,
                 type: NotifyTypes.PARENT_CHILD.REMOVE,
-                params: {}
+                params: {
+                    requestId: child._id
+                }
             };
             NotifyController.createNotify(notifyParams);
 
@@ -996,7 +1000,9 @@ var UserController = {
                 title: NotifyContent.RequestChild.Title,
                 content: NotifyContent.RequestChild.Content,
                 type: NotifyTypes.PARENT_CHILD.REQUEST,
-                params: {}
+                params: {
+                    requestId: child._id
+                }
             };
             await NotifyController.createNotify(notifyParam);
 
