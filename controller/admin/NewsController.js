@@ -7,118 +7,12 @@ const urlSlug = require('url-slug');
 const ImageService = require('../../services/ImageService');
 const HttpCode = require('../../config/http-code');
 
-var NewsController = {
-
-    // detail: async function (req, res, next) {
-    //     try {
-    //
-    //         var token = req.headers.access_token;
-    //         var accessToken = await  TokenModel.findOne({token: token});
-    //
-    //         if (!accessToken) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'access token invalid'
-    //             });
-    //
-    //         }
-    //
-    //         var admin = await UserModel.findOne({
-    //             _id: accessToken.user,
-    //             status: global.STATUS.ACTIVE,
-    //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-    //         });
-    //
-    //         let id = req.params.id;
-    //
-    //
-    //         if (!admin) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'admin not found or blocked'
-    //             });
-    //
-    //         }
-    //
-    //         if (!id || id.length == 0) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'id null error'
-    //             });
-    //
-    //         }
-    //
-    //         let news = await NewsModel.findOne({
-    //             _id: id,
-    //             status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
-    //         });
-    //
-    //         if (!news) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'data not exist'
-    //             });
-    //         }
-    //
-    //
-    //         let post = await PostModel.findOne({content_id: news._id});
-    //
-    //         if (!post) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'post not exist'
-    //             });
-    //         }
-    //
-    //
-    //         return res.json({
-    //             status: 1,
-    //             data: {
-    //                 id: post._id,
-    //                 title: news.title,
-    //                 content: news.content,
-    //                 cate: news.type,
-    //                 image: news.image,
-    //                 description: news.description,
-    //                 date: news.date,
-    //
-    //
-    //                 metaTitle: post.metaTitle,
-    //                 metaDescription: post.metaDescription,
-    //                 metaType: post.metaType,
-    //                 metaUrl: post.metaUrl,
-    //                 metaImage: post.metaImage,
-    //                 canonical: post.canonical,
-    //                 textEndPage: post.textEndPage,
-    //                 url: post.url
-    //
-    //             },
-    //             message: 'request success'
-    //         });
-    //
-    //
-    //     }
-    //
-    //     catch (e) {
-    //         return res.json({
-    //             status: 0,
-    //             data: {},
-    //             message: 'unknown error : ' + e.message
-    //         });
-    //     }
-    //
-    //
-    // },
-    catList: async function (req, res, next) {
+const NewsController = {
+    catList: async function (req, res) {
         try {
 
             var token = req.headers.access_token;
-            var accessToken = await  TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
@@ -169,46 +63,25 @@ var NewsController = {
             });
         }
     },
-    update: async function (req, res, next) {
 
-
+    update: async function (req, res) {
         try {
-
-
-            var token = req.headers.access_token;
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
+            const admin = req.user;
+            if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {},
-                    message: 'access token invalid'
+                    message: 'Permission denied'
                 });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
             }
 
             let id = req.params.id;
 
-            if (!id || id.length == 0) {
+            if (!id || id.length === 0) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.ERROR,
                     data: {},
-                    message: 'id invalid '
+                    message: 'id invalid'
                 });
             }
 
@@ -216,106 +89,53 @@ var NewsController = {
 
             if (!post) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.ERROR,
                     data: {},
                     message: 'post of news not exist '
                 });
             }
 
-            var news = await NewsModel.findOne({
+            let news = await NewsModel.findOne({
                 _id: post.content_id,
                 status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
             });
 
             if (!news) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {},
                     message: 'news not exist '
                 });
             }
 
-            var title = req.body.title;
-
-            var content = req.body.content;
-            var cate = req.body.cate;
-            var image = req.body.image;
+            const {
+                title, content, cate, image, status,
+                description, metaTitle, metaDescription,
+                metaType, metaUrl, metaImage, canonical,
+                textEndPage
+            } = req.body;
             ImageService.putUpdateImage([news.image], [image]);
 
-            var status = req.body.status;
-            var description = req.body.description;
-
-
-            var metaTitle = req.body.metaTitle;
-            var metaDescription = req.body.metaDescription;
-            var metaType = req.body.metaType;
-            var metaUrl = req.body.metaUrl;
-            var metaImage = req.body.metaImage;
-            var canonical = req.body.canonical;
-            var textEndPage = req.body.textEndPage;
-
-
-            if (title) {
-                news.title = title;
-            }
-            if (content) {
-                news.content = content;
-            }
-            if (cate) {
-                news.type = cate;
-            }
-            if (image) {
-                news.image = image;
-            }
-            if (description) {
-                news.description = description;
-            }
-            if (status != undefined) {
-                news.status = status;
-            }
-
-            if (!news.admin) {
-                news.admin = [];
-            }
-
-            news.admin.push(accessToken.user);
-
+            news.title = title || news.title;
+            news.content = content || news.content;
+            news.type = cate || news.type;
+            news.image = image || news.image;
+            news.description = description || news.description;
+            news.status = status || news.status;
+            news.admin = (news.admin || []).push(admin._id);
             news = await news.save();
 
-
-            if (textEndPage) {
-                post.textEndPage = textEndPage;
-            }
-
-            if (metaTitle) {
-                post.metaTitle = metaTitle;
-            }
-
-            if (metaDescription) {
-                post.metaDescription = metaDescription;
-            }
-
-            if (metaType) {
-                post.metaType = metaType;
-            }
-
-            if (metaUrl) {
-                post.metaUrl = metaUrl;
-            }
-
-            if (metaImage) {
-                post.metaImage = metaImage;
-            }
-
-            if (canonical) {
-                post.canonical = canonical;
-            }
+            post.textEndPage = textEndPage || post.textEndPage;
+            post.metaTitle = metaTitle || post.metaTitle;
+            post.metaDescription = metaDescription || post.metaDescription;
+            post.metaType = metaType || post.metaType;
+            post.metaUrl = metaUrl || post.metaUrl;
+            post.metaImage = metaImage || post.metaImage;
+            post.canonical = canonical || post.canonical;
 
             if (title && post) {
-
                 let param = await UrlParamModel.findOne({
                     postType: global.POST_TYPE_NEWS,
-
                     formality: undefined,
                     type: cate,
                     city: undefined,
@@ -332,8 +152,8 @@ var NewsController = {
                 if (!param) {
                     param = await param.save();
                 }
-                var url = urlSlug(title);
 
+                var url = urlSlug(title);
                 var count = await PostModel.find({url: new RegExp("^" + url)});
 
                 if (count > 0) {
@@ -347,121 +167,20 @@ var NewsController = {
             }
 
             return res.json({
-                status: 1,
+                status: HttpCode.SUCCESS,
                 data: news,
                 message: 'update success'
             });
-        }
-
-
-        catch (e) {
+        } catch (e) {
             return res.json({
-                status: 0,
+                status: HttpCode.ERROR,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
-
     },
-    // ,
-    // list: async function (req, res, next) {
-    //
-    //     try {
-    //
-    //         var token = req.headers.access_token;
-    //         var accessToken = await  TokenModel.findOne({token: token});
-    //
-    //         if (!accessToken) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'access token invalid'
-    //             });
-    //
-    //         }
-    //
-    //         var admin = await UserModel.findOne({
-    //             _id: accessToken.user,
-    //             status: global.STATUS.ACTIVE,
-    //             role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-    //         });
-    //
-    //         if (!admin) {
-    //             return res.json({
-    //                 status: 0,
-    //                 data: {},
-    //                 message: 'admin not found or blocked'
-    //             });
-    //
-    //         }
-    //
-    //         var page = req.query.page;
-    //
-    //         if (!page || page < 1) {
-    //             page = 1;
-    //         }
-    //
-    //         let newsList = await NewsModel.find({status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}}).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-    //
-    //         let results = await Promise.all(newsList.map(async news => {
-    //
-    //
-    //             let result = {
-    //
-    //                 status: news.status,
-    //                 title: news.title,
-    //                 content: news.content,
-    //                 cate: news.type,
-    //                 image: news.image,
-    //                 date: news.date,
-    //                 description: news.description,
-    //
-    //
-    //             };
-    //
-    //             let post = await PostModel.findOne({content_id: news._id});
-    //
-    //             if (post) {
-    //                 result.id = post._id;
-    //                 result.url = post.url;
-    //                 result.metaTitle = post.metaTitle;
-    //                 result.metaDescription = post.metaDescription;
-    //                 result.metaType = post.metaType;
-    //                 result.metaUrl = post.metaUrl;
-    //                 result.metaImage = post.metaImage;
-    //                 result.canonical = post.canonical;
-    //                 result.textEndPage = post.textEndPage
-    //             }
-    //
-    //             return result;
-    //
-    //         }));
-    //
-    //
-    //         let count = await NewsModel.count({status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}});
-    //
-    //         return res.json({
-    //             status: 1,
-    //             data: {
-    //                 itemCount: count,
-    //                 items: results,
-    //                 page: page,
-    //                 total: _.ceil(count / global.PAGE_SIZE)
-    //             },
-    //             message: 'request success '
-    //         });
-    //     }
-    //     catch (e) {
-    //         return res.json({
-    //             status: 0,
-    //             data: {},
-    //             message: 'unknown error : ' + e.message
-    //         });
-    //     }
-    //
-    // },
 
-    add: async function (req, res, next) {
+    add: async function (req, res) {
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
@@ -472,9 +191,11 @@ var NewsController = {
                 });
             }
 
-            const {title, content, cate, image, description,
+            const {
+                title, content, cate, image, description,
                 metaTitle, metaDescription, metaType, metaUrl,
-                metaImage, canonical, textEndPage, createdByType} = req.body;
+                metaImage, canonical, textEndPage, createdByType
+            } = req.body;
             let news = new NewsModel();
             news.title = title;
             news.content = content;
@@ -483,28 +204,19 @@ var NewsController = {
             news.description = description;
             news.status = global.STATUS.ACTIVE;
             news.admin = [admin._id];
+            news.createdByType = createdByType || global.CREATED_BY.HAND;
             ImageService.postConfirmImage([image]);
-
-            if (createdByType) {
-                news.createdByType = createdByType;
-            } else {
-                news.createdByType = global.CREATED_BY.HAND;
-            }
-
             news = await news.save();
 
-            var post = new PostModel();
-
+            const post = new PostModel();
             post.postType = global.POST_TYPE_NEWS;
             post.type = news.type;
             post.status = global.STATUS.ACTIVE;
             post.paymentStatus = global.STATUS.PAYMENT_FREE;
             post.content_id = news._id;
 
-
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_NEWS,
-
                 formality: undefined,
                 type: cate,
                 city: undefined,
@@ -520,11 +232,10 @@ var NewsController = {
 
             if (!param) {
                 param = await param.save();
-
             }
-            var url = urlSlug(title);
 
-            var count = await PostModel.find({url: new RegExp("^" + url)});
+            let url = urlSlug(title);
+            const count = await PostModel.find({url: new RegExp("^" + url)});
 
             if (count > 0) {
                 url += ('-' + count);
@@ -532,7 +243,6 @@ var NewsController = {
 
             post.url = url;
             post.params = param._id;
-
             post.metaTitle = metaTitle;
             post.metaDescription = metaDescription;
             post.metaType = metaType;
@@ -540,23 +250,22 @@ var NewsController = {
             post.metaImage = metaImage;
             post.canonical = canonical;
             post.textEndPage = textEndPage;
-
             await post.save();
 
-
             return res.json({
-                status: 1,
+                status: HttpCode.SUCCESS,
                 data: post,
                 message: 'request post news success !'
             });
         }
         catch (e) {
             return res.json({
-                status: 0,
+                status: HttpCode.ERROR,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
     }
-}
-module.exports = NewsController
+};
+
+module.exports = NewsController;
