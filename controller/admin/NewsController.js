@@ -1,12 +1,11 @@
-var NewsModel = require('../../models/NewsModel');
-var PostModel = require('../../models/PostModel');
-var _ = require('lodash');
-var TokenModel = require('../../models/TokenModel');
-var UserModel = require('../../models/UserModel');
-var UrlParamModel = require('../../models/UrlParamModel');
-var urlSlug = require('url-slug');
-
-var ImageService = require('../../services/ImageService');
+const NewsModel = require('../../models/NewsModel');
+const PostModel = require('../../models/PostModel');
+const TokenModel = require('../../models/TokenModel');
+const UserModel = require('../../models/UserModel');
+const UrlParamModel = require('../../models/UrlParamModel');
+const urlSlug = require('url-slug');
+const ImageService = require('../../services/ImageService');
+const HttpCode = require('../../config/http-code');
 
 var NewsController = {
 
@@ -463,35 +462,14 @@ var NewsController = {
     // },
 
     add: async function (req, res, next) {
-
         try {
-
-            var token = req.headers.access_token;
-
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
+            const admin = req.user;
+            if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {},
-                    message: 'access token invalid'
+                    message: 'Permission denied'
                 });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
             }
 
             const {title, content, cate, image, description,
@@ -504,7 +482,7 @@ var NewsController = {
             news.image = image;
             news.description = description;
             news.status = global.STATUS.ACTIVE;
-            news.admin = [accessToken.user];
+            news.admin = [admin._id];
             ImageService.postConfirmImage([image]);
 
             if (createdByType) {
