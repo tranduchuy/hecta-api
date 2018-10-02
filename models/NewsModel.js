@@ -22,9 +22,8 @@ var newsSchema = new Schema({
     // canonical: String,
 
     admin: {type: Array, default: []},
-    date: {type: Number, default: Date.now}
-
-
+    date: {type: Number, default: Date.now},
+    createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
 var NewsModel = mongoose.model('News', newsSchema);

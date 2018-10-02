@@ -494,34 +494,24 @@ var NewsController = {
 
             }
 
-            var title = req.body.title;
-            var content = req.body.content;
-            var cate = req.body.cate;
-            var image = req.body.image;
-            var description = req.body.description;
-
-            var metaTitle = req.body.metaTitle;
-            var metaDescription = req.body.metaDescription;
-            var metaType = req.body.metaType;
-            var metaUrl = req.body.metaUrl;
-            var metaImage = req.body.metaImage;
-            var canonical = req.body.canonical;
-            var textEndPage = req.body.textEndPage;
-
-
-            var news = new NewsModel();
-
-
+            const {title, content, cate, image, description,
+                metaTitle, metaDescription, metaType, metaUrl,
+                metaImage, canonical, textEndPage, createdByType} = req.body;
+            let news = new NewsModel();
             news.title = title;
             news.content = content;
             news.type = cate;
             news.image = image;
             news.description = description;
             news.status = global.STATUS.ACTIVE;
-
             news.admin = [accessToken.user];
-  
             ImageService.postConfirmImage([image]);
+
+            if (createdByType) {
+                news.createdByType = createdByType;
+            } else {
+                news.createdByType = global.CREATED_BY.HAND;
+            }
 
             news = await news.save();
 

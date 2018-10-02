@@ -820,7 +820,7 @@ var ProjectController = {
             var metaImage = req.body.metaImage;
             var canonical = req.body.canonical;
             var textEndPage = req.body.textEndPage;
-            
+            var createdByType = req.body.createdByType;
             
             var project = new ProjectModel();
             
@@ -871,6 +871,12 @@ var ProjectController = {
             project.detailInvestor = detailInvestor;
             project.status = global.STATUS.ACTIVE;
             project.admin = [accessToken.user];
+
+            if (createdByType) {
+                project.createdByType = createdByType;
+            } else {
+                project.createdByType = global.CREATED_BY.HAND;
+            }
             
             project = await project.save();
             

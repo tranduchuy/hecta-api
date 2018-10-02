@@ -59,7 +59,8 @@ var projectSchema = new Schema({
     // canonical: String,
 
     admin: {type: Array, default: []},
-    date: {type: Number, default: Date.now}
+    date: {type: Number, default: Date.now},
+    createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
 var projectModel = mongoose.model('project', projectSchema);

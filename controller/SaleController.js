@@ -65,52 +65,16 @@ var SaleController = {
             user = await UserModel.findOne({_id: accessToken.user});
         }
 
-        var title = req.body.title;
-
-        var formality = req.body.formality;
-        var type = req.body.type;
-        var city = req.body.city;
-        var district = req.body.district;
-        var ward = req.body.ward;
-        var street = req.body.street;
-        var project = req.body.project;
-        var area = req.body.area;
-        var price = req.body.price;
-        var unit = req.body.unit;
-        var address = req.body.address;
-
-        var keywordList = req.body.keywordList;
-
-        var description = req.body.description;
-
-        var streetWidth = req.body.streetWidth;
-        var frontSize = req.body.frontSize;
-        var direction = req.body.direction;
-        var balconyDirection = req.body.balconyDirection;
-        var floorCount = req.body.floorCount;
-        var bedroomCount = req.body.bedroomCount;
-        var toiletCount = req.body.toiletCount;
-        var furniture = req.body.furniture;
-
-        var images = req.body.images;
-
-        var contactName = req.body.contactName;
-        var contactAddress = req.body.contactAddress;
-        var contactPhone = req.body.contactPhone;
-        var contactMobile = req.body.contactMobile;
-        var contactEmail = req.body.contactEmail;
-
-        // var priority = req.body.priority;
-        var priorityId = req.body.priorityId;
-
-        var from = req.body.from;
-        var to = req.body.to;
-
-        var captchaToken = req.body.captchaToken;
-
+        const {title, formality, type, city, district, ward,
+            street, project, area, price, unit, address,
+            keywordList, description, streetWidth, frontSize,
+            direction, balconyDirection, floorCount, bedroomCount,
+            toiletCount, furniture, images, contactName,
+            contactAddress, contactPhone, contactMobile,
+            contactEmail, priorityId, from, to, captchaToken,
+            createdByType} = req.body;
 
         try {
-
             if (!priorityId || priorityId.length == 0) {
                 return res.json({
                     status: 0,
@@ -131,13 +95,11 @@ var SaleController = {
             }
 
             if (dateCount < priority.minDay) {
-
                 return res.json({
                     status: 0,
                     data: {},
                     message: 'post day count <  min day '
                 });
-
             }
 
             if (!title || title.length < 30 || title.length > 99) {
@@ -245,6 +207,12 @@ var SaleController = {
             sale.contactEmail = contactEmail;
 
             ImageService.postConfirmImage(images);
+
+            if (createdByType) {
+                sale.createdByType = createdByType;
+            } else {
+                sale.createdByType = global.CREATED_BY.HAND;
+            }
 
             sale = await sale.save();
 

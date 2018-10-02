@@ -101,6 +101,11 @@ global.SLUG_CATEGORY_SELL_OR_BUY = "bds";
 global.SLUG_CATEGORY_PROJECT = "danh-muc-du-an";
 global.SLUG_CATEGORY_NEWS = "danh-muc-bai-viet";
 
+global.CREATED_BY = {
+  HAND: 1,
+  CRAWL: 2
+};
+
 
 
 

@@ -11,65 +11,19 @@ var ImageService = require('../services/ImageService');
 var BuyController = {
 
     add: async function (req, res, next) {
+        const {
+            title, description, keywordList, formality,
+            type, city, district, ward, street, project,
+            areaMin, areaMax, priceMin, priceMax, unit,
+            address, images, contactName, contactAddress,
+            contactPhone, contactMobile, contactEmail,
+            receiveMail, from, to, createdByType
+        } = req.body;
 
-        var token = req.headers.access_token;
+        const token = req.headers['access_token'];
 
-
-        var title = req.body.title;
-        var description = req.body.description;
-        var keywordList = req.body.keywordList;
-
-        var formality = req.body.formality;
-        var type = req.body.type;
-        var city = req.body.city;
-        var district = req.body.district;
-        var ward = req.body.ward;
-        var street = req.body.street;
-        var project = req.body.project;
-        var areaMin = req.body.areaMin;
-        var areaMax = req.body.areaMax;
-        var priceMin = req.body.priceMin;
-        var priceMax = req.body.priceMax;
-        var unit = req.body.unit;
-
-        var address = req.body.address;
-
-        var images = req.body.images;
         ImageService.postConfirmImage(images);
-
-        var contactName = req.body.contactName;
-        var contactAddress = req.body.contactAddress;
-        var contactPhone = req.body.contactPhone;
-        var contactMobile = req.body.contactMobile;
-        var contactEmail = req.body.contactEmail;
-        var receiveMail = req.body.receiveMail;
-
-        var from = req.body.from;
-        var to = req.body.to;
-
-        // var priorityId = req.body.priorityId;
-
-
         try {
-
-            // if (!priorityId || priorityId.length == 0) {
-            //     return res.json({
-            //         status: 0,
-            //         data: {},
-            //         message: 'priorityId : "' + priorityId + '" is invalid'
-            //     });
-            // }
-            //
-            // var priority = await PostPriorityModel.findOne({_id: priorityId});
-            //
-            // if (!priority) {
-            //     return res.json({
-            //         status: 0,
-            //         data: {},
-            //         message: 'priority not found'
-            //     });
-            // }
-
             if (!title || title.length < 30 || title.length > 99) {
                 return res.json({
                     status: 0,
@@ -85,6 +39,7 @@ var BuyController = {
                     message: 'formality : "' + formality + '" is invalid'
                 });
             }
+
             if (!from || from <= 0) {
                 return res.json({
                     status: 0,
@@ -92,6 +47,7 @@ var BuyController = {
                     message: 'from : "' + from + '" is invalid'
                 });
             }
+
             if (!to || to <= from) {
                 return res.json({
                     status: 0,
@@ -145,8 +101,7 @@ var BuyController = {
             var post = new PostModel();
 
             if (token) {
-
-                var accessToken = await  TokenModel.findOne({token: token});
+                var accessToken = await TokenModel.findOne({token: token});
 
                 if (!accessToken) {
                     return res.json({
@@ -158,8 +113,6 @@ var BuyController = {
                 }
 
                 post.user = accessToken.user;
-
-
             }
 
 
@@ -190,12 +143,16 @@ var BuyController = {
             buy.contactEmail = contactEmail;
             buy.receiveMail = receiveMail;
 
+            if (createdByType) {
+                buy.createdByType = createdByType;
+            } else {
+                buy.createdByType = global.CREATED_BY.HAND;
+            }
 
             buy = await buy.save();
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_BUY,
-
                 formality: formality,
                 type: type,
                 city: city,
@@ -214,7 +171,6 @@ var BuyController = {
                 extra: undefined,
                 text: undefined
             });
-
 
             if (!param) {
                 param = new UrlParamModel({
@@ -241,8 +197,8 @@ var BuyController = {
                 param = await param.save();
 
             }
-            var url = urlSlug(title);
 
+            var url = urlSlug(title);
             var count = await PostModel.find({url: new RegExp("^" + url)});
 
             if (count > 0) {
@@ -251,8 +207,6 @@ var BuyController = {
 
             post.url = url;
             post.params = param._id;
-
-
             post.postType = global.POST_TYPE_BUY;
             post.formality = buy.formality;
             post.type = buy.type;
@@ -260,17 +214,12 @@ var BuyController = {
             // post.priority = priority.priority;
             post.from = from;
             post.to = to;
-
             post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             post.paymentStatus = global.STATUS.PAYMENT_FREE;
 
-
             if (keywordList && keywordList.length > 0) {
-
                 for (var i = 0; i < keywordList.length; i++) {
                     var key = keywordList[i];
-                    // keywordList.forEach(async key => {
-
                     var slug = urlSlug(key);
 
                     if (!slug) {
@@ -290,27 +239,22 @@ var BuyController = {
                     post.tags.push(tag._id);
                 }
             }
-            post = await post.save();
 
+            post = await post.save();
 
             return res.json({
                 status: 1,
                 data: post,
                 message: 'request post buys success!'
             });
-
-
-        }
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
-
-    }
-    ,
+    },
     update: async function (req, res, next) {
 
 
@@ -319,7 +263,7 @@ var BuyController = {
             var token = req.headers.access_token;
 
 
-            var accessToken = await  TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
