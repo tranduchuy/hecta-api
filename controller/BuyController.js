@@ -80,7 +80,7 @@ var BuyController = {
                 });
             }
 
-            if (!description || description.length < 30 || description.length > 3000) {
+            if (!description || description.length < 30) {
                 return res.json({
                     status: 0,
                     data: {},
