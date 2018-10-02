@@ -1,7 +1,5 @@
 const NewsModel = require('../../models/NewsModel');
 const PostModel = require('../../models/PostModel');
-const TokenModel = require('../../models/TokenModel');
-const UserModel = require('../../models/UserModel');
 const UrlParamModel = require('../../models/UrlParamModel');
 const urlSlug = require('url-slug');
 const ImageService = require('../../services/ImageService');
@@ -10,54 +8,28 @@ const HttpCode = require('../../config/http-code');
 const NewsController = {
     catList: async function (req, res) {
         try {
-
-            var token = req.headers.access_token;
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
+            const admin = req.user;
+            if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {},
-                    message: 'access token invalid'
+                    message: 'Permission denied'
                 });
-
             }
 
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
-            }
-
-            var cats = await UrlParamModel.find({postType: 4});
-
-
-            let results = cats.map(cat => {
-
+            const cats = await UrlParamModel.find({postType: global.POST_TYPE_NEWS});
+            const results = cats.map(cat => {
                 return {text: cat.text, id: cat.type, url: cat.param, extra: cat.extra};
-
             });
 
             return res.json({
-                status: 1,
+                status: HttpCode.SUCCESS,
                 data: results,
                 message: 'success !'
             });
-        }
-
-
-        catch (e) {
+        } catch (e) {
             return res.json({
-                status: 0,
+                status: HttpCode.ERROR,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
@@ -153,8 +125,8 @@ const NewsController = {
                     param = await param.save();
                 }
 
-                var url = urlSlug(title);
-                var count = await PostModel.find({url: new RegExp("^" + url)});
+                let url = urlSlug(title);
+                const count = await PostModel.find({url: new RegExp("^" + url)});
 
                 if (count > 0) {
                     url += ('-' + count);
