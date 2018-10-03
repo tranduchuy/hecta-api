@@ -11,7 +11,7 @@ const getDefaultSystemConfig = async (req, res, next) => {
     logger.info('SystemController::getDefaultSystemConfig is called');
 
     try {
-        const config = SystemModel.findOne();
+        const config = await SystemModel.findOne();
         return res.json({
             status: HttpCode.SUCCESS,
             message: '',
