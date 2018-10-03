@@ -4,6 +4,7 @@ const router = express.Router({});
 const SystemController = require('../controller/SystemController');
 
 router.get('/', SystemController.getDefaultSystemConfig);
-router.put('/', SystemController.updateConfig);
+router.get('/statistic', SystemController.getStatisticInfo);
+router.put('/', SystemController.updateConfig); // TODO: check middleware login
 
 module.exports = router;
