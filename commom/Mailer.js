@@ -1,9 +1,6 @@
-/**
- * Created by android@3forcom on 10/18/2016.
- */
-var nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
-var transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
@@ -16,13 +13,12 @@ var transporter = nodemailer.createTransport({
         accessToken: 'ya29.GlsGBnSdA7Twz_qs0AgP8mXna4-t6lTmMs9ip-CsPMEAT3Q-UlrDQ2MRhnabt6F2054jbn3c51f1Aih4HErmxYstP9mR0ZI6VElGh3bWzpcK1OrCpZ97c6ZzTK1D',
         expires: 12345
     }
-
 });
 
 
-var Mailer = {
+const Mailer = {
     sendConfirmEmail: function (email, token) {
-        var mailOptions = {
+        const mailOptions = {
             from: 'snowyflowervietnam.com@gmail.com',
             to: email,
             subject: "Hecta VN - Xác nhận đăng kí",
@@ -38,7 +34,7 @@ var Mailer = {
         });
     },
     sendEmailResetPassword: function(email, token, cb) {
-        var mailOptions = {
+        const mailOptions = {
             from: 'snowyflowervietnam.com@gmail.com',
             to: email,
             subject: "Hecta VN - Đổi mật khẩu",
@@ -47,6 +43,6 @@ var Mailer = {
 
         transporter.sendMail(mailOptions, cb);
     }
-}
+};
 
-module.exports = Mailer
+module.exports = Mailer;

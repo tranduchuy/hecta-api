@@ -32,7 +32,8 @@ var urlToPassCheckingToken = [
     '/api/v1/vips/list',
     '/api/v1/vips/price',
 
-    '/admin/v1/admins/login'
+    '/admin/v1/admins/login',
+    '/api/v1/system'
 ];
 
 var checkSuitIgnoreUrl = function (path) {

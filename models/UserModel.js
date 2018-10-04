@@ -1,13 +1,10 @@
 /**
  * Created by duong_000 on 10/18/2016.
  */
-var mongoose = require('mongoose');
-var bcrypt = require('bcrypt');
-
-var Schema = mongoose.Schema;
-
-var userSchema = new Schema({
-
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const Schema = mongoose.Schema;
+const userSchema = new Schema({
     username: String,
     email: String,
     hash_password: String,
@@ -25,22 +22,16 @@ var userSchema = new Schema({
     status: {type: Number, default: global.STATUS.PENDING_OR_WAIT_COMFIRM},
     date: {type: Number, default: Date.now},
     resetPasswordToken: String,
-
     expirationDate: {type: Number, default: Date.now()},
-
 });
 
-
-var UserModel = mongoose.model('User', userSchema);
+const UserModel = mongoose.model('User', userSchema);
 module.exports = UserModel;
 module.exports.Model = userSchema;
 
 async function asyncCall() {
-
-    var master = await UserModel.findOne({role: global.USER_ROLE_MASTER});
-
+    let master = await UserModel.findOne({role: global.USER_ROLE_MASTER});
     if (master) {
-        console.log('master is exist ' + master.email);
         return;
     }
 
@@ -55,25 +46,22 @@ async function asyncCall() {
 
     await master.save();
     console.log('master is created :  ' + master.email);
-
-
 }
 
-var ChildModel = require('./ChildModel');
-var AccountModel = require('./AccountModel');
+const ChildModel = require('./ChildModel');
+const AccountModel = require('./AccountModel');
 
 module.exports.purchase = async function (userId, amount) {
-
-    var user = UserModel.findOne({_id: userId});
+    const user = UserModel.findOne({_id: userId});
 
     if (!user || user.expirationDate < Date.now()) {
         return false;
     }
 
-    var child = await ChildModel.findOne({personalId: userId});
-    var account = await AccountModel.findOne({owner: userId});
+    const child = await ChildModel.findOne({personalId: userId});
+    const account = await AccountModel.findOne({owner: userId});
 
-    var before = {
+    const before = {
         credit: child ? child.credit : 0,
         main: account ? account.main : 0,
         promo: account ? account.promo : 0
@@ -92,12 +80,10 @@ module.exports.purchase = async function (userId, amount) {
         }
     }
 
-
     if (amount <= account.promo) {
         account.promo -= amount;
         amount = 0;
-    }
-    else {
+    } else {
         amount -= account.promo;
         account.promo = 0;
     }
@@ -105,14 +91,13 @@ module.exports.purchase = async function (userId, amount) {
     if (amount <= account.main) {
         account.main -= amount;
         amount = 0;
-    }
-    else {
+    } else {
         amount -= account.main;
         account.main = 0;
     }
 
 
-    if (amount == 0) {
+    if (amount === 0) {
         if (account) {
             await account.save();
         }
@@ -121,7 +106,7 @@ module.exports.purchase = async function (userId, amount) {
             await child.save();
         }
 
-        var after = {
+        const after = {
             credit: child ? child.credit : 0,
             main: account ? account.main : 0,
             promo: account ? account.promo : 0
@@ -135,7 +120,6 @@ module.exports.purchase = async function (userId, amount) {
     }
 
     return false;
-
 };
 
 asyncCall();
