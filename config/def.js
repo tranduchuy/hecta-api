@@ -3,7 +3,7 @@
 // global.STATUS_POST_PENDING = 3;
 // global.STATUS_POST_DETELE = 4;
 
-global.API_COMFIRM_IMAGE = 'http://178.128.105.93:3100/images/confirmation';
+global.API_COMFIRM_IMAGE = 'https://static.hecta.vn/images/confirmation';
 
 global.STATUS = {
     ACTIVE: 1,
