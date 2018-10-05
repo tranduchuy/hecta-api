@@ -14,7 +14,7 @@ var ProjectController = {
     // detail: async function (req, res, next) {
     //     try {
     //
-    //         var token = req.headers.access_token;
+    //         var token = req.headers.accesstoken;
     //         var accessToken = await  TokenModel.findOne({token: token});
     //
     //         if (!accessToken) {
@@ -154,7 +154,7 @@ var ProjectController = {
     typeList: async function (req, res, next) {
         try {
             
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await  TokenModel.findOne({token: token});
             
             if (!accessToken) {
@@ -211,7 +211,7 @@ var ProjectController = {
         
         try {
             
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await  TokenModel.findOne({token: token});
             
             if (!accessToken) {
@@ -589,7 +589,7 @@ var ProjectController = {
     //
     //     try {
     //
-    //         var token = req.headers.access_token;
+    //         var token = req.headers.accesstoken;
     //         var accessToken = await  TokenModel.findOne({token: token});
     //
     //         if (!accessToken) {
@@ -722,7 +722,7 @@ var ProjectController = {
         
         try {
             
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await  TokenModel.findOne({token: token});
             
             if (!accessToken) {

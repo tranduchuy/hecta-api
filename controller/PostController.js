@@ -14,7 +14,7 @@ var PostController = {
     child: async function (req, res, next) {
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
 
             if (!token) {
@@ -667,7 +667,7 @@ var PostController = {
         var id = req.query.id;
 
 
-        var token = req.headers.access_token;
+        var token = req.headers.accesstoken;
 
         if (!token) {
             return res.json({

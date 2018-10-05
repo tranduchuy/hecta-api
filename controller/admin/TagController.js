@@ -7,7 +7,7 @@ var TagController = {
 
     update: async function (req, res, next) {
 
-        var token = req.headers.access_token;
+        var token = req.headers.accesstoken;
         var accessToken = await  TokenModel.findOne({token: token});
 
 
@@ -133,7 +133,7 @@ var TagController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await  TokenModel.findOne({token: token});
 
             if (!accessToken) {
@@ -234,7 +234,7 @@ var TagController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {

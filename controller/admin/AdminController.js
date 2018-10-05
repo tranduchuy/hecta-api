@@ -69,7 +69,7 @@ var AdminController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             if (!token) {
                 return res.json({
                     status: 0,
@@ -208,7 +208,7 @@ var AdminController = {
         try {
 
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
 
             var accessToken = await TokenModel.findOne({token: token});
@@ -312,7 +312,7 @@ var AdminController = {
         try {
 
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
 
             var accessToken = await TokenModel.findOne({token: token});
@@ -388,7 +388,7 @@ var AdminController = {
         try {
 
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
 
             var accessToken = await TokenModel.findOne({token: token});

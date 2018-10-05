@@ -141,7 +141,7 @@ var UserController = {
 
     balance: async function (req, res, next) {
         try {
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
             if (!token) {
                 return res.json({
@@ -235,7 +235,7 @@ var UserController = {
     childDetail: async function (req, res, next) {
 
         try {
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var id = req.params.id;
 
 
@@ -515,7 +515,7 @@ var UserController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
             if (!token) {
                 return res.json({
@@ -818,7 +818,7 @@ var UserController = {
 
     childResponse: async function (req, res, next) {
         try {
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var id = req.params.id;
             var status = req.body.status;
 
@@ -910,7 +910,7 @@ var UserController = {
     childRequest: async function (req, res, next) {
 
         try {
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var id = req.params.id;
 
             if (!token) {
@@ -1031,7 +1031,7 @@ var UserController = {
     requestList: async function (req, res, next) {
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
             if (!token) {
                 return res.json({
@@ -1112,7 +1112,7 @@ var UserController = {
 
     childList: async function (req, res, next) {
         try {
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
             if (!token) {
                 return res.json({
@@ -1212,7 +1212,7 @@ var UserController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var email = req.params.email;
 
             if (!token) {
@@ -1738,7 +1738,7 @@ var UserController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             if (!token) {
                 return res.json({
                     status: 0,

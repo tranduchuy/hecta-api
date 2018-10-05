@@ -12,7 +12,7 @@ var PostController = {
 
     updateUrl: async function (req, res, next) {
 
-        var token = req.headers.access_token;
+        var token = req.headers.accesstoken;
         var accessToken = await  TokenModel.findOne({token: token});
 
 
@@ -128,7 +128,7 @@ var PostController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await  TokenModel.findOne({token: token});
 
             if (!accessToken) {
@@ -495,7 +495,7 @@ var PostController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
             var accessToken = await  TokenModel.findOne({token: token});
 
             if (!accessToken) {

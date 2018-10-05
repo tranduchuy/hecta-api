@@ -49,7 +49,7 @@ var SaleController = {
 
     add: async function (req, res, next) {
 
-        var token = req.headers.access_token;
+        var token = req.headers.accesstoken;
         var user = undefined;
 
         if (token) {
@@ -426,7 +426,7 @@ var SaleController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
             var accessToken = await  TokenModel.findOne({token: token});
 

@@ -20,7 +20,7 @@ var BuyController = {
             receiveMail, from, to, createdByType
         } = req.body;
 
-        const token = req.headers['access_token'];
+        const token = req.headers['accesstoken'];
 
         ImageService.postConfirmImage(images);
         try {
@@ -260,7 +260,7 @@ var BuyController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
 
             var accessToken = await TokenModel.findOne({token: token});

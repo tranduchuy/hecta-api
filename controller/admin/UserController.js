@@ -96,7 +96,7 @@ var UserController = {
     list: async function (req, res, next) {
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
 
             if (!token) {
@@ -261,7 +261,7 @@ var UserController = {
 
         try {
 
-            var token = req.headers.access_token;
+            var token = req.headers.accesstoken;
 
             var accessToken = await TokenModel.findOne({token: token});
 
