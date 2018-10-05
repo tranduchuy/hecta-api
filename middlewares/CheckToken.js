@@ -1,7 +1,7 @@
-var TokenModel = require('../models/TokenModel');
-var UserModel = require('../models/UserModel');
+const TokenModel = require('../models/TokenModel');
+const UserModel = require('../models/UserModel');
 
-var urlToPassCheckingToken = [
+const urlToPassCheckingToken = [
     '/api/v1/users/login',
     '/api/v1/users/register',
     '/api/v1/users/confirm',
@@ -36,17 +36,17 @@ var urlToPassCheckingToken = [
     '/api/v1/system'
 ];
 
-var checkSuitIgnoreUrl = function (path) {
-    for (var i = 0; i < urlToPassCheckingToken.length; i++) {
+const checkSuitIgnoreUrl = function (path) {
+    for (let i = 0; i < urlToPassCheckingToken.length; i++) {
         if (path.indexOf(urlToPassCheckingToken[i]) === 0) {
             return true;
         }
     }
 
     return false;
-}
+};
 
-var returnInvalidToken = function (req, res, next) {
+const returnInvalidToken = function (req, res, next) {
 
     if (checkSuitIgnoreUrl(req.path)) {
         return next();
@@ -59,30 +59,24 @@ var returnInvalidToken = function (req, res, next) {
     });
 
 
-}
+};
 
 module.exports = async function (req, res, next) {
-    // if (checkSuitIgnoreUrl(req.path)) {
-    //     return next();
-    // }
-
-
-    var token = req.headers.access_token;
+    const token = req.headers.accessToken;
 
     if (token == null || typeof token === undefined) {
         returnInvalidToken(req, res, next);
         return;
     }
 
-    var accessToken = await TokenModel.findOne({token: token});
+    const accessToken = await TokenModel.findOne({token: token});
 
     if (!accessToken) {
         returnInvalidToken(req, res, next);
         return;
-
     }
 
-    var user = await UserModel.findOne({
+    const user = await UserModel.findOne({
         _id: accessToken.user,
         status: global.STATUS.ACTIVE
     });
@@ -90,9 +84,8 @@ module.exports = async function (req, res, next) {
     if (!user) {
         returnInvalidToken(req, res, next);
         return;
-
     }
 
     req.user = user;
     return next();
-}
+};
