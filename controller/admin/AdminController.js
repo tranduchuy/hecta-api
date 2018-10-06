@@ -1,125 +1,80 @@
-var EmailValidator = require("email-validator");
-var BCrypt = require('bcrypt');
-
-var AccessToken = require('../../utils/AccessToken');
-var TokenModel = require('../../models/TokenModel');
-var UserModel = require('../../models/UserModel');
+const EmailValidator = require("email-validator");
+const BCrypt = require('bcrypt');
+const AccessToken = require('../../utils/AccessToken');
+const TokenModel = require('../../models/TokenModel');
+const UserModel = require('../../models/UserModel');
 const BuyModel = require('../../models/BuyModel');
 const SaleModel = require('../../models/SaleModel');
 const NewsModel = require('../../models/NewsModel');
 const ProjectModel = require('../../models/ProjectModel');
 const HttpCode = require('../../config/http-code');
-var _ = require('lodash');
+const _ = require('lodash');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Controllers');
 
-var AdminController = {
+const AdminController = {
     login: async function (req, res, next) {
+        logger.info('AdminController::login is called');
+        try {
+            const {username, password} = req.body;
 
-        var username = req.body.username;
-        var password = req.body.password;
+            if (!password || password.length < 6) {
+                return res.json({
+                    status: HttpCode.BAD_REQUEST,
+                    message: 'Password is invalid',
+                    data: {}
+                });
+            }
 
-        if (!password || password.length < 6) {
+            if (!username || username.length < 6) {
+                return res.json({
+                    status: HttpCode.BAD_REQUEST,
+                    message: 'Username is invalid',
+                    data: {}
+                });
+            }
+
+            const user = await UserModel.findOne({username: username});
+
+            if (!user ||
+                user.status !== global.STATUS.ACTIVE ||
+                (user.role !== global.USER_ROLE_MASTER && user.role !== global.USER_ROLE_ADMIN) ||
+                await !BCrypt.compareSync(password, user.hash_password)
+            ) {
+                return res.json({
+                    status: HttpCode.ERROR,
+                    message: 'Login fail',
+                    data: {}
+                });
+            }
+
+            user.token = AccessToken.generate(user._id);
+            user.id = user._id;
+
+            logger.info('AdminController::login::success');
             return res.json({
-                status: 0,
-                data: {},
-                message: 'password : "' + password + '" is invalid'
+                status: HttpCode.SUCCESS,
+                data: user,
+                message: 'Login success'
             });
+        } catch (e) {
+            logger.info('AdminController::login::error', e);
+            return next(e);
         }
-
-        if (!username || username.length < 6) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'username invalid'
-            });
-
-        }
-
-        var user = await UserModel.findOne({username: username});
-
-        if (!user || user.status != global.STATUS.ACTIVE || (user.role != global.USER_ROLE_MASTER && user.role != global.USER_ROLE_ADMIN) || await !BCrypt.compareSync(password, user.hash_password)) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'login fail '
-            });
-
-        }
-
-
-        return res.json({
-            status: 1,
-            data: {
-                username: user.username,
-                email: user.email,
-                phone: user.phone,
-                name: user.name,
-                birthday: user.birthday,
-                gender: user.gender,
-                city: user.city,
-                district: user.district,
-                ward: user.ward,
-                type: user.type,
-                id: user._id,
-                avatar: user.avatar,
-                token: AccessToken.generate(user._id)
-            },
-            message: 'login success !'
-        });
-
-
     },
 
     update: async function (req, res, next) {
-
         try {
-
-            var token = req.headers.accesstoken;
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-            var user = await UserModel.findOne({_id: accessToken.user});
-
-            if (!user) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user is not exist'
-                });
-            }
-
-
-            var email = req.body.email;
-            var password = req.body.password;
-            var name = req.body.name;
-            var phone = req.body.phone;
-            var birthday = req.body.birthday;
-            var gender = req.body.gender;
-            var city = req.body.city;
-            var district = req.body.district;
-            var ward = req.body.ward;
-            var avatar = req.body.avatar;
-            var oldPassword = req.body.oldPassword;
+            const user = req.user;
+            const {
+                email, password, name, phone, birthday, gender, city, district, ward, avatar, oldPassword
+            } = req.body;
 
 
             if (email) {
                 if (!EmailValidator.validate(email)) {
                     return res.json({
-                        status: 0,
+                        status: HttpCode.BAD_REQUEST,
                         data: {},
                         message: 'email : "' + email + '" is invalid'
                     });
@@ -130,14 +85,14 @@ var AdminController = {
             if (password) {
                 if (!password || password.length < 6) {
                     return res.json({
-                        status: 0,
+                        status: HttpCode.BAD_REQUEST,
                         data: {},
                         message: 'password : "' + password + '" is invalid'
                     });
                 }
                 if (!oldPassword || await !BCrypt.compareSync(oldPassword, user.hash_password)) {
                     return res.json({
-                        status: 0,
+                        status: HttpCode.BAD_REQUEST,
                         data: {},
                         message: 'oldPassword : "' + oldPassword + '" is incorrect'
                     });
@@ -148,7 +103,7 @@ var AdminController = {
             if (phone) {
                 if (phone.length < 6) {
                     return res.json({
-                        status: 0,
+                        status: HttpCode.BAD_REQUEST,
                         data: {},
                         message: 'phone : "' + phone + '" is invalid'
                     });
@@ -160,7 +115,7 @@ var AdminController = {
             if (name) {
                 if (name.length < 3) {
                     return res.json({
-                        status: 0,
+                        status: HttpCode.BAD_REQUEST,
                         data: {},
                         message: 'name : "' + name + '" is invalid'
                     });
@@ -168,114 +123,84 @@ var AdminController = {
                 }
                 user.name = name;
             }
-            if (birthday) {
-                user.birthday = birthday;
-            }
 
-            if (avatar) {
-                user.avatar = avatar;
-            }
-
-            if (gender != undefined) {
-
-                user.gender = gender;
-            }
-            if (city) {
-                user.city = city;
-            }
-            if (district) {
-                user.district = district;
-            }
-            if (ward) {
-                user.ward = ward;
-            }
+            user.birthday = birthday || user.birthday;
+            user.avatar = avatar || user.avatar;
+            user.gender = gender || user.gender;
+            user.city = city || user.city;
+            user.district = district || user.district;
+            user.ward = ward || user.ward;
 
             await user.save();
 
             return res.json({
-                status: 1,
-                data: {},
-                message: 'request success ! '
+                status: HttpCode.SUCCESS,
+                message: 'Update successfully',
+                data: {}
             });
         }
         catch (e) {
             return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
+                status: HttpCode.ERROR,
+                message: 'Unknown error : ' + e.message,
+                data: {}
             });
         }
     },
 
-    create: async function (req, res, next) {
-
+    create: async function (req, res) {
         try {
+            const master = req.user;
 
-
-            var token = req.headers.accesstoken;
-
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
+            if (master.role !== global.USER_ROLE_MASTER) {
                 return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access_token invalid'
+                    status: HttpCode.BAD_REQUEST,
+                    message: 'Permission denied',
+                    data: {}
                 });
             }
+            const {
+                username, email, password, phone, name
+            } = req.body;
 
-            var master = await UserModel.findOne({_id: accessToken.user});
 
-
-            if (!master || master.role != global.USER_ROLE_MASTER) {
+            if (!EmailValidator.validate(email) ||
+                !password ||
+                password.length < 6 ||
+                !phone || phone.length < 6 ||
+                !name || name.length < 3 ||
+                !username ||
+                username.length < 6) {
                 return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'master invalid'
-                });
-            }
-
-            var username = req.body.username;
-            var email = req.body.email;
-            var password = req.body.password;
-            var phone = req.body.phone;
-            var name = req.body.name;
-
-
-            if (!EmailValidator.validate(email) || !password || password.length < 6 || !phone || phone.length < 6 || !name || name.length < 3 || !username || username.length < 6) {
-                return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {
-                        email: email,
-                        password: password,
-                        phone: phone,
-                        name: name,
-                        username: username
+                        email,
+                        password,
+                        phone,
+                        name,
+                        username
                     },
-                    message: 'body invalid'
+                    message: 'Body invalid'
                 });
             }
 
-
-            var user = await UserModel.findOne({username: username});
+            let user = await UserModel.findOne({username: username});
 
             if (user) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {},
-                    message: 'username : "' + username + '" is duplicate'
+                    message: 'Username is duplicated'
                 });
-
             }
 
             user = await UserModel.findOne({email: email});
 
             if (user) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.BAD_REQUEST,
                     data: {},
-                    message: 'email : "' + email + '" is duplicate'
+                    message: 'Email is duplicated'
                 });
 
             }
@@ -291,33 +216,24 @@ var AdminController = {
 
             await user.save();
 
-
             return res.json({
-                status: 1,
+                status: HttpCode.SUCCESS,
                 data: {},
-                message: 'request success !'
+                message: 'Request success !'
             });
-
-
         }
         catch (e) {
             return res.json({
-                status: 0,
+                status: HttpCode.ERROR,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
-
-
     },
 
-    status: async function (req, res, next) {
-
+    status: async function (req, res) {
         try {
-
-
             var token = req.headers.accesstoken;
-
 
             var accessToken = await TokenModel.findOne({token: token});
 
@@ -342,7 +258,6 @@ var AdminController = {
 
 
             var id = req.params.id;
-
             var admin = await UserModel.findOne({_id: id});
 
             if (!admin) {
@@ -376,7 +291,6 @@ var AdminController = {
                 message: 'request success !'
             });
 
-
         }
         catch (e) {
             return res.json({
@@ -387,7 +301,7 @@ var AdminController = {
         }
     },
 
-    list: async function (req, res, next) {
+    list: async function (req, res) {
 
         try {
 

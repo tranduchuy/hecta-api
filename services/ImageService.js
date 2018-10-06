@@ -13,7 +13,7 @@ const postConfirmImage = function (paths) {
     };
     try {
         request(option, (err, httpResponse, body) => {
-            if (body.status != 1) {
+            if (err) {
                 logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(err)}. Params: ${JSON.stringify(option)}`);
             } else {
                 logger.info('POST CONFIRM IMAGE info' + JSON.stringify(option));
@@ -44,7 +44,7 @@ const putUpdateImage = (oldImages, newImages) => {
     
     try {
         request.put(option, (err, httpResponse, body) => {
-            if (body.status != 1) {
+            if (err) {
                 logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(err)}. Params: ${JSON.stringify(option)}`);
             } else {
                 logger.info(['PUST UPDATE IMAGE info', global.API_COMFIRM_IMAGE, option]);
