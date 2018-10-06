@@ -4,11 +4,14 @@ var BCrypt = require('bcrypt');
 var AccessToken = require('../../utils/AccessToken');
 var TokenModel = require('../../models/TokenModel');
 var UserModel = require('../../models/UserModel');
+const BuyModel = require('../../models/BuyModel');
+const SaleModel = require('../../models/SaleModel');
+const NewsModel = require('../../models/NewsModel');
+const ProjectModel = require('../../models/ProjectModel');
+const HttpCode = require('../../config/http-code');
 var _ = require('lodash');
 
 var AdminController = {
-
-
     login: async function (req, res, next) {
 
         var username = req.body.username;
@@ -65,6 +68,7 @@ var AdminController = {
 
 
     },
+
     update: async function (req, res, next) {
 
         try {
@@ -442,8 +446,42 @@ var AdminController = {
                 message: 'unknown error : ' + e.message
             });
         }
+    },
+
+    removePost: async function (req, res) {
+        let {type} = req.query;
+
+        try {
+            type = parseInt(type);
+
+            switch (type) {
+                case global.POST_TYPE_SALE:
+                    await SaleModel.remove({createdByType: global.CREATED_BY.CRAWL});
+                    break;
+                case global.POST_TYPE_BUY:
+                    await BuyModel.remove({createdByType: global.CREATED_BY.CRAWL});
+                    break;
+                case global.POST_TYPE_PROJECT:
+                    await ProjectModel.remove({createdByType: global.CREATED_BY.CRAWL});
+                    break;
+                case global.POST_TYPE_NEWS:
+                    await NewsModel.remove({createdByType: global.CREATED_BY.CRAWL});
+                    break;
+            }
+
+            return res.json({
+                status: HttpCode.SUCCESS,
+                message: 'Success',
+                data: {}
+            });
+        } catch (e) {
+            return res.json({
+                status: HttpCode.ERROR,
+                message: 'Delete error: ' + e.message,
+                data: {}
+            });
+        }
     }
+};
 
-
-}
-module.exports = AdminController
+module.exports = AdminController;

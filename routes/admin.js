@@ -34,6 +34,7 @@ router.post('/news/update/:id', AdminNewsController.update);
 router.get('/posts/list', AdminPostController.list);
 router.get('/posts/detail/:id', AdminPostController.detail);
 router.post('/posts/update/url/:id', AdminPostController.updateUrl);
+router.delete('/posts/delete', AdminController.removePost);
 
 
 router.post('/buys/update/:id', AdminBuyController.update);
