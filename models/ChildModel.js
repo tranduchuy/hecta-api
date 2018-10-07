@@ -13,6 +13,6 @@ const childSchema = new Schema({
     date: {type: Number, default: Date.now}
 });
 
-const ChildModel = mongoose.model('Child', childSchema);
+const ChildModel = mongoose.model('Child', childSchema, 'Children');
 module.exports = ChildModel;
 module.exports.Model = childSchema;

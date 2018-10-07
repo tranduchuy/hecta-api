@@ -5,7 +5,7 @@ const systemSchema = new Schema({
     crawler: Object
 });
 
-const SystemModel = mongoose.model('Systems', systemSchema);
+const SystemModel = mongoose.model('System', systemSchema, 'Systems');
 module.exports = SystemModel;
 module.exports.Model = systemSchema;
 

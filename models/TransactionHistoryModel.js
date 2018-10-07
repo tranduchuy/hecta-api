@@ -34,7 +34,7 @@ const transactionHistorySchema = new Schema({
 });
 
 
-const TransactionHistory = mongoose.model('TransactionHistory', transactionHistorySchema);
+const TransactionHistory = mongoose.model('TransactionHistory', transactionHistorySchema, 'TransactionHistories');
 module.exports = TransactionHistory;
 module.exports.Model = transactionHistorySchema;
 

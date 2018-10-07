@@ -25,7 +25,7 @@ const userSchema = new Schema({
     expirationDate: {type: Number, default: Date.now()},
 });
 
-const UserModel = mongoose.model('User', userSchema);
+const UserModel = mongoose.model('User', userSchema, 'Users');
 module.exports = UserModel;
 module.exports.Model = userSchema;
 

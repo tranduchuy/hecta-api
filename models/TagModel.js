@@ -19,6 +19,6 @@ const tagSchema = new Schema({
     textEndPage: String
 });
 
-const TagModel = mongoose.model('Tag', tagSchema);
+const TagModel = mongoose.model('Tag', tagSchema, 'Tags');
 module.exports = TagModel;
 module.exports.Model = tagSchema;

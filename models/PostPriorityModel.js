@@ -12,6 +12,6 @@ const postPrioritySchema = new Schema({
     date: {type: Number, default: Date.now}
 });
 
-const PriorityModel = mongoose.model('PostPriority', postPrioritySchema);
+const PriorityModel = mongoose.model('PostPriority', postPrioritySchema, 'PostPriorities');
 module.exports = PriorityModel;
 module.exports.Model = postPrioritySchema;

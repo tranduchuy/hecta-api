@@ -44,6 +44,6 @@ const projectSchema = new Schema({
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
-const projectModel = mongoose.model('Project', projectSchema);
+const projectModel = mongoose.model('Project', projectSchema, 'Project');
 module.exports = projectModel;
 module.exports.Model = projectSchema;

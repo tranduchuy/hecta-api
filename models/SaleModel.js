@@ -38,6 +38,6 @@ const saleSchema = new Schema({
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
-const SaleModel = mongoose.model('Sale', saleSchema);
+const SaleModel = mongoose.model('Sale', saleSchema, 'Sales');
 module.exports = SaleModel;
 module.exports.Model = saleSchema;

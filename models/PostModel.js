@@ -30,6 +30,6 @@ const postSchema = new Schema({
     tags: {type: Array, default: []}
 });
 
-const PostModel = mongoose.model('Post', postSchema);
+const PostModel = mongoose.model('Post', postSchema, 'Posts');
 module.exports = PostModel;
 module.exports.Model = postSchema;

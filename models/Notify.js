@@ -29,6 +29,6 @@ const notifySchema = new Schema({
     updatedTime: Date
 });
 
-const NotifyModel = mongoose.model('Notifies', notifySchema);
+const NotifyModel = mongoose.model('Notifies', notifySchema, 'Notifies');
 module.exports = NotifyModel;
 module.exports.Model = notifySchema;

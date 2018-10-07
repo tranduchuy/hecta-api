@@ -9,5 +9,5 @@ const tokenSchema = new Schema({
     date : Date
 });
 
-const TokenModel = mongoose.model('Token', tokenSchema);
+const TokenModel = mongoose.model('Token', tokenSchema, 'Tokens');
 module.exports = TokenModel;

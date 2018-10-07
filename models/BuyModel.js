@@ -33,6 +33,6 @@ const buySchema = new Schema({
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
-const BuyModel = mongoose.model('Buy', buySchema);
+const BuyModel = mongoose.model('Buy', buySchema, 'Buys');
 module.exports = BuyModel;
 module.exports.Model = buySchema;

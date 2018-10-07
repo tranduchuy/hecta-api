@@ -15,6 +15,6 @@ const newsSchema = new Schema({
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
-const NewsModel = mongoose.model('News', newsSchema);
+const NewsModel = mongoose.model('News', newsSchema, 'News');
 module.exports = NewsModel;
 module.exports.Model = newsSchema;

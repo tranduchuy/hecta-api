@@ -10,6 +10,6 @@ const accountSchema = new Schema({
     date: {type: Number, default: Date.now}
 });
 
-const AccountModel = mongoose.model('Account', accountSchema);
+const AccountModel = mongoose.model('Account', accountSchema, 'Accounts');
 module.exports = AccountModel;
 module.exports.Model = accountSchema;

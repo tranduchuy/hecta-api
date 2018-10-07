@@ -34,6 +34,6 @@ const urlParamSchema = new Schema({
     updatedBy: {type: Array, default: []}
 });
 
-const UrlParamModel = mongoose.model('UrlParam', urlParamSchema);
+const UrlParamModel = mongoose.model('UrlParam', urlParamSchema, 'UrlParams');
 module.exports = UrlParamModel;
 module.exports.Model = urlParamSchema;
