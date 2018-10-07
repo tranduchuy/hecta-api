@@ -1,11 +1,9 @@
 /**
  * Created by duong_000 on 10/18/2016.
  */
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-
-var projectSchema = new Schema({
-
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const projectSchema = new Schema({
     status: Number,
     isShowOverview: Boolean,
     type: String,
@@ -19,50 +17,33 @@ var projectSchema = new Schema({
     constructionArea: Number,
     descriptionInvestor: String,
     description: String,
-
     isShowLocationAndDesign: Boolean,
     location: String,
     infrastructure: String,
-
     isShowGround: Boolean,
     overallSchema: Array,
     groundImages: Array,
-
     isShowImageLibs: Boolean,
     imageAlbums: Array,
-
     isShowProjectProgress: Boolean,
     projectProgressTitle: String,
     projectProgressStartDate: Number,
     projectProgressEndDate: Number,
     projectProgressDate: Number,
     projectProgressImages: Array,
-
     isShowTabVideo: Boolean,
     video: String,
-
     isShowFinancialSupport: Boolean,
     financialSupport: String,
-
     isShowInvestor: Boolean,
     detailInvestor: String,
-
     district: Number,
     city: String,
-
-
-    // metaTitle: String,
-    // metaDescription: String,
-    // metaType: String,
-    // metaUrl: String,
-    // metaImage: String,
-    // canonical: String,
-
     admin: {type: Array, default: []},
     date: {type: Number, default: Date.now},
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });
 
-var projectModel = mongoose.model('project', projectSchema);
+const projectModel = mongoose.model('Project', projectSchema);
 module.exports = projectModel;
 module.exports.Model = projectSchema;

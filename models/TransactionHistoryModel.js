@@ -7,7 +7,6 @@ const ObjectId = mongoose.Types.ObjectId;
 const log4js = require('log4js');
 const logger = log4js.getLogger('Models');
 
-
 const transactionHistorySchema = new Schema({
     userId: {type: Schema.Types.ObjectId, ref: 'User'},
     adminId: {type: Schema.Types.ObjectId, ref: 'User'},
@@ -22,7 +21,6 @@ const transactionHistorySchema = new Schema({
             main: 0,
             promo: 0
         }
-
     },
     after: {
         type: Object,
@@ -31,7 +29,6 @@ const transactionHistorySchema = new Schema({
             main: 0,
             promo: 0
         }
-
     },
     date: {type: Number, default: Date.now}
 });

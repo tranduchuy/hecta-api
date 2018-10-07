@@ -1,11 +1,9 @@
 /**
  * Created by duong_000 on 10/18/2016.
  */
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-
-var postSchema = new Schema({
-
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const postPrioritySchema = new Schema({
     name: String,
     minDay: Number,
     costByDay: Number,
@@ -14,7 +12,6 @@ var postSchema = new Schema({
     date: {type: Number, default: Date.now}
 });
 
-
-var PaymentModel = mongoose.model('Postriority', postSchema);
-module.exports = PaymentModel;
-module.exports.Model = postSchema;
+const PriorityModel = mongoose.model('PostPriority', postPrioritySchema);
+module.exports = PriorityModel;
+module.exports.Model = postPrioritySchema;
