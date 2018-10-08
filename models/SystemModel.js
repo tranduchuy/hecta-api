@@ -18,8 +18,10 @@ async function initSystemConfig() {
 
         config = new SystemModel();
         config['crawler'] = {
-            timeCrawl: '',
             sale: 2000,
+            rent: 2000,
+            needBuy: 2000,
+            needRent: 2000,
             post: 2000,
             news: 2000,
             project: 2000

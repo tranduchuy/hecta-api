@@ -29,7 +29,7 @@ router.use('/api/v1/script', script);
 router.use('/api/v1/news', news);
 router.use('/api/v1/vips', vips);
 router.use('/api/v1/notifies', notify);
-router.use('/api/v1/system', system);
+router.use('/api/v1/systems', system);
 router.use('/admin/v1/', admin);
 
 router.get('/api/v1/posts/child/:id', PostController.child);

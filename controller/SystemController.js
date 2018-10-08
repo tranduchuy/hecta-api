@@ -7,15 +7,23 @@ const NewsModel = require('../models/NewsModel');
 const ProjectModel = require('../models/ProjectModel');
 const HttpCode = require('../config/http-code');
 
+const needBuyId = 400;
+const needRentId = 401;
+const saleId = 38;
+const rentId = 49;
+
+
 const getStatisticInfo = async (req, res, next) => {
     logger.info('SystemController::getStatisticInfo is called');
 
     try {
-        const config = await SystemModel.findOne();
-        const countCrawledSale = SaleModel.countDocuments({createdByType: global.CREATED_BY.CRAWL});
-        const countCrawledBuy = BuyModel.countDocuments({createdByType: global.CREATED_BY.CRAWL});
-        const countCrawledNews = NewsModel.countDocuments({createdByType: global.CREATED_BY.CRAWL});
-        const countCrawledProject = ProjectModel.countDocuments({createdByType: global.CREATED_BY.CRAWL});
+        const config = await SystemModel.findOne({});
+        const countCrawledSale = await SaleModel.countDocuments({createdByType: global.CREATED_BY.CRAWL, formality: saleId});
+        const countCrawledRent = await SaleModel.countDocuments({createdByType: global.CREATED_BY.CRAWL, formality: rentId});
+        const countCrawledNeedBuy = await BuyModel.countDocuments({createdByType: global.CREATED_BY.CRAWL, formality: needBuyId});
+        const countCrawledNeedRent = await BuyModel.countDocuments({createdByType: global.CREATED_BY.CRAWL, formality: needRentId});
+        const countCrawledNews = await NewsModel.countDocuments({createdByType: global.CREATED_BY.CRAWL});
+        const countCrawledProject = await ProjectModel.countDocuments({createdByType: global.CREATED_BY.CRAWL});
 
         return res.json({
             status: HttpCode.SUCCESS,
@@ -23,19 +31,27 @@ const getStatisticInfo = async (req, res, next) => {
             data: {
                 crawl: {
                     sale: {
-                        total: config.crawl.sale,
+                        total: config.crawler.sale,
                         finished: countCrawledSale
                     },
-                    buy: {
-                        total: config.crawl.buy,
-                        finished: countCrawledBuy
+                    rent: {
+                        total: config.crawler.rent,
+                        finished: countCrawledRent
+                    },
+                    needBuy: {
+                        total: config.crawler.needBuy,
+                        finished: countCrawledNeedBuy
+                    },
+                    needRent: {
+                        total: config.crawler.needRent,
+                        finished: countCrawledNeedRent
                     },
                     news: {
-                        total: config.crawl.news,
+                        total: config.crawler.news,
                         finished: countCrawledNews
                     },
                     project: {
-                        total: config.crawl.project,
+                        total: config.crawler.project,
                         finished: countCrawledProject
                     }
                 }
