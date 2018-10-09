@@ -34,7 +34,7 @@ const AdminController = {
                 });
             }
 
-            const user = await UserModel.findOne({username: username});
+            let user = await UserModel.findOne({username: username});
 
             if (!user ||
                 user.status !== global.STATUS.ACTIVE ||
@@ -48,6 +48,7 @@ const AdminController = {
                 });
             }
 
+            user = JSON.parse(JSON.stringify(user));
             user.token = AccessToken.generate(user._id);
             user.id = user._id;
 
