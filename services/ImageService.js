@@ -7,6 +7,7 @@ const postConfirmImage = function (paths) {
     logger.info('ImageService::postConfirmImage was called with: ' + JSON.stringify(paths));
     
     const option = {
+        "rejectUnauthorized": false,
         uri: global.API_COMFIRM_IMAGE,
         json: {paths},
         method: 'POST'
@@ -37,6 +38,7 @@ const putUpdateImage = (oldImages, newImages) => {
     const imagesAdd = _.difference(newImages, oldImages);
     
     const option = {
+        "rejectUnauthorized": false,
         uri: global.API_COMFIRM_IMAGE,
         method: 'PUT',
         json: {oldImages: imagesDelete, newImages: imagesAdd}
