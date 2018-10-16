@@ -420,6 +420,7 @@ var SearchController = {
                         image: news.image,
                         description: news.description,
                         date: news.date,
+                        createdByType: news.createdByType ? news.createdByType : null,
 
                         id: post._id,
                         metaTitle: post.metaTitle,
@@ -504,6 +505,8 @@ var SearchController = {
                         city: project.city,
 
                         status: project.status,
+    
+                        createdByType: project.createdByType ? project.createdByType : null,
 
                         id: post._id,
                         metaTitle: post.metaTitle,
@@ -590,6 +593,8 @@ var SearchController = {
                             contactMobile: buy.contactMobile,
                             contactEmail: buy.contactEmail,
                             date: buy.date,
+    
+                            createdByType: buy.createdByType ? buy.createdByType : null,
 
                             id: post._id,
                             url: post.url,
@@ -666,7 +671,9 @@ var SearchController = {
                             contactEmail: sale.contactEmail,
                             receiveMail: sale.receiveMail,
                             date: sale.date,
-
+                            
+                            createdByType: sale.createdByType ? sale.createdByType : null,
+                            
                             id: post._id,
                             url: post.url,
                             to: post.to,
