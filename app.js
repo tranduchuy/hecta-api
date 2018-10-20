@@ -45,4 +45,6 @@ app.use(function (err, req, res, next) {
   });
 });
 
+require('./hotfix')();
+
 module.exports = app;
