@@ -366,7 +366,7 @@ var PostController = {
                             }
 
                             return {
-
+                                createdByType: news.createdByType,
                                 status: news.status,
                                 title: news.title,
                                 content: news.content,
@@ -374,6 +374,7 @@ var PostController = {
                                 image: news.image,
                                 date: news.date,
                                 description: news.description,
+
                                 id: post._id,
                                 url: post.url,
                                 metaTitle: post.metaTitle,

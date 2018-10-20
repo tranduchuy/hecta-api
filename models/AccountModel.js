@@ -4,7 +4,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const accountSchema = new Schema({
-    owner: String,
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+    },
     promo: {type: Number, default: 0},
     main: {type: Number, default: 0},
     date: {type: Number, default: Date.now}
