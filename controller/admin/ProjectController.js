@@ -6,6 +6,7 @@ const UserModel = require('../../models/UserModel');
 const UrlParamModel = require('../../models/UrlParamModel');
 const urlSlug = require('url-slug');
 const log4js = require('log4js');
+const mongoose = require('mongoose');
 const logger = log4js.getLogger('Controllers');
 const HttpCode = require('../../config/http-code');
 const ImageService = require('../../services/ImageService');
@@ -90,10 +91,10 @@ const ProjectController = {
                 return next(new Error('Post of project not exist'));
             }
 
-            let project = await ProjectModel.findOne({_id: post.content_id});
+            let project = await ProjectModel.findOne({_id: post.contentId});
 
             if (!project) {
-                logger.error('AdminProjectController::Update::error Project not exist. Project Id: ', post.content_id);
+                logger.error('AdminProjectController::Update::error Project not exist. Project Id: ', post.contentId);
                 return next(new Error('Project not exist'));
             }
 
@@ -126,7 +127,7 @@ const ProjectController = {
                 project.admin = [];
             }
 
-            project.admin.push(admin._id);
+            project.admin.push(new mongoose.Types.ObjectId(admin._id));
             project = await project.save();
 
             // update post info
@@ -312,7 +313,7 @@ const ProjectController = {
 
             post.postType = global.POST_TYPE_PROJECT;
             post.type = project.type;
-            post.content_id = project._id;
+            post.contentId = new mongoose.Types.ObjectId(project._id);
             post.user = accessToken.user;
 
             post.metaTitle = metaTitle;

@@ -10,7 +10,10 @@ const newsSchema = new Schema({
     image: String,
     description: String,
     status: {type: Number, default: global.STATUS.ACTIVE},
-    admin: {type: Array, default: []},
+    admin: {
+        type: Array,
+        default: []
+    },
     date: {type: Number, default: Date.now},
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });

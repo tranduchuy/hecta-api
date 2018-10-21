@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const models = require('./models');
 const AccountModel = models['AccountModel'];
+const PostModel = models['PostModel'];
 
 const updateAccountOwnerObjectId = () => {
     AccountModel.find({})
@@ -11,7 +12,6 @@ const updateAccountOwnerObjectId = () => {
             }
 
             accounts.forEach((a) => {
-                a.owner = mongoose.Types.ObjectId(a.owner);
                 a.save((err) => {
                     if (err) {
                         console.error(err);
@@ -23,6 +23,28 @@ const updateAccountOwnerObjectId = () => {
         });
 };
 
+const updatePostContentId = () => {
+    PostModel.find({})
+        .exec((err, posts) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            posts.forEach((p) => {
+                p.content_id = p.contentId;
+                p.save((err) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.log('success');
+                    }
+                });
+            });
+        });
+};
+
 module.exports = () => {
-    updateAccountOwnerObjectId();
+    // updateAccountOwnerObjectId();
+    // updatePostContentId();
 };
