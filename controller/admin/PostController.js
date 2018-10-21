@@ -1,19 +1,23 @@
-var SaleModel = require('../../models/SaleModel');
-var BuyModel = require('../../models/BuyModel');
-var PostModel = require('../../models/PostModel');
-var NewsModel = require('../../models/NewsModel');
-var ProjectModel = require('../../models/ProjectModel');
-var _ = require('lodash');
-var urlSlug = require('url-slug');
-var TokenModel = require('../../models/TokenModel');
-var UserModel = require('../../models/UserModel');
+const SaleModel = require('../../models/SaleModel');
+const BuyModel = require('../../models/BuyModel');
+const PostModel = require('../../models/PostModel');
+const NewsModel = require('../../models/NewsModel');
+const ProjectModel = require('../../models/ProjectModel');
+const _ = require('lodash');
+const urlSlug = require('url-slug');
+const TokenModel = require('../../models/TokenModel');
+const UserModel = require('../../models/UserModel');
+const HttpCode = require('../../config/http-code');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Controllers');
+const PostService = require('../../services/PostService');
+const RoleService = require('../../services/RoleService');
 
-var PostController = {
-
+const PostController = {
     updateUrl: async function (req, res, next) {
 
         var token = req.headers.accesstoken;
-        var accessToken = await  TokenModel.findOne({token: token});
+        var accessToken = await TokenModel.findOne({token: token});
 
 
         if (!accessToken) {
@@ -123,53 +127,76 @@ var PostController = {
 
     },
 
-    list: async function (req, res, next) {
-
+    list2: async (req, res, next) => {
+        logger.info('Admin/PostController::list2 is called');
 
         try {
-
-            var token = req.headers.accesstoken;
-            var accessToken = await  TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
+            if (!RoleService.isAdmin(req.user)) {
+                return next(new Error('Permission denied'));
             }
 
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
+            let {postType} = req.query;
+
+            if (postType === undefined) {
+                logger.error('Admin/PostController::list2::error. Invalid postType');
+                return next(new Error('Invalid postType'));
+            }
+
+            postType = parseInt(postType, 0);
+
+            let stages = [];
+            switch (postType) {
+                case global.POST_TYPE_SALE:
+                    stages = PostService.generateStageQueryPostSale(req);
+                    break;
+                case global.POST_TYPE_BUY:
+                    stages = PostService.generateStageQueryPostBuy(req);
+                    break;
+                case global.POST_TYPE_PROJECT:
+                    stages = PostService.generateStageQueryPostProject(req);
+                    break;
+                case global.POST_TYPE_NEWS:
+                    stages = PostService.generateStageQueryPostNews(req);
+                    break;
+            }
+
+            logger.info('Admin/PostController::list2. Aggregate stages: ', JSON.stringify(stages));
+
+            const results = await PostModel.aggregate(stages);
+            return res.json({
+                status: HttpCode.SUCCESS,
+                data: {
+                    entries: results[0].entries,
+                    meta: {
+                        totalItems: results[0].meta[0].totalItems
+                    }
+                },
+                message: 'Success'
             });
+        } catch (e) {
+            logger.error('Admin/PostController::list2::error', e);
+            return next(e);
+        }
+    },
 
-            if (!admin) {
+    list: async function (req, res, next) {
+        try {
+            const admin = req.user;
+            if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.ERROR,
                     data: {},
-                    message: 'admin not found or blocked'
+                    message: 'Permission denied'
                 });
-
             }
 
-
-            var page = req.query.page;
-            var priority = req.query.priority;
-            var formality = req.query.formality;
-            var postType = req.query.postType;
-            var toDate = req.query.toDate;
-            var fromDate = req.query.fromDate;
-            var status = req.query.status;
-            var id = req.query.id;
+            let {page, priority, formality, postType, toDate, fromDate, status, id} = req.query;
 
             if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY && postType != global.POST_TYPE_NEWS && postType != global.POST_TYPE_PROJECT)) {
                 return res.json({
-                    status: 0,
+                    status: HttpCode.ERROR,
                     data: {},
-                    message: 'postType : ' + postType + ' invalid'
+                    message: 'Invalid PostType: ' + postType
                 });
             }
 
@@ -497,7 +524,7 @@ var PostController = {
         try {
 
             var token = req.headers.accesstoken;
-            var accessToken = await  TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({

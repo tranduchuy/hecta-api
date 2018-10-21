@@ -1,5 +1,5 @@
-var extractPaginationCondition = function(req) {
-  var cond = {
+const extractPaginationCondition = (req) => {
+  const cond = {
     page: 1,
     limit: global.PAGE_SIZE
   };
@@ -13,7 +13,7 @@ var extractPaginationCondition = function(req) {
   }
 
   return cond;
-}
+};
 
 module.exports = {
   extractPaginationCondition: extractPaginationCondition
