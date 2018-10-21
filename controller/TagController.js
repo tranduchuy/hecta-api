@@ -132,7 +132,7 @@ var TagController = {
 
                 if (post.postType == global.POST_TYPE_SALE) {
 
-                    let sale = await SaleModel.findOne({_id: post.content_id});
+                    let sale = await SaleModel.findOne({_id: post.contentId});
 
 
                     let keys;
@@ -196,7 +196,7 @@ var TagController = {
                 else {
 
 
-                    let buy = await BuyModel.findOne({_id: post.content_id});
+                    let buy = await BuyModel.findOne({_id: post.contentId});
                     let keys;
 
                     if (!buy.keywordList) {

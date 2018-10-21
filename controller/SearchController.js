@@ -401,7 +401,7 @@ var SearchController = {
                     }
 
                     let news = await NewsModel.findOne({
-                        _id: post.content_id
+                        _id: post.contentId
                     });
 
                     if (!news) {
@@ -448,7 +448,7 @@ var SearchController = {
                     }
 
                     let project = await ProjectModel.findOne({
-                        _id: post.content_id
+                        _id: post.contentId
                     });
 
                     if (!project) {
@@ -536,7 +536,7 @@ var SearchController = {
                     if (post.postType == global.POST_TYPE_BUY) {
 
                         let buy = await BuyModel.findOne({
-                            _id: post.content_id
+                            _id: post.contentId
                         });
 
                         if (!buy) {
@@ -619,7 +619,7 @@ var SearchController = {
 
                     if (post.postType == global.POST_TYPE_SALE) {
                         let sale = await SaleModel.findOne({
-                            _id: post.content_id
+                            _id: post.contentId
                         });
 
                         if (!sale) {
@@ -811,7 +811,7 @@ var SearchController = {
                     count = await model.count(query);
                     results = await Promise.all(data.map(async item => {
 
-                        let post = await PostModel.findOne({content_id: item._id});
+                        let post = await PostModel.findOne({contentId: item._id});
 
                         if (!post) {
                             return {};

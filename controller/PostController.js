@@ -113,7 +113,7 @@ var PostController = {
 
                 if (post.postType == global.POST_TYPE_SALE) {
 
-                    let sale = await SaleModel.findOne({_id: post.content_id});
+                    let sale = await SaleModel.findOne({_id: post.contentId});
 
 
                     return {
@@ -162,7 +162,7 @@ var PostController = {
                 else {
 
 
-                    let buy = await BuyModel.findOne({_id: post.content_id});
+                    let buy = await BuyModel.findOne({_id: post.contentId});
 
 
                     return {
@@ -324,7 +324,7 @@ var PostController = {
 
                     if (post.postType == global.POST_TYPE_SALE) {
 
-                        let sale = await SaleModel.findOne({_id: post.content_id});
+                        let sale = await SaleModel.findOne({_id: post.contentId});
 
 
                         let keys;
@@ -390,7 +390,7 @@ var PostController = {
                     else {
 
 
-                        let buy = await BuyModel.findOne({_id: post.content_id});
+                        let buy = await BuyModel.findOne({_id: post.contentId});
 
                         let keys;
 
@@ -498,7 +498,7 @@ var PostController = {
 
             let model = post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
 
-            let content = await model.findOne({_id: post.content_id});
+            let content = await model.findOne({_id: post.contentId});
 
 
             if (!content) {
@@ -741,7 +741,7 @@ var PostController = {
 
                 if (post.postType == global.POST_TYPE_SALE) {
 
-                    let sale = await SaleModel.findOne({_id: post.content_id});
+                    let sale = await SaleModel.findOne({_id: post.contentId});
 
 
                     return await
@@ -793,7 +793,7 @@ var PostController = {
                 else {
 
 
-                    let buy = await BuyModel.findOne({_id: post.content_id});
+                    let buy = await BuyModel.findOne({_id: post.contentId});
 
 
                     return await {

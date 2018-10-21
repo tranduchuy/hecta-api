@@ -14,7 +14,7 @@ var ProjectController = {
 
             let results = await Promise.all(projects.map(async project => {
 
-                let post = await PostModel.findOne({content_id: project._id});
+                let post = await PostModel.findOne({contentId: project._id});
 
 
                 let result = {

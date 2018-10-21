@@ -1,32 +1,23 @@
-var SaleModel = require('../models/SaleModel');
-var PostModel = require('../models/PostModel');
-var TagModel = require('../models/TagModel');
-var _ = require('lodash');
-var TokenModel = require('../models/TokenModel');
-var AccountModel = require('../models/AccountModel');
-var PostPriorityModel = require('../models/PostPriorityModel');
-var ChildModel = require('../models/ChildModel');
-var UserModel = require('../models/UserModel');
-
-var TransactionHistoryModel = require('../models/TransactionHistoryModel');
-var UrlParamModel = require('../models/UrlParamModel');
-var urlSlug = require('url-slug');
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const SaleModel = require('../models/SaleModel');
+const PostModel = require('../models/PostModel');
+const TagModel = require('../models/TagModel');
+const TokenModel = require('../models/TokenModel');
+const PostPriorityModel = require('../models/PostPriorityModel');
+const UserModel = require('../models/UserModel');
+const TransactionHistoryModel = require('../models/TransactionHistoryModel');
+const UrlParamModel = require('../models/UrlParamModel');
+const urlSlug = require('url-slug');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const NotifyController = require('../controller/NotifyController');
 const Socket = require('../utils/Socket');
 const NotifyContent = require('../config/notify-content');
 const NotifyTypes = require('../config/notify-type');
 const SocketEvents = require('../config/socket-event');
 const HTTP_CODE = require('../config/http-code');
+const ImageService = require('../services/ImageService');
 
-var ImageService = require('../services/ImageService');
-
-
-
-var checkUserPayment = async function (user, post, price) {
-
-
+const checkUserPayment = async (user, post, price) => {
     if (!user) {
         return;
     }
@@ -38,17 +29,12 @@ var checkUserPayment = async function (user, post, price) {
         post.paymentStatus = global.STATUS.PAYMENT_PAID;
         await TransactionHistoryModel.addTransaction(user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_PAY_POST, purchaseStatus.before, purchaseStatus.after);
     }
+
     await post.save();
+};
 
-
-}
-
-
-var SaleController = {
-
-
+const SaleController = {
     add: async function (req, res, next) {
-
         var token = req.headers.accesstoken;
         var user = undefined;
 
@@ -219,7 +205,7 @@ var SaleController = {
 
             post.postType = global.POST_TYPE_SALE;
             post.type = sale.type;
-            post.content_id = sale._id;
+            post.contentId = new ObjectId(sale._id);
             post.priority = priority.priority;
             post.from = from;
             post.to = to;
@@ -470,7 +456,7 @@ var SaleController = {
             }
 
 
-            var sale = await SaleModel.findOne({_id: post.content_id});
+            var sale = await SaleModel.findOne({_id: post.contentId});
 
 
             if (!sale) {
@@ -759,5 +745,6 @@ var SaleController = {
         }
 
     }
-}
-module.exports = SaleController
+};
+
+module.exports = SaleController;

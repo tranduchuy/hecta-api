@@ -1,14 +1,14 @@
-var PostModel = require('../models/PostModel');
-var BuyModel = require('../models/BuyModel');
-var TokenModel = require('../models/TokenModel');
-var TagModel = require('../models/TagModel');
-var _ = require('lodash');
-var urlSlug = require('url-slug');
-var UrlParamModel = require('../models/UrlParamModel');
+const PostModel = require('../models/PostModel');
+const BuyModel = require('../models/BuyModel');
+const TokenModel = require('../models/TokenModel');
+const TagModel = require('../models/TagModel');
+const urlSlug = require('url-slug');
+const UrlParamModel = require('../models/UrlParamModel');
+const mongoose = require('mongoose');
 
-var ImageService = require('../services/ImageService');
+const ImageService = require('../services/ImageService');
 
-var BuyController = {
+const BuyController = {
 
     add: async function (req, res, next) {
         const {
@@ -210,7 +210,7 @@ var BuyController = {
             post.postType = global.POST_TYPE_BUY;
             post.formality = buy.formality;
             post.type = buy.type;
-            post.content_id = buy._id;
+            post.contentId = new mongoose.Types.ObjectId(buy._id);
             // post.priority = priority.priority;
             post.from = from;
             post.to = to;
@@ -303,7 +303,7 @@ var BuyController = {
             }
 
 
-            var buy = await BuyModel.findOne({_id: post.content_id});
+            var buy = await BuyModel.findOne({_id: post.contentId});
 
 
             if (!buy) {
