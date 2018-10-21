@@ -4,6 +4,7 @@ const UrlParamModel = require('../../models/UrlParamModel');
 const urlSlug = require('url-slug');
 const ImageService = require('../../services/ImageService');
 const HttpCode = require('../../config/http-code');
+const mongoose = require('mongoose');
 
 const NewsController = {
     catList: async function (req, res) {
@@ -68,7 +69,7 @@ const NewsController = {
             }
 
             let news = await NewsModel.findOne({
-                _id: post.content_id,
+                _id: post.contentId,
                 status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
             });
 
@@ -94,7 +95,7 @@ const NewsController = {
             news.image = image || news.image;
             news.description = description || news.description;
             news.status = status || news.status;
-            news.admin = (news.admin || []).push(admin._id);
+            news.admin = (news.admin || []).push(new mongoose.Types.ObjectId(admin._id));
             news = await news.save();
 
             post.textEndPage = textEndPage || post.textEndPage;
@@ -175,7 +176,7 @@ const NewsController = {
             news.image = image;
             news.description = description;
             news.status = global.STATUS.ACTIVE;
-            news.admin = [admin._id];
+            news.admin = [new mongoose.Types.ObjectId(admin._id)];
             news.createdByType = createdByType || global.CREATED_BY.HAND;
             ImageService.postConfirmImage([image]);
             news = await news.save();
@@ -185,7 +186,7 @@ const NewsController = {
             post.type = news.type;
             post.status = global.STATUS.ACTIVE;
             post.paymentStatus = global.STATUS.PAYMENT_FREE;
-            post.content_id = news._id;
+            post.contentId = news._id;
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_NEWS,
