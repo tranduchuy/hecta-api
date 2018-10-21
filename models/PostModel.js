@@ -4,7 +4,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const postSchema = new Schema({
-    content_id: String,
     contentId: Schema.Types.ObjectId,
     postType: Number,
     type: Number,
