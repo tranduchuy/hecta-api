@@ -1,16 +1,14 @@
-var express = require('express');
-var router = express.Router();
-
-var UserController = require('../controller/UserController');
-var TransactionController = require('../controller/TransactionController');
+const express = require('express');
+const router = express.Router({});
+const UserController = require('../controller/UserController');
+const TransactionController = require('../controller/TransactionController');
 
 router.get('/highlight', UserController.highlight);
-
 router.post('/check', UserController.check);
 router.post('/login', UserController.login);
 router.post('/register', UserController.register);
 router.post('/confirm', UserController.confirm);
-router.post('/confirm/resend', UserController.resendCofirm);
+router.post('/confirm/resend', UserController.resendConfirm);
 router.post('/child/register', UserController.registerChild);
 router.post('/update', UserController.update);
 router.post('/child/request/:id', UserController.childRequest);
@@ -19,7 +17,6 @@ router.post('/child/credit/share/:id', UserController.creditShare);
 router.post('/child/remove/:id?', UserController.childRemove);
 router.post('/forget-password', UserController.forgetPassword);
 router.post('/reset-password', UserController.resetPassword);
-
 router.get('/children', UserController.childList);
 router.get('/request/list', UserController.requestList);
 router.get('/child/detail/:id', UserController.childDetail);
