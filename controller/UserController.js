@@ -33,7 +33,7 @@ const forgetPassword = async (req, res, next) => {
     }
 
     try {
-        var user = await UserModel.findOne({email: email});
+        const user = await UserModel.findOne({email: email});
 
         if (!user) {
             return res.json({
@@ -44,8 +44,8 @@ const forgetPassword = async (req, res, next) => {
         }
 
         user.resetPasswordToken = randomstring.generate(30) + new Date().getTime();
-        user.hash_password = bcrypt.hashSync(randomstring.generate(10), 10); // tạo mật khẩu mới bất kì, để tránh trong lúc đang reset mật khẩu, ko có ai xài được nữa
-
+        // tạo mật khẩu mới bất kì, để tránh trong lúc đang reset mật khẩu, ko có ai xài được nữa
+        user.hash_password = bcrypt.hashSync(randomstring.generate(10), 10);
         user.save();
 
         // xoá tất cả các token của user này
@@ -75,7 +75,7 @@ const forgetPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
     logger.info('UserController::resetPassword is called');
-    const resetToken = (req.body.resetToken || '').toString();
+    const resetToken = (req.body['resetToken'] || '').toString();
     const password = (req.body.password || '').toString();
 
     if (resetToken === '') {
@@ -120,171 +120,109 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
+const balance = async (req, res, next) => {
+    logger.info('UserController::balance is called');
+    try {
+        const user = req.user;
+        let account = await AccountModel.findOne({owner: user._id});
+
+        if (!account) {
+            account = new AccountModel({owner: user._id});
+            account = await account.save();
+        }
+
+        const accountInfo = {
+            main: account.main,
+            promo: account.promo
+        };
+
+        if (user.type === global.USER_TYPE_COMPANY) {
+            let creditTransferred = 0;
+            const children = await ChildModel.find({companyId: user._id});
+
+            if (children && children.length > 0) {
+                children.forEach(child => {
+                    creditTransferred += (child.credit - child.creditUsed);
+                });
+            }
+
+            accountInfo.creditTransferred = creditTransferred;
+        }
+
+        if (user.type === global.USER_TYPE_PERSONAL) {
+            const child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+            if (child) {
+                accountInfo.credit = child.credit;
+                accountInfo.creditUsed = child.creditUsed;
+            }
+        }
+
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: accountInfo,
+            message: 'request success'
+        });
+    } catch (e) {
+        logger.error('UserController::balance::error', e);
+        return next(e);
+    }
+};
+
+const childDetail = async (req, res, next) => {
+    logger.info('UserController::childDetail is called with child id', req.params.id);
+    try {
+        const childId = req.params.id;
+        const person = await UserModel.findOne({_id: childId});
+        if (!person) {
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                data: {},
+                message: 'User is not exist'
+            });
+        }
+
+        if (person.type !== global.USER_TYPE_PERSONAL) {
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                data: {},
+                message: 'Invalid child account'
+            });
+        }
+
+        const child = await ChildModel.findOne({
+            companyId: req.user._id,
+            personalId: person._id,
+            status: global.STATUS.CHILD_ACCEPTED
+        });
+
+        if (!child) {
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                data: {},
+                message: 'Invalid relationship'
+            });
+        }
+
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: {
+                username: person.username,
+                id: person._id,
+                name: person.name,
+                phone: person.phone,
+                email: person.email
+            },
+            message: 'Success'
+        });
+    } catch (e) {
+        logger.error('UserController::childDetail::error', e);
+        return next(e);
+    }
+};
+
 const UserController = {
-    balance: async (req, res, next) => {
-        logger.info('UserController::balance is called');
-        try {
-            const user = req.user;
-            let account = await AccountModel.findOne({owner: user._id});
-
-            if (!account) {
-                account = new AccountModel({owner: user._id});
-                account = await account.save();
-            }
-
-            const accountInfo = {
-                main: account.main,
-                promo: account.promo
-
-            };
-
-            if (user.type === global.USER_TYPE_COMPANY) {
-                let creditTransferred = 0;
-                const children = await ChildModel.find({companyId: user._id});
-
-                if (children && children.length > 0) {
-                    children.forEach(child => {
-                        creditTransferred += (child.credit - child.creditUsed);
-                    });
-                }
-
-                accountInfo.creditTransferred = creditTransferred;
-            }
-
-            if (user.type === global.USER_TYPE_PERSONAL) {
-
-                var child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
-
-                if (child) {
-                    accountInfo.credit = child.credit;
-                    accountInfo.creditUsed = child.creditUsed;
-                }
-
-            }
-
-            return res.json({
-                status: 1,
-                data: accountInfo,
-                message: 'request success'
-            });
-
-
-        }
-        catch
-            (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-    },
-
-    childDetail: async function (req, res, next) {
-
-        try {
-            var token = req.headers.accesstoken;
-            var id = req.params.id;
-
-
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var user = await UserModel.findOne({_id: accessToken.user});
-
-            if (!user) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'parent is not exist'
-                });
-            }
-
-            if (user.type != global.USER_TYPE_COMPANY) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'parent does not have permission !'
-                });
-            }
-
-
-            var person = await UserModel.findOne({_id: id});
-            if (!person) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'person is not exist'
-                });
-            }
-
-            if (person.type != global.USER_TYPE_PERSONAL) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'person invalid !'
-                });
-            }
-
-            var child = await ChildModel.findOne({
-                companyId: user._id,
-                personalId: person._id,
-                status: global.STATUS.CHILD_ACCEPTED
-            });
-
-            if (!child) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'relation invalid'
-                });
-            }
-
-            return res.json({
-                status: 1,
-                data: {
-
-                    username: person.username,
-                    id: person._id,
-                    name: person.name,
-                    phone: person.phone,
-                    email: person.email
-                    // - name
-                    // - fullname
-                    // - email
-                    // - phoneNumber
-
-                },
-                message: 'request success'
-            });
-        }
-        catch
-            (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-    },
+    balance,
+    childDetail,
 
     creditShare: async function (req, res, next) {
         logger.info('UserController::creditShare is called');
