@@ -66,7 +66,63 @@ const generateStageQueryPostNews = (req) => {
 };
 
 const generateStageQueryPostProject = (req) => {
-    return [];
+    const {createdByType, status, id} = req.query;
+    const pageCond = RequestUtils.extractPaginationCondition(req);
+
+    const stages = [
+        {
+            $match: {
+                "postType": global.POST_TYPE_PROJECT,
+            }
+        },
+        {
+            $lookup: {
+                from: "Projects",
+                localField: "contentId",
+                foreignField: "_id",
+                as: "projectInfo"
+            }
+        },
+        {
+            $unwind: "$projectInfo"
+        }
+    ];
+
+    // filter
+    const stageFilter = {};
+
+    if (createdByType && createdByType !== '0') {
+        stageFilter["projectInfo.createdByType"] = parseInt(createdByType);
+    }
+
+    if (status) {
+        stageFilter["projectInfo.status"] = parseInt(status);
+    }
+
+    if (id) {
+        stageFilter["projectInfo._id"] = id;
+    }
+
+    if (Object.keys(stageFilter).length !== 0) {
+        stages.push({
+            $match: stageFilter
+        });
+    }
+
+    // pagination
+    stages.push({
+        $facet: {
+            entries: [
+                {$skip: (pageCond.page - 1) * pageCond.limit},
+                {$limit: pageCond.limit},
+            ],
+            meta: [
+                {$group: {_id: null, totalItems: {$sum: 1}}},
+            ],
+        },
+    });
+
+    return stages;
 };
 
 const generateStageQueryPostBuy = (req) => {

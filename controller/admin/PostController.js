@@ -168,7 +168,7 @@ const PostController = {
                 data: {
                     entries: results[0].entries,
                     meta: {
-                        totalItems: results[0].meta[0].totalItems
+                        totalItems: results[0].entries.length > 0 ? results[0].meta[0].totalItems : 0
                     }
                 },
                 message: 'Success'
