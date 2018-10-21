@@ -151,7 +151,7 @@ var PostPriorityController = {
     //         }
     //         news = await news.save();
     //
-    //         let post = await PostModel.findOne({content_id: news._id})
+    //         let post = await PostModel.findOne({contentId: news._id})
     //
     //         if (title && post) {
     //
@@ -208,7 +208,7 @@ var PostPriorityController = {
     //
     //         let results = await Promise.all(newsList.map(async news => {
     //
-    //             let post = await PostModel.findOne({content_id: news._id});
+    //             let post = await PostModel.findOne({contentId: news._id});
     //
     //
     //             let result = {
@@ -263,7 +263,7 @@ var PostPriorityController = {
     //
     //         let results = await Promise.all(newsList.map(async news => {
     //
-    //             let post = await PostModel.findOne({content_id: news._id});
+    //             let post = await PostModel.findOne({contentId: news._id});
     //
     //
     //             let result = {
@@ -312,7 +312,7 @@ var PostPriorityController = {
     //
     //         let results = await Promise.all(newsList.map(async news => {
     //
-    //             let post = await PostModel.findOne({content_id: news._id});
+    //             let post = await PostModel.findOne({contentId: news._id});
     //
     //
     //             let result = {

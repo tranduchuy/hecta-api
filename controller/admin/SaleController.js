@@ -64,7 +64,7 @@ var SaleController = {
                 });
             }
 
-            var sale = await SaleModel.findOne({_id: post.content_id});
+            var sale = await SaleModel.findOne({_id: post.contentId});
 
 
             if (!sale) {

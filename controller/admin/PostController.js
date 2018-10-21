@@ -250,7 +250,7 @@ const PostController = {
 
                         if (post.postType == global.POST_TYPE_SALE) {
 
-                            let sale = await SaleModel.findOne({_id: post.content_id});
+                            let sale = await SaleModel.findOne({_id: post.contentId});
                             if (!sale) {
                                 sale = {};
                             }
@@ -325,7 +325,7 @@ const PostController = {
 
                         if (post.postType == global.POST_TYPE_BUY) {
 
-                            let buy = await BuyModel.findOne({_id: post.content_id});
+                            let buy = await BuyModel.findOne({_id: post.contentId});
                             if (!buy) {
                                 buy = {};
                             }
@@ -386,7 +386,7 @@ const PostController = {
 
                         if (post.postType == global.POST_TYPE_NEWS) {
 
-                            let news = await NewsModel.findOne({_id: post.content_id});
+                            let news = await NewsModel.findOne({_id: post.contentId});
 
                             if (!news) {
                                 news = {};
@@ -417,7 +417,7 @@ const PostController = {
                         }
                         if (post.postType == global.POST_TYPE_PROJECT) {
 
-                            let project = await ProjectModel.findOne({_id: post.content_id});
+                            let project = await ProjectModel.findOne({_id: post.contentId});
 
                             if (!project) {
                                 project = {};
@@ -590,7 +590,7 @@ const PostController = {
 
             }
 
-            let content = await model.findOne({_id: post.content_id});
+            let content = await model.findOne({_id: post.contentId});
 
 
             if (!content) {

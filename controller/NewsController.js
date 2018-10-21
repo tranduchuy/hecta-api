@@ -12,7 +12,7 @@ var NewsController = {
             let newsList = await NewsModel.find({status : global.STATUS.ACTIVE}).sort({date: -1}).limit(6);
             let results = await Promise.all(newsList.map(async news => {
 
-                let post = await PostModel.findOne({content_id: news._id});
+                let post = await PostModel.findOne({contentId: news._id});
 
 
                 let result = {
@@ -58,7 +58,7 @@ var NewsController = {
             let newsList = await NewsModel.find({status : global.STATUS.ACTIVE}).sort({date: -1}).limit(10);
             let results = await Promise.all(newsList.map(async news => {
 
-                let post = await PostModel.findOne({content_id: news._id});
+                let post = await PostModel.findOne({contentId: news._id});
 
 
                 let result = {

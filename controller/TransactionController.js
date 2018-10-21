@@ -290,7 +290,7 @@ const TransactionController = {
                         if (transaction.type == global.TRANSACTION_TYPE_PAY_POST || transaction.type == global.TRANSACTION_TYPE_UP_NEW) {
                             let post = await PostModel.findOne({_id: transaction.info});
                             if (post) {
-                                let sale = await SaleModel.findOne({_id: post.content_id});
+                                let sale = await SaleModel.findOne({_id: post.contentId});
                                 if (sale) {
                                     result.info = {
                                         id: post._id,
@@ -417,7 +417,7 @@ const TransactionController = {
                         if (transaction.type == global.TRANSACTION_TYPE_PAY_POST || transaction.type == global.TRANSACTION_TYPE_UP_NEW) {
                             let post = await PostModel.findOne({_id: transaction.info});
                             if (post) {
-                                let sale = await SaleModel.findOne({_id: post.content_id});
+                                let sale = await SaleModel.findOne({_id: post.contentId});
                                 if (sale) {
                                     result.info = {
                                         id: post._id,

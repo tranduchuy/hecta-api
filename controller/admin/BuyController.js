@@ -58,7 +58,7 @@ var BuyController = {
                     message: 'post not exist '
                 });
             }
-            var buy = await BuyModel.findOne({_id: post.content_id});
+            var buy = await BuyModel.findOne({_id: post.contentId});
 
 
             if (!buy) {
