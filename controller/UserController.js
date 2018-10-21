@@ -220,10 +220,107 @@ const childDetail = async (req, res, next) => {
     }
 };
 
+const registerChild = async (req, res, next) => {
+    logger.info('UserController::registerChild is called');
+    try {
+        const {username, email, password, phone, name,
+            birthday, gender, city, district, ward, type} = req.body;
+        const parent = req.user;
+
+        if (parent.type !== global.USER_TYPE_COMPANY) {
+            const msg = 'Permission denied. Parent type: ' + parent.type;
+            logger.error(msg);
+            return next(new Error(msg));
+        }
+
+        if (!EmailValidator.validate(email)) {
+            return next(new Error('Invalid email'));
+        }
+
+        if (!password || password.length < 6) {
+            return next(new Error('Invalid password'));
+        }
+
+        if (!phone || phone.length < 6) {
+            return next(new Error('Invalid phone'));
+        }
+
+        if (!name || name.length < 3) {
+            return next(new Error('Invalid name'));
+        }
+
+        if (type !== global.USER_TYPE_PERSONAL && type !== global.USER_TYPE_COMPANY) {
+            return next(new Error('Invalid type'));
+        }
+
+        if (!username || username.length < 6) {
+            return next(new Error('Invalid username'));
+        }
+
+        let user = await UserModel.findOne({username});
+
+        if (user) {
+            const msg = 'Duplicated username';
+            logger.error('UserController::registerChild::error. ' + msg);
+            return next(new Error(msg));
+        }
+
+        user = new UserModel();
+        user.username = username;
+        user.email = email;
+        user.phone = phone;
+        user.name = name;
+        user.birthday = birthday;
+        user.gender = gender;
+        user.city = city;
+        user.district = district;
+        user.ward = ward;
+        user.type = type;
+        user.hash_password = bcrypt.hashSync(password, 10);
+        await user.save();
+
+        let child = new ChildModel({
+            companyId: parent._id,
+            personalId: user._id,
+            status: global.STATUS.CHILD_ACCEPTED
+        });
+
+        await child.save();
+
+        // create notify
+        const notifyParam = {
+            fromUserId: parent._id,
+            toUserId: user._id,
+            title: NotifyContent.RequestChild.Title,
+            content: NotifyContent.RequestChild.Content,
+            type: NotifyTypes.PARENT_CHILD.REQUEST,
+            params: {
+                requestId: child._id
+            }
+        };
+
+        await NotifyController.createNotify(notifyParam);
+
+        // send Socket
+        const socketContents = {...notifyParam, toUserIds: [user._id]};
+        delete socketContents.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: child,
+            message: 'Success'
+        });
+    } catch (e) {
+        logger.error('UserController::registerChild::error', e);
+        return next(e);
+    }
+};
+
 const UserController = {
     balance,
     childDetail,
-
+    registerChild,
     creditShare: async function (req, res, next) {
         logger.info('UserController::creditShare is called');
         try {
@@ -379,191 +476,6 @@ const UserController = {
             logger.error('UserController::creditShare::error', e);
             return next(e);
         }
-    },
-
-    registerChild: async function (req, res, next) {
-
-
-        var username = req.body.username;
-        var email = req.body.email;
-        var password = req.body.password;
-        var phone = req.body.phone;
-        var name = req.body.name;
-        var birthday = req.body.birthday;
-        var gender = req.body.gender;
-        var city = req.body.city;
-        var district = req.body.district;
-        var ward = req.body.ward;
-        var type = req.body.type;
-
-
-        try {
-
-            var token = req.headers.accesstoken;
-
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var parrent = await UserModel.findOne({_id: accessToken.user});
-
-            if (!parrent) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'parrent is not exist'
-                });
-            }
-
-            if (parrent.type != global.USER_TYPE_COMPANY) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'parrent does not have permission !'
-                });
-            }
-
-            if (!EmailValidator.validate(email)) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'email : "' + email + '" is invalid'
-                });
-            }
-
-            if (!password || password.length < 6) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'password : "' + password + '" is invalid'
-                });
-            }
-
-            if (!phone || phone.length < 6) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'phone : "' + phone + '" is invalid'
-                });
-
-            }
-
-            if (!name || name.length < 3) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'name : "' + name + '" is invalid'
-                });
-
-            }
-
-            if (type != global.USER_TYPE_PERSONAL && type != global.USER_TYPE_COMPANY) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'type : "' + type + '" is invalid'
-                });
-
-            }
-
-
-            if (!username || username.length < 6) {
-                return res.json({
-                    status: 1,
-                    data: false,
-                    message: 'username invalid'
-                });
-
-            }
-
-
-            var user = await UserModel.findOne({username: username});
-
-            if (user) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'username : "' + username + '" is duplicate'
-                });
-
-            }
-
-            user = new UserModel();
-            user.username = username;
-            user.email = email;
-            user.phone = phone;
-            user.name = name;
-            user.birthday = birthday;
-            user.gender = gender;
-            user.city = city;
-            user.district = district;
-            user.ward = ward;
-            user.type = type;
-            user.hash_password = bcrypt.hashSync(password, 10);
-
-
-            await user.save();
-
-            let child = new ChildModel({
-                companyId: parrent._id,
-                personalId: user._id,
-                status: global.STATUS.CHILD_ACCEPTED
-            });
-
-            await child.save();
-
-            // create notify
-            const notifyParam = {
-                fromUserId: parrent._id,
-                toUserId: user._id,
-                title: NotifyContent.RequestChild.Title,
-                content: NotifyContent.RequestChild.Content,
-                type: NotifyTypes.PARENT_CHILD.REQUEST,
-                params: {
-                    requestId: child._id
-                }
-            };
-
-            await NotifyController.createNotify(notifyParam);
-
-            // send Socket
-            const socketContents = {...notifyParam, toUserIds: [user._id]};
-            delete socketContents.toUserId;
-            Socket.broadcast(SocketEvents.NOTIFY, socketContents);
-
-            return res.json({
-                status: 1,
-                data: child,
-                message: 'request success !'
-            });
-
-
-        }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
     },
 
     childRemove: async function (req, res, next) {
