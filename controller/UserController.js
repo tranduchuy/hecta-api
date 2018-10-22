@@ -1308,142 +1308,82 @@ const UserController = {
 
     },
 
-    confirm: async function (req, res, next) {
-        var token = req.body.token;
+    confirm: async (req, res, next) => {
+        logger.info('UserController::confirm is called');
+        const token = req.body.token;
 
         try {
             if (!token || token.length < 30) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.BAD_REQUEST,
                     data: {},
-                    message: 'token invalid'
+                    message: 'Invalid token'
                 });
             }
 
-            var user = await UserModel.findOne({confirmToken: token});
+            const user = await UserModel.findOne({confirmToken: token});
 
             if (!user) {
                 return res.json({
-                    status: 0,
+                    status: HTTP_CODE.ERROR,
                     data: {},
-                    message: 'token not found'
+                    message: 'Token not found'
                 });
             }
-
-
+            
             user.status = global.STATUS.ACTIVE;
 
             await user.save();
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: {},
-                message: 'request success !'
+                message: 'Success'
             });
+        } catch (e) {
+            logger.error('UserController::confirm::error', e);
+            return next(e);
         }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
     },
 
-    register: async function (req, res, next) {
-
-
-        var username = req.body.username;
-        var email = req.body.email;
-        var password = req.body.password;
-        var phone = req.body.phone;
-        var name = req.body.name;
-        var birthday = req.body.birthday;
-        var gender = req.body.gender;
-        var city = req.body.city;
-        var district = req.body.district;
-        var ward = req.body.ward;
-        var type = req.body.type;
-
+    register: async (req, res, next) => {
+        logger.info('UserController::register is called');
+        const {username, email, password, phone, name,
+            birthday, gender, city, district, ward, type} = req.body;
 
         try {
-
-
             if (!EmailValidator.validate(email)) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'email : "' + email + '" is invalid'
-                });
+                return next(new Error('Invalid email'));
             }
 
             if (!password || password.length < 6) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'password : "' + password + '" is invalid'
-                });
+                return next(new Error('Invalid password'));
             }
 
-            if (!phone || phone.length < 6) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'phone : "' + phone + '" is invalid'
-                });
-
+            if (!phone || phone.length < 10) {
+                return next(new Error('Invalid phone'));
             }
 
             if (!name || name.length < 3) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'name : "' + name + '" is invalid'
-                });
-
+                return next(new Error('Invalid name'));
             }
 
-            if (type != global.USER_TYPE_PERSONAL && type != global.USER_TYPE_COMPANY) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'type : "' + type + '" is invalid'
-                });
-
+            if (type !== global.USER_TYPE_PERSONAL && type !== global.USER_TYPE_COMPANY) {
+                return next(new Error('Invalid type'));
             }
-
 
             if (!username || username.length < 6) {
-                return res.json({
-                    status: 1,
-                    data: false,
-                    message: 'username invalid'
-                });
-
+                return next(new Error('Invalid username'));
             }
 
-
-            var user = await UserModel.findOne({username: username});
-
+            let user = await UserModel.findOne({username: username});
             if (user) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'username : "' + username + '" is duplicate'
-                });
-
+                return next(new Error('Duplicated username'));
             }
 
             user = await UserModel.findOne({email: email});
 
             if (user) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'email : "' + email + '" is duplicate'
-                });
-
+                return next(new Error('Invalid email'));
             }
 
             user = new UserModel();
@@ -1459,30 +1399,18 @@ const UserController = {
             user.type = type;
             user.hash_password = bcrypt.hashSync(password, 10);
             user.confirmToken = randomstring.generate(30) + new Date().getTime();
-
-
             Mailer.sendConfirmEmail(email, user.confirmToken);
-
             await user.save();
 
-
             return res.json({
-                status: 1,
+                status: HTTP_CODE.SUCCESS,
                 data: {},
-                message: 'request success !'
+                message: 'Success'
             });
-
-
+        } catch (e) {
+            logger.error('UserController::register::error', e);
+            return next(e);
         }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
-
     },
 
     update: async function (req, res, next) {
