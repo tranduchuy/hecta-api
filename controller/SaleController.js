@@ -196,6 +196,7 @@ const SaleController = {
 
             if (createdByType) {
                 sale.createdByType = createdByType;
+                sale.status = global.STATUS.ACTIVE;
             } else {
                 sale.createdByType = global.CREATED_BY.HAND;
             }
@@ -210,8 +211,11 @@ const SaleController = {
             post.from = from;
             post.to = to;
             post.formality = sale.formality;
-
-            post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+            if (createdByType) {
+                post.status = global.STATUS.ACTIVE;
+            }else {
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+            }
 
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_SALE,
@@ -298,7 +302,6 @@ const SaleController = {
                     post.tags.push(tag._id);
                 }
             }
-
 
             post = await post.save();
             await checkUserPayment(user, post, dateCount * priority.costByDay);

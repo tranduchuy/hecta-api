@@ -145,6 +145,7 @@ const BuyController = {
 
             if (createdByType) {
                 buy.createdByType = createdByType;
+                buy.status = global.STATUS.ACTIVE;
             } else {
                 buy.createdByType = global.CREATED_BY.HAND;
             }
@@ -214,8 +215,13 @@ const BuyController = {
             // post.priority = priority.priority;
             post.from = from;
             post.to = to;
-            post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-            post.paymentStatus = global.STATUS.PAYMENT_FREE;
+            if (createdByType) {
+                post.status = global.STATUS.ACTIVE;
+                post.paymentStatus = global.STATUS.PAYMENT_PAID;
+            } else {
+                post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+                post.paymentStatus = global.STATUS.PAYMENT_FREE;
+            }
 
             if (keywordList && keywordList.length > 0) {
                 for (var i = 0; i < keywordList.length; i++) {
