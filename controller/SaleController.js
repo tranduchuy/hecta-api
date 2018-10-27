@@ -157,6 +157,17 @@ const SaleController = {
             var post = new PostModel();
 
             // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
+    
+            if (createdByType) {
+                const countTitle = await SaleModel.findOne({title: req.body.title});
+                if (countTitle > 0) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'Crawler duplicate title'
+                    });
+                }
+            }
 
             sale.title = title;
 

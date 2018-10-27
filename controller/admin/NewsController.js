@@ -170,6 +170,18 @@ const NewsController = {
                 metaImage, canonical, textEndPage, createdByType
             } = req.body;
             let news = new NewsModel();
+    
+            if (createdByType) {
+                const countTitle = await NewsModel.findOne({title: req.body.title});
+                if (countTitle > 0){
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'Crawler duplicate title'
+                    });
+                }
+            }
+            
             news.title = title;
             news.content = content;
             news.type = cate;

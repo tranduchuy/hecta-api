@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const ImageService = require('../services/ImageService');
 
 const BuyController = {
-
+    
     add: async function (req, res, next) {
         const {
             title, description, keywordList, formality,
@@ -19,9 +19,9 @@ const BuyController = {
             contactPhone, contactMobile, contactEmail,
             receiveMail, from, to, createdByType
         } = req.body;
-
+        
         const token = req.headers['accesstoken'];
-
+        
         ImageService.postConfirmImage(images);
         try {
             if (!title || title.length < 30 || title.length > 99) {
@@ -31,7 +31,7 @@ const BuyController = {
                     message: 'title : "' + title + '" is invalid'
                 });
             }
-
+            
             if (!formality || formality.length == 0) {
                 return res.json({
                     status: 0,
@@ -39,7 +39,7 @@ const BuyController = {
                     message: 'formality : "' + formality + '" is invalid'
                 });
             }
-
+            
             if (!from || from <= 0) {
                 return res.json({
                     status: 0,
@@ -47,7 +47,7 @@ const BuyController = {
                     message: 'from : "' + from + '" is invalid'
                 });
             }
-
+            
             if (!to || to <= from) {
                 return res.json({
                     status: 0,
@@ -55,7 +55,7 @@ const BuyController = {
                     message: 'to : "' + to + '" is invalid'
                 });
             }
-
+            
             if (!type || type.length == 0) {
                 return res.json({
                     status: 0,
@@ -63,7 +63,7 @@ const BuyController = {
                     message: 'type : "' + type + '" is invalid'
                 });
             }
-
+            
             if (!city || city.length == 0) {
                 return res.json({
                     status: 0,
@@ -71,7 +71,7 @@ const BuyController = {
                     message: 'city : "' + city + '" is invalid'
                 });
             }
-
+            
             if (!district || district.length == 0) {
                 return res.json({
                     status: 0,
@@ -79,7 +79,7 @@ const BuyController = {
                     message: 'district : "' + district + '" is invalid'
                 });
             }
-
+            
             if (!description || description.length < 30) {
                 return res.json({
                     status: 0,
@@ -87,7 +87,7 @@ const BuyController = {
                     message: 'description : "' + description + '" is invalid'
                 });
             }
-
+            
             if (!contactMobile || contactMobile.length < 8 || contactMobile.length > 11) {
                 return res.json({
                     status: 0,
@@ -95,31 +95,42 @@ const BuyController = {
                     message: 'contactMobile : "' + contactMobile + '" is invalid'
                 });
             }
-
-
+            
+            
             var buy = new BuyModel();
             var post = new PostModel();
-
+            
             if (token) {
                 var accessToken = await TokenModel.findOne({token: token});
-
+                
                 if (!accessToken) {
                     return res.json({
                         status: 0,
                         data: {},
                         message: 'access token invalid'
                     });
-
+                    
                 }
-
+                
                 post.user = accessToken.user;
             }
-
-
+            
+            if (createdByType) {
+                const countTitle = await BuyModel.findOne({title: req.body.title});
+                if (countTitle > 0) {
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'Crawler duplicate title'
+                    });
+                }
+            }
+            
+            
             buy.title = title;
             buy.description = description;
             buy.keywordList = keywordList;
-
+            
             buy.formality = formality;
             buy.type = type;
             buy.city = city;
@@ -133,25 +144,25 @@ const BuyController = {
             buy.priceMax = priceMax;
             buy.unit = unit;
             buy.address = address;
-
+            
             buy.images = images;
-
+            
             buy.contactName = contactName;
             buy.contactAddress = contactAddress;
             buy.contactPhone = contactPhone;
             buy.contactMobile = contactMobile;
             buy.contactEmail = contactEmail;
             buy.receiveMail = receiveMail;
-
+            
             if (createdByType) {
                 buy.createdByType = createdByType;
                 buy.status = global.STATUS.ACTIVE;
             } else {
                 buy.createdByType = global.CREATED_BY.HAND;
             }
-
+            
             buy = await buy.save();
-
+            
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_BUY,
                 formality: formality,
@@ -172,7 +183,7 @@ const BuyController = {
                 extra: undefined,
                 text: undefined
             });
-
+            
             if (!param) {
                 param = new UrlParamModel({
                     postType: global.POST_TYPE_BUY,
@@ -196,16 +207,16 @@ const BuyController = {
                     text: undefined
                 });
                 param = await param.save();
-
+                
             }
-
+            
             var url = urlSlug(title);
             var count = await PostModel.find({url: new RegExp("^" + url)});
-
+            
             if (count > 0) {
                 url += ('-' + count);
             }
-
+            
             post.url = url;
             post.params = param._id;
             post.postType = global.POST_TYPE_BUY;
@@ -222,32 +233,32 @@ const BuyController = {
                 post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.paymentStatus = global.STATUS.PAYMENT_FREE;
             }
-
+            
             if (keywordList && keywordList.length > 0) {
                 for (var i = 0; i < keywordList.length; i++) {
                     var key = keywordList[i];
                     var slug = urlSlug(key);
-
+                    
                     if (!slug) {
                         return;
                     }
-
+                    
                     var tag = await TagModel.findOne({status: global.STATUS.ACTIVE, slug: slug});
-
+                    
                     if (!tag) {
                         tag = new TagModel({
                             slug: slug,
                             keyword: key,
                         });
                         tag = await tag.save();
-
+                        
                     }
                     post.tags.push(tag._id);
                 }
             }
-
+            
             post = await post.save();
-
+            
             return res.json({
                 status: 1,
                 data: post,
@@ -262,15 +273,15 @@ const BuyController = {
         }
     },
     update: async function (req, res, next) {
-
-
+        
+        
         try {
-
+            
             var token = req.headers.accesstoken;
-
-
+            
+            
             var accessToken = await TokenModel.findOne({token: token});
-
+            
             if (!accessToken) {
                 return res.json({
                     status: 0,
@@ -278,9 +289,9 @@ const BuyController = {
                     message: 'access token invalid'
                 });
             }
-
+            
             let id = req.params.id;
-
+            
             if (!id || id.length == 0) {
                 return res.json({
                     status: 0,
@@ -288,10 +299,10 @@ const BuyController = {
                     message: 'id invalid '
                 });
             }
-
-
+            
+            
             let post = await PostModel.findOne({_id: id});
-
+            
             if (!post || post.postType != global.POST_TYPE_BUY) {
                 return res.json({
                     status: 0,
@@ -299,7 +310,7 @@ const BuyController = {
                     message: 'post not exist '
                 });
             }
-
+            
             if (post.user != accessToken.user) {
                 return res.json({
                     status: 0,
@@ -307,11 +318,11 @@ const BuyController = {
                     message: 'user does not have permission !'
                 });
             }
-
-
+            
+            
             var buy = await BuyModel.findOne({_id: post.contentId});
-
-
+            
+            
             if (!buy) {
                 return res.json({
                     status: 0,
@@ -319,12 +330,12 @@ const BuyController = {
                     message: 'buy not exist '
                 });
             }
-
-
+            
+            
             var title = req.body.title;
             var description = req.body.description;
             var keywordList = req.body.keywordList;
-
+            
             var formality = req.body.formality;
             var type = req.body.type;
             var city = req.body.city;
@@ -337,26 +348,26 @@ const BuyController = {
             var priceMin = req.body.priceMin;
             var priceMax = req.body.priceMax;
             var unit = req.body.unit;
-
+            
             var address = req.body.address;
-
+            
             var images = req.body.images;
             ImageService.putUpdateImage(buy.images, images);
-
+            
             var contactName = req.body.contactName;
             var contactAddress = req.body.contactAddress;
             var contactPhone = req.body.contactPhone;
             var contactMobile = req.body.contactMobile;
             var contactEmail = req.body.contactEmail;
             var receiveMail = req.body.receiveMail;
-
+            
             var status = req.body.status;
             var from = req.body.from;
             var to = req.body.to;
-
+            
             // var priority = req.body.priority;
-
-
+            
+            
             if (title) {
                 buy.title = title;
             }
@@ -366,8 +377,8 @@ const BuyController = {
             if (keywordList) {
                 buy.keywordList = keywordList;
             }
-
-
+            
+            
             if (formality) {
                 buy.formality = formality;
             }
@@ -404,15 +415,15 @@ const BuyController = {
             if (unit) {
                 buy.unit = unit;
             }
-
+            
             if (address) {
                 buy.address = address;
             }
             if (images) {
                 buy.images = images;
             }
-
-
+            
+            
             if (contactName) {
                 buy.contactName = contactName;
             }
@@ -431,18 +442,18 @@ const BuyController = {
             if (receiveMail) {
                 buy.receiveMail = receiveMail;
             }
-
+            
             if (status == global.STATUS.DELETE) {
                 buy.status = status;
             }
-
+            
             buy.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             buy = await buy.save();
-
-
+            
+            
             let param = await UrlParamModel.findOne({
                 postType: global.POST_TYPE_BUY,
-
+                
                 formality: buy.formality,
                 type: buy.type,
                 city: buy.city,
@@ -461,12 +472,12 @@ const BuyController = {
                 extra: undefined,
                 text: undefined
             });
-
+            
             if (!param) {
-
+                
                 param = new UrlParamModel({
                     postType: global.POST_TYPE_BUY,
-
+                    
                     formality: buy.formality,
                     type: buy.type,
                     city: buy.city,
@@ -487,86 +498,86 @@ const BuyController = {
                     text: undefined
                 });
                 param = await param.save();
-
+                
             }
-
+            
             if (title) {
                 var url = urlSlug(title);
-
+                
                 var count = await PostModel.find({url: new RegExp("^" + url)});
-
+                
                 if (count > 0) {
                     url += ('-' + count);
                 }
-
+                
                 post.url = url;
             }
             post.params = param._id;
-
+            
             post.formality = buy.formality;
             post.type = buy.type;
-
+            
             if (from) {
                 post.from = from;
                 post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.status = global.STATUS.PAYMENT_UNPAID;
                 post.refresh = Date.now();
             }
-
+            
             if (to) {
                 post.to = to;
                 post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
                 post.status = global.STATUS.PAYMENT_UNPAID;
             }
-
+            
             if (status == global.STATUS.DELETE) {
                 post.status = status;
             }
-
+            
             // if (priority) {
             //     post.priority = priority;
             //     post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             //     post.status = global.STATUS.PAYMENT_UNPAID;
             // }
-
+            
             post.tags = [];
-
-
+            
+            
             if (keywordList && keywordList.length > 0) {
                 for (var i = 0; i < keywordList.length; i++) {
                     var key = keywordList[i];
-
+                    
                     var slug = urlSlug(key);
-
+                    
                     if (!slug) {
                         return;
                     }
-
+                    
                     var tag = await TagModel.findOne({slug: slug});
-
+                    
                     if (!tag) {
                         tag = new TagModel({
                             slug: slug,
                             keyword: key,
                         });
                         tag = await tag.save();
-
+                        
                     }
                     post.tags.push(tag._id);
-
+                    
                 }
             }
             await post.save();
-
-
+            
+            
             return res.json({
                 status: 1,
                 data: {},
                 message: 'update success'
             });
         }
-
-
+        
+        
         catch (e) {
             return res.json({
                 status: 0,
@@ -574,8 +585,8 @@ const BuyController = {
                 message: 'unknown error : ' + e.message
             });
         }
-
+        
     }
-
+    
 }
 module.exports = BuyController

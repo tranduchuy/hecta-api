@@ -177,7 +177,19 @@ const ProjectController = {
                 });
 
             }
-
+    
+            var project = new ProjectModel();
+    
+            if (createdByType) {
+                const countTitle = await ProjectModel.findOne({title: req.body.title});
+                if (countTitle > 0){
+                    return res.json({
+                        status: 0,
+                        data: {},
+                        message: 'Crawler duplicate title'
+                    });
+                }
+            }
 
             var isShowOverview = req.body.isShowOverview;
 
@@ -250,8 +262,6 @@ const ProjectController = {
             var canonical = req.body.canonical;
             var textEndPage = req.body.textEndPage;
             var createdByType = req.body.createdByType;
-
-            var project = new ProjectModel();
 
 
             project.district = district;
