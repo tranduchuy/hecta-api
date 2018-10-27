@@ -655,8 +655,25 @@ const childRemove = async (req, res, next) => {
         await parentAccount.save();
         await child.save();
 
-        await TransactionHistoryModel.addTransaction(child.companyId, undefined, childBefore.credit, "", child.personalId, global.TRANSACTION_TYPE_TAKE_BACK_MONEY, parentBefore, parentAfter);
-        await TransactionHistoryModel.addTransaction(child.personalId, undefined, childBefore.credit, "", child.companyId, global.TRANSACTION_TYPE_GIVE_MONEY_BACK, childBefore, childAfter);
+        await TransactionHistoryModel.addTransaction(
+            child.companyId,
+            undefined,
+            childBefore.credit,
+            '',
+            child.personalId,
+            global.TRANSACTION_TYPE_TAKE_BACK_MONEY,
+            parentBefore,
+            parentAfter);
+
+        await TransactionHistoryModel.addTransaction(
+            child.personalId,
+            undefined,
+            childBefore.credit,
+            '',
+            child.companyId,
+            global.TRANSACTION_TYPE_GIVE_MONEY_BACK,
+            childBefore,
+            childAfter);
 
         // notify
         const notifyParams = {
@@ -707,7 +724,7 @@ const childResponse = async (req, res, next) => {
         }
 
         await child.save();
-        const {Title, Content} = status == global.STATUS.CHILD_ACCEPTED ?
+        const {Title, Content} = status === global.STATUS.CHILD_ACCEPTED ?
             NotifyContent.ResponseChildStatusAccepted :
             NotifyContent.ResponseChildStatusRejected;
 
@@ -739,7 +756,129 @@ const childResponse = async (req, res, next) => {
     }
 };
 
+const login = async (req, res, next) => {
+    logger.info('UserController::login is called');
+    try {
+        const {username, password} = req.body;
+        const user = await UserModel.findOne({
+            $or: [{username: username}, {email: username}]
+        });
+
+        if (!user) {
+            const msg = 'UserController::login::error. Username is not exists';
+            logger.error(msg);
+            return next(new Error(msg));
+        }
+
+        if (user.status !== global.STATUS.ACTIVE || user.role !== global.USER_ROLE_ENDUSER) {
+            const msg = 'Account is blocked';
+            logger.error(msg);
+            return next(new Error(msg));
+        }
+
+        const isValidPassword = await bcrypt.compareSync(password, user.hash_password);
+
+        if (!isValidPassword) {
+            return res.json({
+                status: HTTP_CODE.ERROR,
+                data: {},
+                message: 'Wrong password'
+            });
+        }
+
+        let result = {};
+        const requestCount = await ChildModel.count({personalId: user._id, status: global.STATUS.CHILD_WAITING});
+        let account = await AccountModel.findOne({owner: user._id});
+
+        if (!account) {
+            account = new AccountModel({owner: user._id});
+            account = await account.save();
+        }
+
+        const accountInfo = {
+            main: account.main,
+            promo: account.promo
+        };
+
+        if (user.type === global.USER_TYPE_COMPANY) {
+            let creditTransferred = 0;
+            const children = await ChildModel.find({companyId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+
+            if (children && children.length > 0) {
+                children.forEach(child => {
+                    creditTransferred += (child.credit - child.creditUsed);
+                });
+            }
+
+            accountInfo.creditTransferred = creditTransferred;
+        }
+
+        if (user.type === global.USER_TYPE_PERSONAL) {
+            const child = await ChildModel.findOne({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+            if (child) {
+                accountInfo.credit = child.credit;
+                accountInfo.creditUsed = child.creditUsed;
+            }
+
+        }
+
+        Object.assign(result, user, {
+            id: user._id,
+            balance: accountInfo,
+            requestCount,
+            token: AccessToken.generate(user._id)
+        });
+
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: result,
+            message: 'Login successfully'
+        });
+    } catch (e) {
+        logger.error('UserController::login::error', e);
+        return next(e);
+    }
+};
+
+const resendConfirm = async (req, res, next) => {
+    logger.info('UserController::resendConfirm is called');
+    try {
+        const email = req.body.email;
+        if (!email) {
+            return res.json({
+                status: HTTP_CODE.BAD_REQUEST,
+                data: {},
+                message: 'Email is required'
+            });
+        }
+
+        const user = await UserModel.findOne({
+            email: email,
+            status: global.STATUS.PENDING_OR_WAIT_COMFIRM
+        });
+
+        if (!user) {
+            return res.json({
+                status: HTTP_CODE.ERROR,
+                data: {},
+                message: 'user not found or invalid status'
+            });
+        }
+        Mailer.sendConfirmEmail(user.email, user.confirmToken);
+
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: {},
+            message: 'request success'
+        });
+    } catch (e) {
+        logger.error('UserController::resendConfirm::error', e);
+        return next(e);
+    }
+};
+
 const UserController = {
+    login,
     balance,
     childDetail,
     registerChild,
@@ -750,8 +889,6 @@ const UserController = {
     creditShare,
     childRemove,
     childResponse,
-
-
     childRequest: async (req, res, next) => {
 
         try {
@@ -1247,119 +1384,7 @@ const UserController = {
 
     },
 
-    login: async (req, res, next) => {
-        logger.info('UserController::login is called');
-        try {
-            const {username, password} = req.body;
-            const user = await UserModel.findOne({
-                $or: [{username: username}, {email: username}]
-            });
-
-            if (!user) {
-                const msg = 'UserController::login::error. Username is not exists';
-                logger.error(msg);
-                return next(new Error(msg));
-            }
-
-            if (user.status !== global.STATUS.ACTIVE || user.role !== global.USER_ROLE_ENDUSER) {
-                const msg = 'Account is blocked';
-                logger.error(msg);
-                return next(new Error(msg));
-            }
-
-            const isValidPassword = await bcrypt.compareSync(password, user.hash_password);
-
-            if (!isValidPassword) {
-                return res.json({
-                    status: HTTP_CODE.ERROR,
-                    data: {},
-                    message: 'Wrong password'
-                });
-            }
-
-            let result = {};
-            const requestCount = await ChildModel.count({personalId: user._id, status: global.STATUS.CHILD_WAITING});
-            let account = await AccountModel.findOne({owner: user._id});
-
-            if (!account) {
-                account = new AccountModel({owner: user._id});
-                account = await account.save();
-            }
-
-            const accountInfo = {
-                main: account.main,
-                promo: account.promo
-            };
-
-            if (user.type === global.USER_TYPE_COMPANY) {
-                let creditTransferred = 0;
-                const children = await ChildModel.find({companyId: user._id, status: global.STATUS.CHILD_ACCEPTED});
-
-                if (children && children.length > 0) {
-                    children.forEach(child => {
-                        creditTransferred += (child.credit - child.creditUsed);
-                    });
-                }
-
-                accountInfo.creditTransferred = creditTransferred;
-            }
-
-            if (user.type === global.USER_TYPE_PERSONAL) {
-                const child = await ChildModel.findOne({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
-                if (child) {
-                    accountInfo.credit = child.credit;
-                    accountInfo.creditUsed = child.creditUsed;
-                }
-
-            }
-
-            Object.assign(result, user, {
-                id: user._id,
-                balance: accountInfo,
-                requestCount,
-                token: AccessToken.generate(user._id)
-            });
-
-            return res.json({
-                status: HTTP_CODE.SUCCESS,
-                data: result,
-                message: 'Login successfully'
-            });
-        } catch (e) {
-            logger.error('UserController::login::error', e);
-            return next(e);
-        }
-    },
-
-    resendConfirm: async (req, res, next) => {
-
-        var email = req.body.email;
-        if (!email) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'email empty'
-            });
-        }
-
-        var user = await UserModel.findOne({email: email, status: global.STATUS.PENDING_OR_WAIT_COMFIRM});
-        if (!user) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'user not found or invalid status'
-            });
-        }
-        Mailer.sendConfirmEmail(user.email, user.confirmToken);
-
-        return res.json({
-            status: 1,
-            data: {},
-            message: 'request success'
-        });
-
-
-    },
+    resendConfirm,
 
     update: async (req, res, next) => {
 

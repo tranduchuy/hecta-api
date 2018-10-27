@@ -38,7 +38,7 @@ router.get('/api/v1/posts/top/city', PostController.topCity);
 router.get('/api/v1/posts/detail/:id', PostController.detail);
 router.get('/api/v1/posts/list', PostController.list);
 
-router.get('/api/v1/search/', SearchController.search2);
+router.get('/api/v1/search/', SearchController.search);
 router.post('/api/v1/search/box', SearchController.filter);
 
 
