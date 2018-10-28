@@ -34,24 +34,24 @@ const PostController = {
         }
 
         const properties = ['metaTitle', 'metaDescription', 'metaType', 'metaUrl', 'metaImage', 'canonical', 'textEndPage'];
-        let url = req.body.url;
+        let customUrl = req.body.url;
 
-        if (url && url.length > 0) {
+        if (customUrl && customUrl !== post.customUrl) {
             const queryCountDuplicate = {
                 _id: {$ne: id},
                 $or: [
-                    {url},
-                    {customUrl: url}
+                    {url: customUrl},
+                    {customUrl}
                 ]
             };
 
-            if (await PostModel.count(queryCountDuplicate) > 0) {
-                logger.error('PostController::updateUrl::error. Duplicate url or customUrl', url);
-                return next(new Error('Duplicate url or customUrl. Url: ' + url))
+            if (await PostModel.countDocuments(queryCountDuplicate) > 0) {
+                logger.error('PostController::updateUrl::error. Duplicate url or customUrl', customUrl);
+                return next(new Error('Duplicate url or customUrl. Url: ' + customUrl))
             }
 
             // post.url = url; // url property should not be changed, it is original
-            post.customUrl = url;
+            post.customUrl = customUrl;
         }
 
         properties.forEach(p => {

@@ -134,6 +134,7 @@ const ProjectController = {
 
             if (customUrl && customUrl !== post.customUrl) {
                 const countDuplicateUrl = await PostModel.countDocuments({
+                    _id: {$ne: id},
                     $or: [
                         {url: customUrl},
                         {customUrl}

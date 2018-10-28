@@ -37,7 +37,7 @@ const NewsController = {
         }
     },
 
-    update: async function (req, res) {
+    update: async function (req, res, next) {
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
@@ -106,7 +106,7 @@ const NewsController = {
             post.metaImage = metaImage || post.metaImage;
             post.canonical = canonical || post.canonical;
 
-            if (title && post) {
+            if (title) {
                 let param = await UrlParamModel.findOne({
                     postType: global.POST_TYPE_NEWS,
                     formality: undefined,
@@ -134,15 +134,34 @@ const NewsController = {
                 }
 
                 post.url = _url;
-                post.customUrl = url;
                 post.params = param._id;
-                await post.save();
             }
+
+            const customUrl = url;
+            if (customUrl && customUrl !== post.customUrl) {
+                const queryCountDuplicate = {
+                    _id: {$ne: id},
+                    $or: [
+                        {url: customUrl},
+                        {customUrl}
+                    ]
+                };
+
+                if (await PostModel.countDocuments(queryCountDuplicate) > 0) {
+                    logger.error('PostController::updateUrl::error. Duplicate url or customUrl', customUrl);
+                    return next(new Error('Duplicate url or customUrl. Url: ' + customUrl))
+                }
+
+                // post.url = url; // url property should not be changed, it is original
+                post.customUrl = customUrl;
+            }
+
+            await post.save();
 
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: news,
-                message: 'update success'
+                message: 'Success'
             });
         } catch (e) {
             return res.json({
