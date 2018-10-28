@@ -1,6 +1,3 @@
-/**
- * Created by duong_000 on 10/18/2016.
- */
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const postSchema = new Schema({
@@ -17,6 +14,7 @@ const postSchema = new Schema({
     to: Number,
     params: String,
     url: String,
+    customUrl: {type: String, default: ''},
     date: {type: Number, default: Date.now},
     refresh: {type: Number, default: Date.now},
     metaTitle: String,

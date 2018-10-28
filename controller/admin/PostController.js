@@ -5,8 +5,6 @@ const NewsModel = require('../../models/NewsModel');
 const ProjectModel = require('../../models/ProjectModel');
 const _ = require('lodash');
 const urlSlug = require('url-slug');
-const TokenModel = require('../../models/TokenModel');
-const UserModel = require('../../models/UserModel');
 const HttpCode = require('../../config/http-code');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
@@ -15,116 +13,60 @@ const RoleService = require('../../services/RoleService');
 
 const PostController = {
     updateUrl: async function (req, res, next) {
+        const admin = req.user;
 
-        var token = req.headers.accesstoken;
-        var accessToken = await TokenModel.findOne({token: token});
-
-
-        if (!accessToken) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'access token invalid'
-            });
-
-        }
-
-        var admin = await UserModel.findOne({
-            _id: accessToken.user,
-            status: global.STATUS.ACTIVE,
-            role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-        });
-
-        if (!admin) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'admin not found or blocked'
-            });
-
+        if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
+            logger.error('PostController::updateUrl::error. Permission denied');
+            return next(new Error('Permission denied'));
         }
 
         let id = req.params.id;
 
-        if (!id || id.length == 0) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'id null error'
-            });
-
+        if (!id) {
+            logger.error('PostController::updateUrl::error. Id is required');
+            return next(new Error('Id is required'));
         }
 
-        var post = await PostModel.findOne({_id: id});
-
+        const post = await PostModel.findOne({_id: id});
         if (!post) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'post not exist'
-            });
+            logger.error('PostController::updateUrl::error. Post not found');
+            return next(new Error('Post not found'));
         }
 
+        const properties = ['metaTitle', 'metaDescription', 'metaType', 'metaUrl', 'metaImage', 'canonical', 'textEndPage'];
         let url = req.body.url;
 
-        let metaTitle = req.body.metaTitle;
-        let metaDescription = req.body.metaDescription;
-        let metaType = req.body.metaType;
-        let metaUrl = req.body.metaUrl;
-        let metaImage = req.body.metaImage;
-        let canonical = req.body.canonical;
-        let textEndPage = req.body.textEndPage;
-
         if (url && url.length > 0) {
-            if (await PostModel.count({url: url, _id: {$ne: id}}) > 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'url duplicate '
-                });
+            const queryCountDuplicate = {
+                _id: {$ne: id},
+                $or: [
+                    {url},
+                    {customUrl: url}
+                ]
+            };
+
+            if (await PostModel.count(queryCountDuplicate) > 0) {
+                logger.error('PostController::updateUrl::error. Duplicate url or customUrl', url);
+                return next(new Error('Duplicate url or customUrl. Url: ' + url))
             }
 
-            post.url = url;
+            // post.url = url; // url property should not be changed, it is original
+            post.customUrl = url;
         }
 
-        if (metaTitle) {
-            post.metaTitle = metaTitle;
-        }
-
-        if (metaDescription) {
-            post.metaDescription = metaDescription;
-        }
-
-        if (metaType) {
-            post.metaType = metaType;
-        }
-
-        if (metaUrl) {
-            post.metaUrl = metaUrl;
-        }
-
-        if (metaImage) {
-            post.metaImage = metaImage;
-        }
-
-        if (canonical) {
-            post.canonical = canonical;
-        }
-
-        if (textEndPage) {
-            post.textEndPage = textEndPage;
-        }
-
-        post = await post.save();
-
-
-        return res.json({
-            status: 1,
-            data: post,
-            message: 'success !'
+        properties.forEach(p => {
+            if (req.body[p]) {
+                post[p] = req.body[p];
+            }
         });
 
+        await post.save();
 
+        return res.json({
+            status: HttpCode.SUCCESS,
+            data: post,
+            message: 'Success'
+        });
     },
 
     list2: async (req, res, next) => {
@@ -514,65 +456,32 @@ const PostController = {
         }
 
 
-    }
-
-    ,
-
+    },
 
     detail: async function (req, res, next) {
-
+        logger.info('PostController::detail is called');
         try {
+            const admin = req.user;
 
-            var token = req.headers.accesstoken;
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
+            if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
+                logger.error('PostController::updateUrl::error. Permission denied');
+                return next(new Error('Permission denied'));
             }
 
             let id = req.params.id;
 
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id null error'
-                });
-
+            if (!id) {
+                return next(new Error('Post id is required'));
             }
 
             let post = await PostModel.findOne({_id: id, status: {$ne: global.STATUS.DELETE}});
 
             if (!post) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'post not exist'
-                });
+                logger.error('PostController::detail::error. Post not found', id);
+                return next(new Error('Post not found'));
             }
 
-            let model = BuyModel;//post.postType == global.POST_TYPE_SALE ? SaleModel : BuyModel;
-
+            let model = SaleModel;
             switch (post.postType) {
                 case global.POST_TYPE_SALE:
                     model = SaleModel;
@@ -586,234 +495,168 @@ const PostController = {
                 case global.POST_TYPE_PROJECT:
                     model = ProjectModel;
                     break;
-
-
             }
 
             let content = await model.findOne({_id: post.contentId});
-
-
             if (!content) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'data not exist'
-                });
-
-
+                logger.error('PostController::detail::error. ContentId not found detail', post.contentId);
+                return next(new Error('ContentId not found detail: ' + post.contentId));
             }
 
-            if (post.postType == global.POST_TYPE_SALE) {
-
-                return res.json({
-                    status: 1,
-                    data: {
-
-                        title: content.title,
-                        formality: content.formality,
-                        type: content.type,
-                        city: content.city,
-                        district: content.district,
-                        ward: content.ward,
-                        street: content.street,
-                        project: content.project,
-                        area: content.area,
-                        price: content.price,
-                        unit: content.unit,
-                        address: content.address,
-                        keywordList: content.keywordList,
-                        description: content.description,
-                        streetWidth: content.streetWidth,
-                        frontSize: content.frontSize,
-                        direction: content.direction,
-                        balconyDirection: content.balconyDirection,
-                        floorCount: content.floorCount,
-                        bedroomCount: content.bedroomCount,
-                        toiletCount: content.toiletCount,
-                        furniture: content.furniture,
-                        images: content.images,
-                        contactName: content.contactName,
-                        contactAddress: content.contactAddress,
-                        contactPhone: content.contactPhone,
-                        contactMobile: content.contactMobile,
-                        contactEmail: content.contactEmail,
-                        date: content.date,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh,
-
-                        metaTitle: post.metaTitle,
-                        metaDescription: post.metaDescription,
-                        metaType: post.metaType,
-                        metaUrl: post.metaUrl,
-                        metaImage: post.metaImage,
-                        canonical: post.canonical,
-                        textEndPage: post.textEndPage,
-                    },
-                    message: 'request success'
-                });
-            }
-            if (post.postType == global.POST_TYPE_BUY) {
-
-                return res.json({
-                    status: 1,
-                    data: {
-                        title: content.title,
-                        description: content.description,
-                        keywordList: content.keywordList,
-                        formality: content.formality,
-                        type: content.type,
-                        city: content.city,
-                        district: content.district,
-                        ward: content.ward,
-                        street: content.street,
-                        project: content.project,
-                        areaMin: content.areaMin,
-                        areaMax: content.areaMax,
-                        priceMin: content.priceMin,
-                        priceMax: content.priceMax,
-                        unit: content.unit,
-                        address: content.address,
-                        images: content.images,
-                        contactName: content.contactName,
-                        contactAddress: content.contactAddress,
-                        contactPhone: content.contactPhone,
-                        contactMobile: content.contactMobile,
-                        contactEmail: content.contactEmail,
-                        receiveMail: content.receiveMail,
-                        date: content.date,
-
-                        id: post._id,
-                        url: post.url,
-                        to: post.to,
-                        from: post.from,
-                        priority: post.priority,
-                        postType: post.postType,
-                        status: post.status,
-                        paymentStatus: post.paymentStatus,
-                        refresh: post.refresh,
-
-                        metaTitle: post.metaTitle,
-                        metaDescription: post.metaDescription,
-                        metaType: post.metaType,
-                        metaUrl: post.metaUrl,
-                        metaImage: post.metaImage,
-                        canonical: post.canonical,
-                        textEndPage: post.textEndPage,
-                    },
-                    message: 'request success'
-                });
-            }
-            if (post.postType == global.POST_TYPE_NEWS) {
-
-                return res.json({
-                    status: 1,
-                    data: {
-                        id: post._id,
-                        title: content.title,
-                        content: content.content,
-                        cate: content.type,
-                        image: content.image,
-                        description: content.description,
-                        date: content.date,
-
-
-                        metaTitle: post.metaTitle,
-                        metaDescription: post.metaDescription,
-                        metaType: post.metaType,
-                        metaUrl: post.metaUrl,
-                        metaImage: post.metaImage,
-                        canonical: post.canonical,
-                        textEndPage: post.textEndPage,
-                        url: post.url
-                    },
-                    message: 'request success'
-                });
-            }
-            if (post.postType == global.POST_TYPE_PROJECT) {
-
-                return res.json({
-                    status: 1,
-                    data: {
-                        isShowOvervjiew: content.isShowOverview,
-                        type: content.type,
-                        introImages: content.introImages,
-                        title: content.title,
-                        address: content.address,
-                        area: content.area,
-                        projectScale: content.projectScale,
-                        price: content.price,
-                        deliveryHouseDate: content.deliveryHouseDate,
-                        constructionArea: content.constructionArea,
-                        descriptionInvestor: content.descriptionInvestor,
-                        description: content.description,
-
-                        isShowLocationAndDesign: content.isShowLocationAndDesign,
-                        location: content.location,
-                        infrastructure: content.infrastructure,
-
-                        isShowGround: content.isShowGround,
-                        overallSchema: content.overallSchema,
-                        groundImages: content.groundImages,
-
-                        isShowImageLibs: content.isShowImageLibs,
-                        imageAlbums: content.imageAlbums,
-
-                        isShowProjectProgress: content.isShowProjectProgress,
-                        projectProgressTitle: content.projectProgressTitle,
-                        projectProgressStartDate: content.projectProgressStartDate,
-                        projectProgressEndDate: content.projectProgressEndDate,
-                        projectProgressDate: content.projectProgressDate,
-                        projectProgressImages: content.projectProgressImages,
-
-                        isShowTabVideo: content.isShowTabVideo,
-                        video: content.video,
-
-                        isShowFinancialSupport: content.isShowFinancialSupport,
-                        financialSupport: content.financialSupport,
-
-                        isShowInvestor: content.isShowInvestor,
-                        detailInvestor: content.detailInvestor,
-
-                        district: content.district,
-                        city: content.city,
-
-                        status: content.status,
-
-                        id: post._id,
-                        metaTitle: post.metaTitle,
-                        metaDescription: post.metaDescription,
-                        metaType: post.metaType,
-                        metaUrl: post.metaUrl,
-                        metaImage: post.metaImage,
-                        canonical: post.canonical,
-                        textEndPage: post.textEndPage,
-                        url: post.url
-                    },
-                    message: 'request success'
-                });
-            }
-        }
-
-        catch (e) {
             return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
+                status: HttpCode.SUCCESS,
+                data: Object.assign({}, post.toObject(), content.toObject(), {id: post._id}),
+                message: 'Success'
             });
+
+            // if (post.postType == global.POST_TYPE_SALE) {
+            //
+            //     return res.json({
+            //         status: 1,
+            //         data: {
+            //
+            //             title: content.title,
+            //             formality: content.formality,
+            //             type: content.type,
+            //             city: content.city,
+            //             district: content.district,
+            //             ward: content.ward,
+            //             street: content.street,
+            //             project: content.project,
+            //             area: content.area,
+            //             price: content.price,
+            //             unit: content.unit,
+            //             address: content.address,
+            //             keywordList: content.keywordList,
+            //             description: content.description,
+            //             streetWidth: content.streetWidth,
+            //             frontSize: content.frontSize,
+            //             direction: content.direction,
+            //             balconyDirection: content.balconyDirection,
+            //             floorCount: content.floorCount,
+            //             bedroomCount: content.bedroomCount,
+            //             toiletCount: content.toiletCount,
+            //             furniture: content.furniture,
+            //             images: content.images,
+            //             contactName: content.contactName,
+            //             contactAddress: content.contactAddress,
+            //             contactPhone: content.contactPhone,
+            //             contactMobile: content.contactMobile,
+            //             contactEmail: content.contactEmail,
+            //             date: content.date,
+            //
+            //             id: post._id,
+            //             url: post.url,
+            //             customUrl: post.customUrl,
+            //             to: post.to,
+            //             from: post.from,
+            //             priority: post.priority,
+            //             postType: post.postType,
+            //             status: post.status,
+            //             paymentStatus: post.paymentStatus,
+            //             refresh: post.refresh,
+            //
+            //             metaTitle: post.metaTitle,
+            //             metaDescription: post.metaDescription,
+            //             metaType: post.metaType,
+            //             metaUrl: post.metaUrl,
+            //             metaImage: post.metaImage,
+            //             canonical: post.canonical,
+            //             textEndPage: post.textEndPage,
+            //         },
+            //         message: 'request success'
+            //     });
+            // }
+            // if (post.postType == global.POST_TYPE_BUY) {
+            //
+            //     return res.json({
+            //         status: 1,
+            //         data: {
+            //             title: content.title,
+            //             description: content.description,
+            //             keywordList: content.keywordList,
+            //             formality: content.formality,
+            //             type: content.type,
+            //             city: content.city,
+            //             district: content.district,
+            //             ward: content.ward,
+            //             street: content.street,
+            //             project: content.project,
+            //             areaMin: content.areaMin,
+            //             areaMax: content.areaMax,
+            //             priceMin: content.priceMin,
+            //             priceMax: content.priceMax,
+            //             unit: content.unit,
+            //             address: content.address,
+            //             images: content.images,
+            //             contactName: content.contactName,
+            //             contactAddress: content.contactAddress,
+            //             contactPhone: content.contactPhone,
+            //             contactMobile: content.contactMobile,
+            //             contactEmail: content.contactEmail,
+            //             receiveMail: content.receiveMail,
+            //             date: content.date,
+            //
+            //             id: post._id,
+            //             url: post.url,
+            //             customUrl: post.customUrl,
+            //             to: post.to,
+            //             from: post.from,
+            //             priority: post.priority,
+            //             postType: post.postType,
+            //             status: post.status,
+            //             paymentStatus: post.paymentStatus,
+            //             refresh: post.refresh,
+            //
+            //             metaTitle: post.metaTitle,
+            //             metaDescription: post.metaDescription,
+            //             metaType: post.metaType,
+            //             metaUrl: post.metaUrl,
+            //             metaImage: post.metaImage,
+            //             canonical: post.canonical,
+            //             textEndPage: post.textEndPage,
+            //         },
+            //         message: 'request success'
+            //     });
+            // }
+            // if (post.postType == global.POST_TYPE_NEWS) {
+            //
+            //     return res.json({
+            //         status: 1,
+            //         data: {
+            //             id: post._id,
+            //             title: content.title,
+            //             content: content.content,
+            //             cate: content.type,
+            //             image: content.image,
+            //             description: content.description,
+            //             date: content.date,
+            //
+            //
+            //             metaTitle: post.metaTitle,
+            //             metaDescription: post.metaDescription,
+            //             metaType: post.metaType,
+            //             metaUrl: post.metaUrl,
+            //             metaImage: post.metaImage,
+            //             canonical: post.canonical,
+            //             textEndPage: post.textEndPage,
+            //             url: post.customUrl || post.url
+            //         },
+            //         message: 'request success'
+            //     });
+            // }
+            // if (post.postType == global.POST_TYPE_PROJECT) {
+            //     return res.json({
+            //         status: HttpCode.SUCCESS,
+            //         data: Object.assign({}, content.toObject(), post.toObject(), {id: post._id}),
+            //         message: 'Success'
+            //     });
+            // }
+        } catch (e) {
+            logger.error('PostController::detail::error', e);
+            return next(e);
         }
-
-
     }
+};
 
-
-}
-module.exports = PostController
+module.exports = PostController;

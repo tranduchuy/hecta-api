@@ -70,7 +70,7 @@ const ProjectController = {
 
     update: async function (req, res, next) {
         logger.info('AdminProjectController::Update is called');
-        
+
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
@@ -111,11 +111,11 @@ const ProjectController = {
                 }
             });
 
-            const projectProperties = ['isShowOverview', 'type', 'introImages', 'title', 'address', 'area', 'projectScale', 'price', 'deliveryHouseDate', 'constructionArea', 'descriptionInvestor', 'description', 'isShowLocationAndDesign', 'infrastructure', 'location', 'isShowGround', 'overallSchema', 'groundImages', 'isShowImageLibs', 'imageAlbums', 'isShowProjectProgress', 'projectProgressTitle', 'projectProgressStartDate', 'projectProgressEndDate', 'projectProgressDate', 'projectProgressImages', 'isShowTabVideo', 'video', 'isShowFinancialSupport', 'financialSupport', 'isShowInvestor', 'detailInvestor', 'district', 'city', 'status', 'metaTitle', 'metaDescription', 'metaType', 'metaUrl', 'metaImage', 'canonical', 'textEndPage'];
+            const projectProperties = ['isShowOverview', 'type', 'introImages', 'title', 'address', 'area', 'projectScale', 'price', 'deliveryHouseDate', 'constructionArea', 'descriptionInvestor', 'description', 'isShowLocationAndDesign', 'infrastructure', 'location', 'isShowGround', 'overallSchema', 'groundImages', 'isShowImageLibs', 'imageAlbums', 'isShowProjectProgress', 'projectProgressTitle', 'projectProgressStartDate', 'projectProgressEndDate', 'projectProgressDate', 'projectProgressImages', 'isShowTabVideo', 'video', 'isShowFinancialSupport', 'financialSupport', 'isShowInvestor', 'detailInvestor', 'district', 'city', 'status'];
             const postProperties = ['metaTitle', 'metaDescription', 'metaType', 'metaUrl', 'metaImage', 'canonical', 'textEndPage'];
 
             projectProperties.forEach(field => {
-               project[field] = req.body[field] || project[field];
+                project[field] = req.body[field] || project[field];
             });
 
             if (status === global.STATUS.ACTIVE || status === global.STATUS.BLOCKED || status === global.STATUS.DELETE) {
@@ -123,22 +123,36 @@ const ProjectController = {
                 post.status = status;
             }
 
-            if (!project.admin) {
-                project.admin = [];
-            }
-
-            project.admin.push(new mongoose.Types.ObjectId(admin._id));
-            project = await project.save();
+            project.admin = (project.admin || []).push(new mongoose.Types.ObjectId(admin._id));
 
             // update post info
             postProperties.forEach(field => {
                 post[field] = req.body[field] || post[field];
             });
 
+            const customUrl = req.body.url;
+
+            if (customUrl && customUrl !== post.customUrl) {
+                const countDuplicateUrl = await PostModel.countDocuments({
+                    $or: [
+                        {url: customUrl},
+                        {customUrl}
+                    ]
+                });
+
+                if (countDuplicateUrl === 0) {
+                    post.customUrl = customUrl.toString().trim();
+                } else {
+                    logger.error('ProjectController::update::error. Duplicate url', customUrl);
+                    return next(new Error('Duplicate url: ' + customUrl));
+                }
+            }
+
+            await project.save();
             await post.save();
             return res.json({
                 status: HttpCode.SUCCESS,
-                data: project,
+                data: Object.assign({}, post.toObject(), project.toObject()),
                 message: 'Update success'
             });
         } catch (e) {

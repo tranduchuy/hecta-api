@@ -64,7 +64,10 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
     let data = {};
     let post = await PostModel.findOne({
         status: global.STATUS.ACTIVE,
-        url: param
+        $or: [
+            {url: param},
+            {customUrl: param}
+        ]
     });
 
     if (!post) {
@@ -288,6 +291,7 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
                 createdByType: buy.createdByType ? buy.createdByType : null,
 
                 id: post._id,
+                customUrl: post.customUrl,
                 url: post.url,
                 to: post.to,
                 from: post.from,
@@ -368,6 +372,7 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
 
                 id: post._id,
                 url: post.url,
+                customUrl: post.customUrl,
                 to: post.to,
                 from: post.from,
                 priority: post.priority,
@@ -383,11 +388,7 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
                 canonical: post.canonical,
                 textEndPage: post.textEndPage
             };
-
-
         }
-
-
     }
 
     return res.json({
@@ -419,7 +420,10 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
         }
     });
 
-    return Object.assign({}, buyOrSale.toObject(), post.toObject(), {id: post._id, keywordList});
+    return Object.assign({},
+                        buyOrSale.toObject(),
+                        post.toObject(),
+                        {id: post._id, keywordList});
 
     // return {
     //     formality: sale.formality,

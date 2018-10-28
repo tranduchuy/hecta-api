@@ -85,7 +85,7 @@ const NewsController = {
                 title, content, cate, image, status,
                 description, metaTitle, metaDescription,
                 metaType, metaUrl, metaImage, canonical,
-                textEndPage
+                textEndPage, url
             } = req.body;
             ImageService.putUpdateImage([news.image], [image]);
 
@@ -126,16 +126,16 @@ const NewsController = {
                     param = await param.save();
                 }
 
-                let url = urlSlug(title);
-                const count = await PostModel.find({url: new RegExp("^" + url)});
+                let _url = urlSlug(title);
+                const count = await PostModel.find({url: new RegExp("^" + _url)});
 
                 if (count > 0) {
-                    url += ('-' + count);
+                    _url += ('-' + count);
                 }
 
-                post.url = url;
+                post.url = _url;
+                post.customUrl = url;
                 post.params = param._id;
-
                 await post.save();
             }
 
