@@ -124,7 +124,8 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
             metaImage: post.metaImage,
             canonical: post.canonical,
             textEndPage: post.textEndPage,
-            url: post.url
+            url: post.url,
+            customUrl: post.customUrl
         };
 
 
@@ -210,7 +211,8 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
             metaImage: post.metaImage,
             canonical: post.canonical,
             textEndPage: post.textEndPage,
-            url: post.url
+            url: post.url,
+            customUrl: post.customUrl
         }
 
     }
