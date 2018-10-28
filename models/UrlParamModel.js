@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const urlParamSchema = new Schema({
     param: String, //{type: String, unique: false},
+    customParam: {type: String, default: ''},
     postType: Number,
     formality: Number,
     type: Number,

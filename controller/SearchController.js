@@ -463,7 +463,12 @@ const handleSearchCaseCategory = async (res, param, page) => {
     const query = {status: global.STATUS.ACTIVE};
     let results = [];
     let count = 0;
-    let cat = await UrlParamModel.findOne({param: param});
+    let cat = await UrlParamModel.findOne({
+        $or: [
+            {param},
+            {customParam: param}
+        ]
+    });
 
     if (cat) {
         mapCategoryToQuery(cat, query);
@@ -478,7 +483,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
             .skip((page - 1) * global.PAGE_SIZE)
             .limit(global.PAGE_SIZE);
 
-        count = await model.count(query);
+        count = await model.countDocuments(query);
         results = await Promise.all(data.map(async (item) => {
             const post = await PostModel.findOne({contentId: item._id});
             if (!post) {
@@ -503,6 +508,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
         type: cat.postType,
         seo: {
             url: cat.param,
+            customUrl: cat.customParam,
             metaTitle: cat.metaTitle,
             metaDescription: cat.metaDescription,
             metaType: cat.metaType,
