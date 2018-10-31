@@ -84,16 +84,11 @@ const ProjectController = {
                 return next(new Error('Invalid project id'));
             }
 
-            const post = await PostModel.findOne({_id: id});
+            const post = await PostModel.findOne({_id: id, $ne: {status: global.STATUS.DELETE}});
 
             if (!post) {
                 logger.error('AdminProjectController::Update::error Post of project not exist', id);
                 return next(new Error('Post of project not exist'));
-            }
-
-            if (post.status === global.STATUS.DELETE) {
-                logger.error('AdminProjectController::Update::error Post is deleted', id);
-                return next(new Error('Post is deleted'));
             }
 
             let project = await ProjectModel.findOne({_id: post.contentId});
@@ -197,12 +192,12 @@ const ProjectController = {
                 });
 
             }
-    
+
             var project = new ProjectModel();
-    
+
             if (createdByType) {
                 const countTitle = await ProjectModel.findOne({title: req.body.title});
-                if (countTitle > 0){
+                if (countTitle > 0) {
                     return res.json({
                         status: 0,
                         data: {},

@@ -58,13 +58,13 @@ const NewsController = {
                 });
             }
 
-            let post = await PostModel.findOne({_id: id});
+            let post = await PostModel.findOne({_id: id, $ne: {status: global.STATUS.DELETE}});
 
             if (!post) {
                 return res.json({
                     status: HttpCode.ERROR,
                     data: {},
-                    message: 'post of news not exist '
+                    message: 'Post not found'
                 });
             }
 
