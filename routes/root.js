@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router({});
-const PostController = require('../controller/PostController');
 const SearchController = require('../controller/SearchController');
 const users = require('../routes/users');
 const index = require('../routes/index');
@@ -15,10 +14,10 @@ const tags = require('../routes/tags');
 const vips = require('../routes/vips');
 const notify = require('../routes/notify');
 const system = require('../routes/system');
+const postRouter = require('../routes/posts');
 
 router.use('/', index);
 router.use('/files/js/', express.static('files/js'));
-
 router.use('/api/v1/users', users);
 router.use('/api/v1/sales', sales);
 router.use('/api/v1/images', images);
@@ -31,15 +30,8 @@ router.use('/api/v1/vips', vips);
 router.use('/api/v1/notifies', notify);
 router.use('/api/v1/systems', system);
 router.use('/admin/v1/', admin);
-
-router.get('/api/v1/posts/child/:id', PostController.child);
-router.get('/api/v1/posts/latest', PostController.latest);
-router.get('/api/v1/posts/top/city', PostController.topCity);
-router.get('/api/v1/posts/detail/:id', PostController.detail);
-router.get('/api/v1/posts/list', PostController.list);
-
+router.use('/api/v1/posts', postRouter);
 router.get('/api/v1/search/', SearchController.search);
 router.post('/api/v1/search/box', SearchController.filter);
-
 
 module.exports = router;
