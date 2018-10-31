@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router({});
-const SearchController = require('../controller/SearchController');
 const users = require('../routes/users');
 const index = require('../routes/index');
 const sales = require('../routes/sales');
@@ -15,6 +14,7 @@ const vips = require('../routes/vips');
 const notify = require('../routes/notify');
 const system = require('../routes/system');
 const postRouter = require('../routes/posts');
+const searchRouter = require('../routes/search');
 
 router.use('/', index);
 router.use('/files/js/', express.static('files/js'));
@@ -31,7 +31,6 @@ router.use('/api/v1/notifies', notify);
 router.use('/api/v1/systems', system);
 router.use('/admin/v1/', admin);
 router.use('/api/v1/posts', postRouter);
-router.get('/api/v1/search/', SearchController.search);
-router.post('/api/v1/search/box', SearchController.filter);
+router.use('/api/v1/search', searchRouter);
 
 module.exports = router;
