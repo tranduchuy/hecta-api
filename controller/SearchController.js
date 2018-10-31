@@ -60,7 +60,7 @@ const mapCategoryToQuery = (catObj, query, additionalProperties = []) => {
     });
 };
 
-const handleSearchCaseNotCategory = async (res, param, slug) => {
+const handleSearchCaseNotCategory = async (res, param, slug, next) => {
     let data = {};
     let post = await PostModel.findOne({
         status: global.STATUS.ACTIVE,
@@ -71,7 +71,7 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
     });
 
     if (!post) {
-        logger.error('SearchController::search::error Post not found');
+        logger.error('SearchController::handleSearchCaseNotCategory::error Post not found');
         return next(new Error('Post not found'));
     }
 
@@ -83,313 +83,71 @@ const handleSearchCaseNotCategory = async (res, param, slug) => {
 
     let related = await PostModel.find(query).limit(10);
 
-    if (slug == global.SLUG_NEWS) {
-
-
-        if (post.postType != global.POST_TYPE_NEWS) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'post of news not found 1'
-            });
+    if (slug === global.SLUG_NEWS) {
+        if (post.postType !== global.POST_TYPE_NEWS) {
+            logger.error('SearchController::handleSearchCaseNotCategory::error. Slug and post.postType not match SLUG_NEWS');
+            return next(new Error('Slug and post.postType not match SLUG_NEWS'));
         }
 
-        let news = await NewsModel.findOne({
+        const news = await NewsModel.findOne({
             _id: post.contentId
         });
-
         if (!news) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'news not found'
-            });
+            logger.error('SearchController::handleSearchCaseNotCategory::error. News not found');
+            return next(new Error('News not found'));
         }
 
-
-        data = {
-            title: news.title,
-            content: news.content,
-            cate: news.type,
-            image: news.image,
-            description: news.description,
-            date: news.date,
-            createdByType: news.createdByType ? news.createdByType : null,
-
-            id: post._id,
-            metaTitle: post.metaTitle,
-            metaDescription: post.metaDescription,
-            metaType: post.metaType,
-            metaUrl: post.metaUrl,
-            metaImage: post.metaImage,
-            canonical: post.canonical,
-            textEndPage: post.textEndPage,
-            url: post.url,
-            customUrl: post.customUrl
-        };
-
-
+        Object.assign(data, news.toObject(), post.toObject(), {id: post._id});
     }
 
-    if (slug == global.SLUG_PROJECT) {
-
-
-        if (post.postType != global.POST_TYPE_PROJECT) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'post of project not found 1'
-            });
+    if (slug === global.SLUG_PROJECT) {
+        if (post.postType !== global.POST_TYPE_PROJECT) {
+            logger.error('SearchController::handleSearchCaseNotCategory::error. Slug and post.postType not match case SLUG_PROJECT');
+            return next(new Error('Slug and post.postType not match case SLUG_PROJECT'));
         }
 
-        let project = await ProjectModel.findOne({
+        const project = await ProjectModel.findOne({
             _id: post.contentId
         });
 
         if (!project) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'project not found'
-            });
+            logger.error('SearchController::handleSearchCaseNotCategory::error. Project not found');
+            return next(new Error('Project not found'));
         }
 
-
-        data = {
-            isShowOverview: project.isShowOverview,
-            type: project.type,
-            introImages: project.introImages,
-            title: project.title,
-            address: project.address,
-            area: project.area,
-            projectScale: project.projectScale,
-            price: project.price,
-            deliveryHouseDate: project.deliveryHouseDate,
-            constructionArea: project.constructionArea,
-            descriptionInvestor: project.descriptionInvestor,
-            description: project.description,
-
-            isShowLocationAndDesign: project.isShowLocationAndDesign,
-            location: project.location,
-            infrastructure: project.infrastructure,
-
-            isShowGround: project.isShowGround,
-            overallSchema: project.overallSchema,
-            groundImages: project.groundImages,
-
-            isShowImageLibs: project.isShowImageLibs,
-            imageAlbums: project.imageAlbums,
-
-            isShowProjectProgress: project.isShowProjectProgress,
-            projectProgressTitle: project.projectProgressTitle,
-            projectProgressStartDate: project.projectProgressStartDate,
-            projectProgressEndDate: project.projectProgressEndDate,
-            projectProgressDate: project.projectProgressDate,
-            projectProgressImages: project.projectProgressImages,
-
-            isShowTabVideo: project.isShowTabVideo,
-            video: project.video,
-
-            isShowFinancialSupport: project.isShowFinancialSupport,
-            financialSupport: project.financialSupport,
-
-            isShowInvestor: project.isShowInvestor,
-            detailInvestor: project.detailInvestor,
-
-            district: project.district,
-            city: project.city,
-
-            status: project.status,
-
-            createdByType: project.createdByType ? project.createdByType : null,
-
-            id: post._id,
-            metaTitle: post.metaTitle,
-            metaDescription: post.metaDescription,
-            metaType: post.metaType,
-            metaUrl: post.metaUrl,
-            metaImage: post.metaImage,
-            canonical: post.canonical,
-            textEndPage: post.textEndPage,
-            url: post.url,
-            customUrl: post.customUrl
-        }
-
+        Object.assign(data, project.toObject(), post.toObject(), {id: post._id, createdByType: post.createdByType || null});
     }
 
-    if (slug == global.SLUG_SELL_OR_BUY) {
-
-
-        if (post.postType != global.POST_TYPE_BUY && post.postType != global.POST_TYPE_SALE) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'post of buy or sell not found 1'
-            });
+    if (slug === global.SLUG_SELL_OR_BUY) {
+        if (post.postType !== global.POST_TYPE_BUY && post.postType !== global.POST_TYPE_SALE) {
+            logger.error('SearchController::handleSearchCaseNotCategory::error. Slug and post.postType not match case SLUG_SELL_OR_BUY');
+            return next(new Error('Slug and post.postType not match case SLUG_SELL_OR_BUY'));
         }
 
-
-        if (post.postType == global.POST_TYPE_BUY) {
-
+        if (post.postType === global.POST_TYPE_BUY) {
             let buy = await BuyModel.findOne({
                 _id: post.contentId
             });
 
             if (!buy) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'buy not found'
-                });
+                logger.error('SearchController::handleSearchCaseNotCategory::error. Buy not found');
+                return next(new Error('Buy not found'));
             }
 
-            let keys;
-
-            if (!buy.keywordList) {
-                keys = [];
-            }
-            else {
-                keys = await Promise.all(buy.keywordList.map(async key => {
-
-                        return {
-                            keyword: key,
-                            slug: urlSlug(key)
-                        }
-                    }
-                ));
-            }
-
-            data = {
-                title: buy.title,
-                formality: buy.formality,
-                type: buy.type,
-                city: buy.city,
-                district: buy.district,
-                ward: buy.ward,
-                street: buy.street,
-                project: buy.project,
-                area: buy.area,
-                price: buy.price,
-                unit: buy.unit,
-                address: buy.address,
-                keywordList: keys,
-                description: buy.description,
-                streetWidth: buy.streetWidth,
-                frontSize: buy.frontSize,
-                direction: buy.direction,
-                balconyDirection: buy.balconyDirection,
-                floorCount: buy.floorCount,
-                bedroomCount: buy.bedroomCount,
-                toiletCount: buy.toiletCount,
-                furniture: buy.furniture,
-                images: buy.images,
-                contactName: buy.contactName,
-                contactAddress: buy.contactAddress,
-                contactPhone: buy.contactPhone,
-                contactMobile: buy.contactMobile,
-                contactEmail: buy.contactEmail,
-                date: buy.date,
-
-                createdByType: buy.createdByType ? buy.createdByType : null,
-
-                id: post._id,
-                customUrl: post.customUrl,
-                url: post.url,
-                to: post.to,
-                from: post.from,
-                priority: post.priority,
-                postType: post.postType,
-                status: post.status,
-                paymentStatus: post.paymentStatus,
-                refresh: post.refresh,
-                metaTitle: post.metaTitle,
-                metaDescription: post.metaDescription,
-                metaType: post.metaType,
-                metaUrl: post.metaUrl,
-                metaImage: post.metaImage,
-                canonical: post.canonical,
-                textEndPage: post.textEndPage,
-            }
-
-
+            data = mapBuyOrSaleItemToResultCaseCategory(post, buy);
         }
 
-        if (post.postType == global.POST_TYPE_SALE) {
-            console.log(post.contentId);
+        if (post.postType === global.POST_TYPE_SALE) {
             let sale = await SaleModel.findOne({
                 _id: post.contentId
             });
 
             if (!sale) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'sale not found'
-                });
+                logger.error('SearchController::handleSearchCaseNotCategory::error. Sale not found');
+                return next(new Error('Sale not found'));
             }
 
-            let keys;
-
-            if (!sale.keywordList) {
-                keys = [];
-            }
-            else {
-                keys = await Promise.all(sale.keywordList.map(async key => {
-
-                        return {
-                            keyword: key,
-                            slug: urlSlug(key)
-                        }
-                    }
-                ));
-            }
-
-            data = {
-                title: sale.title,
-                description: sale.description,
-                keywordList: keys,
-                formality: sale.formality,
-                type: sale.type,
-                city: sale.city,
-                district: sale.district,
-                ward: sale.ward,
-                street: sale.street,
-                project: sale.project,
-                areaMin: sale.areaMin,
-                areaMax: sale.areaMax,
-                priceMin: sale.priceMin,
-                priceMax: sale.priceMax,
-                unit: sale.unit,
-                address: sale.address,
-                images: sale.images,
-                contactName: sale.contactName,
-                contactAddress: sale.contactAddress,
-                contactPhone: sale.contactPhone,
-                contactMobile: sale.contactMobile,
-                contactEmail: sale.contactEmail,
-                receiveMail: sale.receiveMail,
-                date: sale.date,
-
-                createdByType: sale.createdByType ? sale.createdByType : null,
-
-                id: post._id,
-                url: post.url,
-                customUrl: post.customUrl,
-                to: post.to,
-                from: post.from,
-                priority: post.priority,
-                postType: post.postType,
-                status: post.status,
-                paymentStatus: post.paymentStatus,
-                refresh: post.refresh,
-                metaTitle: post.metaTitle,
-                metaDescription: post.metaDescription,
-                metaType: post.metaType,
-                metaUrl: post.metaUrl,
-                metaImage: post.metaImage,
-                canonical: post.canonical,
-                textEndPage: post.textEndPage
-            };
+            data = mapBuyOrSaleItemToResultCaseCategory(post, sale);
         }
     }
 
@@ -426,37 +184,6 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
                         buyOrSale.toObject(),
                         post.toObject(),
                         {id: post._id, keywordList});
-
-    // return {
-    //     formality: sale.formality,
-    //     title: sale.title,
-    //     description: sale.description,
-    //     city: sale.city,
-    //     district: sale.district,
-    //     price: sale.price,
-    //     unit: sale.unit,
-    //     area: sale.area,
-    //     date: sale.date,
-    //     images: sale.images,
-    //     address: sale.address,
-    //     keywordList: keys,
-    //     id: post._id,
-    //     url: post.url,
-    //     to: post.to,
-    //     from: post.from,
-    //     priority: post.priority,
-    //     postType: post.postType,
-    //     status: post.status,
-    //     paymentStatus: post.paymentStatus,
-    //     refresh: post.refresh,
-    //     metaTitle: post.metaTitle,
-    //     metaDescription: post.metaDescription,
-    //     metaType: post.metaType,
-    //     metaUrl: post.metaUrl,
-    //     metaImage: post.metaImage,
-    //     canonical: post.canonical,
-    //     textEndPage: post.textEndPage
-    // };
 };
 
 const handleSearchCaseCategory = async (res, param, page) => {
@@ -764,11 +491,11 @@ const SearchController = {
             }
 
             if (isValidSlugSearch(slug)) {
-                return await handleSearchCaseNotCategory(res, param, slug);
+                return await handleSearchCaseNotCategory(res, param, slug, next);
             }
 
             if (isValidSlugCategorySearch(slug)) {
-                return await handleSearchCaseCategory(res, param, page);
+                return await handleSearchCaseCategory(res, param, page, next);
             }
 
             logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
