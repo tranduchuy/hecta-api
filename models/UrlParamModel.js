@@ -1,6 +1,3 @@
-/**
- * Created by duong_000 on 10/18/2016.
- */
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const urlParamSchema = new Schema({

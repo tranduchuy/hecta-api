@@ -258,124 +258,91 @@ const handleSearchCaseCategory = async (res, param, page) => {
 
 const SearchController = {
     filter: async function (req, res, next) {
-
+        logger.info('SearchController::filter is called');
         try {
-            var postType = req.body.postType;
-            var formality = req.body.formality;
-            var type = req.body.type;
-            var city = req.body.city;
-            var district = req.body.district;
-            var ward = req.body.ward;
-            var street = req.body.street;
-            var project = req.body.project;
-            var balconyDirection = req.body.balconyDirection;
-            var bedroomCount = req.body.bedroomCount;
-            var areaMax = req.body.areaMax;
-            var areaMin = req.body.areaMin;
-            var area = req.body.area;
-            var priceMax = req.body.priceMax;
-            var priceMin = req.body.priceMin;
-            var price = req.body.price;
+            let {
+                postType, formality, type, city, district, ward,
+                street, project, balconyDirection, bedroomCount,
+                areaMax, areaMin, area, priceMax, priceMin, price
+            } = req.body;
 
-
-            if (postType == 'null') {
-                postType = undefined;
-            }
-
-            if (formality == 'null' || formality == undefined) {
-                formality = undefined;
-            } else {
+            if (formality) {
                 formality = formality.value
             }
-            if (type == 'null' || type == undefined) {
-                type = undefined;
-            } else {
+
+            if (type) {
                 type = type.value
             }
-            if (city == 'null' || city == undefined) {
-                city = undefined;
-            } else {
-                city = city.value
-            }
-            if (district == 'null' || district == undefined) {
-                district = undefined;
-            } else {
-                district = district.value
-            }
-            if (ward == 'null' || ward == undefined) {
-                ward = undefined;
-            } else {
-                ward = ward.value
-            }
-            if (street == 'null' || street == undefined) {
-                street = undefined;
-            } else {
-                street = street.value
-            }
-            if (project == 'null' || project == undefined) {
-                project = undefined;
-            } else {
-                project = project.value
-            }
-            if (balconyDirection == 'null' || balconyDirection == undefined) {
-                balconyDirection = undefined;
-            } else {
-                balconyDirection = balconyDirection.value
-            }
-            if (bedroomCount == 'null' || bedroomCount == undefined) {
-                bedroomCount = undefined;
-            } else {
-                bedroomCount = bedroomCount.value
-            }
-            if (areaMax == 'null' || areaMax == undefined) {
-                areaMax = undefined;
-            } else {
-                areaMax = areaMax.value
-            }
-            if (areaMin == 'null' || areaMin == undefined) {
-                areaMin = undefined;
-            } else {
-                areaMin = areaMin.value
-            }
-            if (area == 'null' || area == undefined) {
-                area = undefined;
-            } else {
-                area = area.value
-            }
-            if (priceMax == 'null' || priceMax == undefined) {
-                priceMax = undefined;
-            } else {
-                priceMax = priceMax.value
-            }
-            if (priceMin == 'null' || priceMin == undefined) {
-                priceMin = undefined;
-            } else {
-                priceMin = priceMin.value
-            }
-            if (price == 'null' || price == undefined) {
-                price = undefined;
-            } else {
-                price = price.value
+
+            if (city) {
+                city = city.value;
             }
 
-            let query = {
-                postType: postType,
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
-                balconyDirection: balconyDirection,
-                bedroomCount: bedroomCount,
-                area: area,
-                price: price
+            if (district) {
+                district = district.value;
+            }
+
+            if (ward) {
+                ward = ward.value;
+            }
+
+            if (street) {
+                street = street.value;
+            }
+
+            if (project) {
+                project = project.value;
+            }
+
+            if (balconyDirection) {
+                balconyDirection = balconyDirection.value;
+            }
+
+            if (bedroomCount) {
+                bedroomCount = bedroomCount.value;
+            }
+
+            if (areaMax) {
+                areaMax = areaMax.value;
+            }
+
+            if (areaMin) {
+                areaMin = areaMin.value;
+            }
+
+            if (area) {
+                area = area.value;
+            }
+
+            if (priceMax) {
+                priceMax = priceMax.value;
+            }
+
+            if (priceMin) {
+                priceMin = priceMin.value;
+            }
+
+            if (price) {
+                price = price.value;
+            }
+
+            const query = {
+                postType,
+                formality,
+                type,
+                city,
+                district,
+                ward,
+                street,
+                project,
+                balconyDirection,
+                bedroomCount,
+                area,
+                price
             };
 
-
-            var cats = await UrlParamModel.find(query);
-            var mainUrl = global.PARAM_NOT_FOUND;
+            const cats = await UrlParamModel.find(query);
+            let mainUrl = global.PARAM_NOT_FOUND;
 
             switch (postType) {
                 case global.POST_TYPE_BUY :
@@ -394,69 +361,59 @@ const SearchController = {
             }
 
             cats.forEach(cat => {
-
-
-                if (cat.areaMax == areaMax && cat.areaMin == areaMin && cat.priceMax == priceMax && cat.priceMin == priceMin) {
+                if (cat.areaMax === areaMax && cat.areaMin === areaMin &&
+                    cat.priceMax === priceMax && cat.priceMin === priceMin) {
                     return res.json({
-                        status: 1,
+                        status: HttpCode.SUCCESS,
                         data: {url: cat.param},
-                        message: 'request success 1 !'
+                        message: 'Success'
                     });
                 }
 
-                if (cat.areaMax == undefined && cat.areaMin == undefined && cat.priceMax == undefined && cat.priceMin == undefined) {
+                if (cat.areaMax === undefined && cat.areaMin === undefined &&
+                    cat.priceMax === undefined && cat.priceMin === undefined) {
                     mainUrl = cat.url;
                 }
-
-
             });
 
 
-            var url = mainUrl + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
-
-            var param = await UrlParamModel.findOne({param: url});
+            let url = mainUrl + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
+            let param = await UrlParamModel.findOne({param: url});
             while (param) {
                 url = url + '-';
                 param = await UrlParamModel.findOne({param: url});
             }
 
-            var cat = new UrlParamModel({
-                postType: postType,
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
-                balconyDirection: balconyDirection,
-                bedroomCount: bedroomCount,
-                areaMax: areaMax,
-                areaMin: areaMin,
-                area: area,
-                priceMax: priceMax,
-                priceMin: priceMin,
-                price: price,
-                param: url
+            const cat = new UrlParamModel({
+                postType,
+                formality,
+                type,
+                city,
+                district,
+                ward,
+                street,
+                project,
+                balconyDirection,
+                bedroomCount,
+                areaMax,
+                areaMin,
+                area,
+                priceMax,
+                priceMin,
+                price,
+                param
             });
-
-
-            cat = await cat.save();
+            await cat.save();
 
             return res.json({
-                status: 1,
+                status: HttpCode.SUCCESS,
                 data: {url: cat.param},
-                message: 'request success 2!'
+                message: 'Success'
             });
+        } catch (e) {
+            logger.error('SearchController::filter::error', e);
+            return next(e);
         }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
     },
 
     search: async function (req, res, next) {
