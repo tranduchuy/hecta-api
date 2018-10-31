@@ -91,6 +91,11 @@ const ProjectController = {
                 return next(new Error('Post of project not exist'));
             }
 
+            if (post.status === global.STATUS.DELETE) {
+                logger.error('AdminProjectController::Update::error Post is deleted', id);
+                return next(new Error('Post is deleted'));
+            }
+
             let project = await ProjectModel.findOne({_id: post.contentId});
 
             if (!project) {

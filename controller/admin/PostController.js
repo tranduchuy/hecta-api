@@ -474,11 +474,14 @@ const PostController = {
                 return next(new Error('Post id is required'));
             }
 
-            let post = await PostModel.findOne({_id: id, status: {$ne: global.STATUS.DELETE}});
+            let post = await PostModel.findOne({_id: id});
 
             if (!post) {
                 logger.error('PostController::detail::error. Post not found', id);
                 return next(new Error('Post not found'));
+            } else if (post.status === global.STATUS.DELETE) {
+                logger.error('PostController::detail::error. Post is deleted', id);
+                return next(new Error('Post is deleted'));
             }
 
             let model = SaleModel;
