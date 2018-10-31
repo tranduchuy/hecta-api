@@ -1,5 +1,5 @@
 const request = require('request');
-var _ = require('lodash');
+const _ = require('lodash');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Services');
 
@@ -13,7 +13,7 @@ const postConfirmImage = function (paths) {
         method: 'POST'
     };
     try {
-        request(option, (err, httpResponse, body) => {
+        request(option, (err) => {
             if (err) {
                 logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(err)}. Params: ${JSON.stringify(option)}`);
             } else {
@@ -45,7 +45,7 @@ const putUpdateImage = (oldImages, newImages) => {
     };
     
     try {
-        request.put(option, (err, httpResponse, body) => {
+        request.put(option, (err) => {
             if (err) {
                 logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(err)}. Params: ${JSON.stringify(option)}`);
             } else {
@@ -56,9 +56,9 @@ const putUpdateImage = (oldImages, newImages) => {
     catch (e) {
         logger.error(`POST CONFIRM IMAGE error: ${JSON.stringify(e)}. Params: ${JSON.stringify(option)}`);
     }
-}
+};
 
 module.exports = {
     postConfirmImage,
     putUpdateImage
-}
+};
