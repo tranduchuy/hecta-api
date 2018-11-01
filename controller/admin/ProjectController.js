@@ -84,7 +84,7 @@ const ProjectController = {
                 return next(new Error('Invalid project id'));
             }
 
-            const post = await PostModel.findOne({_id: id, $ne: {status: global.STATUS.DELETE}});
+            const post = await PostModel.findOne({_id: id});
 
             if (!post) {
                 logger.error('AdminProjectController::Update::error Post of project not exist', id);

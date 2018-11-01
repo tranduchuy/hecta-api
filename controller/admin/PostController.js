@@ -142,10 +142,13 @@ const PostController = {
             if (!post) {
                 logger.error('PostController::detail::error. Post not found', id);
                 return next(new Error('Post not found'));
-            } else if (post.status === global.STATUS.DELETE) {
-                logger.error('PostController::detail::error. Post is deleted', id);
-                return next(new Error('Post is deleted'));
             }
+
+            // NOTE: can edit data when status=DELETE
+            // else if (post.status === global.STATUS.DELETE) {
+            //     logger.error('PostController::detail::error. Post is deleted', id);
+            //     return next(new Error('Post is deleted'));
+            // }
 
             let model = SaleModel;
             switch (post.postType) {
