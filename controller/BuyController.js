@@ -116,8 +116,8 @@ const BuyController = {
             }
             
             if (createdByType) {
-                const countTitle = await BuyModel.findOne({title: req.body.title});
-                if (countTitle > 0) {
+                const duplicateTitle = await BuyModel.findOne({title: req.body.title});
+                if (duplicateTitle) {
                     return res.json({
                         status: 0,
                         data: {},

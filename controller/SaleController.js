@@ -159,8 +159,8 @@ const SaleController = {
             // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
     
             if (createdByType) {
-                const countTitle = await SaleModel.findOne({title: req.body.title});
-                if (countTitle > 0) {
+                const duplicateTitle = await SaleModel.findOne({title: req.body.title});
+                if (duplicateTitle) {
                     return res.json({
                         status: 0,
                         data: {},

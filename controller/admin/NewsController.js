@@ -192,8 +192,8 @@ const NewsController = {
             let news = new NewsModel();
     
             if (createdByType) {
-                const countTitle = await NewsModel.findOne({title: req.body.title});
-                if (countTitle > 0){
+                const duplicateTitle = await NewsModel.findOne({title: req.body.title});
+                if (duplicateTitle){
                     return res.json({
                         status: 0,
                         data: {},
