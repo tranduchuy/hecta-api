@@ -5,6 +5,7 @@ const urlSlug = require('url-slug');
 const ImageService = require('../../services/ImageService');
 const HttpCode = require('../../config/http-code');
 const mongoose = require('mongoose');
+const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 
 const NewsController = {
