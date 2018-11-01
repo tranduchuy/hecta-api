@@ -21,7 +21,7 @@ const SaleController = {
                 return next(new Error('Invalid id'));
             }
 
-            let post = await PostModel.findOne({_id: id, $ne: {status: global.STATUS.DELETE}});
+            let post = await PostModel.findOne({_id: id});
 
             if (!post || post.postType !== global.POST_TYPE_SALE) {
                 logger.error('AdminSaleController::update::error. Post not found');

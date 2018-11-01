@@ -21,7 +21,7 @@ const BuyController = {
                 return next(new Error('Invalid id'));
             }
 
-            let post = await PostModel.findOne({_id: id, $ne: {status: global.STATUS.DELETE}});
+            let post = await PostModel.findOne({_id: id});
 
             if (!post || post.postType !== global.POST_TYPE_BUY) {
                 logger.error('AdminBuyController::update::error. Post not found');
@@ -52,7 +52,7 @@ const BuyController = {
                 message: 'Success'
             });
         } catch (e) {
-            logger.error('AdminSaleController::update::error', e);
+            logger.error('AdminBuyController::update::error', e);
             return next(e);
         }
     }

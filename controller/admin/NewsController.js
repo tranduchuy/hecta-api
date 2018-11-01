@@ -58,7 +58,7 @@ const NewsController = {
                 });
             }
 
-            let post = await PostModel.findOne({_id: id, $ne: {status: global.STATUS.DELETE}});
+            let post = await PostModel.findOne({_id: id});
 
             if (!post) {
                 return res.json({
@@ -98,6 +98,7 @@ const NewsController = {
             news.admin = (news.admin || []).push(new mongoose.Types.ObjectId(admin._id));
             news = await news.save();
 
+            post.status = news.status;
             post.textEndPage = textEndPage || post.textEndPage;
             post.metaTitle = metaTitle || post.metaTitle;
             post.metaDescription = metaDescription || post.metaDescription;
