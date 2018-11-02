@@ -1,110 +1,349 @@
 var UrlParamModel = require('../models/UrlParamModel');
-var data = require('../files/js/selectorX');
+var UrlParamModel2 = require('../models/UrlParamModel2');
+var data= require('../files/js/selectorX');
+var data2 = require('../files/js/selectorX2');
+var data3 = require('../files/js/selectorX3');
+var data4 = require('../files/js/selectorX4');
+// var data5 = require('../files/js/selectorX5');
 var urlSlug = require('url-slug');
 const {forEach} = require('p-iteration');
 
+
+function getBedRoomCounts() {
+    var results = [];
+
+    for (let i = 0; i <= 5; i++) {
+
+        if (i > 0) {
+            results.push({
+                params: {
+                    bedroomCount: i
+                },
+                url: i + '-phong-ngu'
+            });
+        }
+        if (i == 0) {
+            results.push({
+                params: {
+                    bedroomCount: 0
+                },
+                url: 'khong-xac-dinh-phong-ngu'
+            });
+        }
+    }
+    return results;
+}
+
+
+function getAreas() {
+
+    var results = [];
+
+    let areas = data.areaList;
+    for (let area of areas) {
+        results.push({
+            params: {
+                areaMin: area.min.value,
+                areaMax: area.max.value,
+            },
+            url: 'dt-' + urlSlug(area.Value)
+        });
+    }
+    return results;
+
+}
+
+function getPrices() {
+
+    var results = [];
+
+    for (let prices of data.priceLevel) {
+        for (let price of prices) {
+            results.push({
+                params: {
+                    priceMin: price.min.value,
+                    priceMax: price.max.value,
+                },
+                url: urlSlug(price.Value)
+            });
+        }
+    }
+    return results;
+
+}
+
+function getDirections() {
+
+    var results = [];
+
+    let directions = data.directionList;
+    for (let direction of directions) {
+        results.push({
+            params: {
+                balconyDirection: direction.value
+            },
+            url: urlSlug(' huong ' + direction.name)
+        });
+    }
+    return results;
+}
+
+
+function getWardsAndStreet(district) {
+
+
+    var results = [];
+
+    var wards = district.ward;
+    var streets = district.street;
+
+    for (let ward of wards) {
+        results.push({
+
+            params: {
+                ward: ward.id
+            },
+            url: urlSlug(ward.pre + '-' + ward.name)
+        });
+    }
+
+    for (let street of streets) {
+        for (let ward of wards) {
+            results.push({
+
+                params: {
+                    street: street.id,
+                    ward: ward.id
+                },
+                url: urlSlug(street.pre + '-' + street.name + '-' + ward.pre + '-' + ward.name)
+            });
+        }
+        results.push(
+            {
+
+                params: {
+                    street: street.id
+                },
+                url:
+                    urlSlug(street.pre + '-' + street.name)
+            });
+    }
+
+    return results;
+
+}
+
+function getDistricts(city) {
+
+    var results = [];
+
+    for (let district of city.district) {
+        results.push({
+
+            params: {
+                district: district.id
+            },
+            url: urlSlug(district.pre + '-' + district.name)
+        });
+        for (let ward of getWardsAndStreet(district)) {
+            ward.params.district = district.id;
+            results.push(ward);
+        }
+    }
+
+    return results;
+
+
+}
+
+
+function getCities() {
+
+    var results = [];
+
+    var cities = [].concat(data.cityListOTher1,data2.cityListOTher2,data3.cityListOTher3,data4.cityListOTher4);
+    // cities = cities.concat(cities,data2.cityListOTher2);
+    // cities = cities.concat(cities,data3.cityListOTher3);
+    // cities = cities.concat(cities,data4.cityListOTher4);
+
+    for (let city of cities) {
+        results.push({
+
+            params: {
+                city: city.code
+            },
+            url: urlSlug(city.name)
+        });
+
+        for (let district of getDistricts(city)) {
+            district.params.city = city.code;
+            results.push(district);
+        }
+
+    }
+    return results;
+}
+
+async function insertParams(ob, path, error) {
+
+    var model = new UrlParamModel(ob);
+    var result = undefined;
+
+
+    try {
+        ob.param = path + (error == 0 ? '' : '-' + error);
+        result = await model.save();
+
+    } catch (e) {
+        error++;
+        console.log(e.message);
+        return await insertParams(ob, path, error);
+    }
+
+    return result;
+
+
+}
+
+function getBuysSells() {
+    let buys = data.cateListBuy;
+    let sales = data.cateList;
+
+    buys = buys.concat(sales);
+
+    var results = [];
+
+    for (let buy of buys) {
+
+
+        results.push({
+
+            params: {
+                postType: global.POST_TYPE_BUY,
+                formality: buy.id
+            },
+            url: urlSlug(buy.name)
+        });
+
+        let children = buy.children;
+
+
+        for (let child of children) {
+            results.push({
+
+                params: {
+                    postType: global.POST_TYPE_BUY,
+                    formality: buy.id,
+                    type: child.id
+                },
+                url: urlSlug(child.name)
+            })
+
+        }
+
+        return results;
+    }
+
+
+}
+
 var ScriptController = {
 
-    generateUrl: async function (req, res, next) {
-        req.setTimeout(1000 * 60 * 60);
 
-        try {
+    generateUrl2: async function () {
 
 
-            // var urlParam = new UrlParamModel();
-            // urlParam.param = param;
-            // urlParam.postType = postType;
-            // urlParam.formality = formality;
-            // urlParam.type = type;
-            // urlParam.city = city;
-            // urlParam.district = district;
-            // urlParam.ward = ward;
-            // urlParam.street = street;
-            // urlParam.project = project;
-            // urlParam.balconyDirection = balconyDirection;
-            // urlParam.bedroomCount = bedroomCount;
-            // urlParam.area = area;
-            // urlParam.price = price;
-            //
-            // urlParam = await urlParam.save();
-
-            // await UrlParamModel.remove({});
-
-            var urlParam;
-            // // add buy
-            //
-            // let buys = data.cateListBuy;
-            //
-            // for (let buy of buys) {
-            //     // await forEach(buys, async buy => {
-            //
-            //     urlParam = new UrlParamModel();
-            //     urlParam.param = urlSlug(buy.name);
-            //     urlParam.postType = global.POST_TYPE_BUY;
-            //     urlParam.formality = buy.id;
-            //
-            //     console.log(urlParam.param);
-            //
-            //
-            //     await urlParam.save();
-            //
-            //
-            //     let children = buy.children;
-            //
-            //     for (let child of children) {
-            //         // await forEach(children, async child => {
-            //
-            //         urlParam = new UrlParamModel();
-            //         urlParam.param = urlSlug(child.name);
-            //         urlParam.postType = global.POST_TYPE_BUY;
-            //         urlParam.formality = buy.id;
-            //         urlParam.type = child.id;
-            //
-            //         console.log(urlParam.param);
-            //
-            //
-            //         await urlParam.save();
-            //
-            //
-            //     }
-            //
-            //
-            // }
 
 
-            // add sale
+        var directions = getDirections();
 
-            let sales = data.cateList;
+        console.log('directions ',directions.length);
 
-            for (let sale of sales) {
-                // await forEach(sales, async sale => {
+        var prices = getPrices();
 
-                urlParam = new UrlParamModel();
-                urlParam.param = urlSlug(sale.name);
-                urlParam.postType = global.POST_TYPE_SALE;
-                urlParam.formality = sale.id;
+        console.log('prices ',prices.length);
 
-                console.log(urlParam.param);
+        var areas = getAreas();
+
+        console.log('areas ',areas.length);
 
 
-                urlParam.save();
+        var beds = getBedRoomCounts();
+
+        console.log('beds ',beds.length);
 
 
-                let children = sale.children;
+        var buys = getBuysSells();
 
-                for (let child of children) {
-                    // await forEach(children, async child => {
+        console.log('buys ',buys.length);
 
-                    urlParam = new UrlParamModel();
-                    urlParam.param = urlSlug(child.name);
-                    urlParam.postType = global.POST_TYPE_SALE;
-                    urlParam.formality = sale.id;
-                    urlParam.type = child.id;
+        var locations = getCities();
 
-                    console.log(urlParam.param);
+        console.log('locations ',locations.length);
 
 
-                    await urlParam.save();
+
+
+        for (var ilocation = locations.length - 1; ilocation >= 0; ilocation--) {
+
+            for (var idirection = directions.length - 1; idirection >= 0; idirection--) {
+
+                for (var iprice = prices.length - 1; iprice >= 0; iprice--) {
+
+                    for (var iarea = areas.length - 1; iarea >= 0; iarea--) {
+
+                        for (var ibed = beds.length - 1; ibed >= 0; ibed--) {
+
+                            for (var ibuy = buys.length - 1; ibuy >= 0; ibuy--) {
+
+
+                                var params = [];
+
+                                if (ibuy >= 0) {
+                                    params.push(buys[ibuy]);
+                                }
+
+                                if (ilocation >= 0) {
+                                    params.push(locations[ilocation]);
+                                }
+                                if (idirection >= 0) {
+                                    params.push(directions[idirection]);
+                                }
+                                if (iprice >= 0) {
+                                    params.push(prices[iprice]);
+                                }
+                                if (iarea >= 0) {
+                                    params.push(areas[iarea]);
+                                }
+                                if (ibed >= 0) {
+                                    params.push(beds[ibed]);
+                                }
+
+
+                                if (params.length == 0) {
+                                    continue;
+                                }
+
+
+                                var ob = {};
+                                var path = '';
+                                for (var i = 0; i < params.length; i++) {
+
+                                    var param = params[i];
+
+                                    ob = Object.assign(ob, param.params);
+                                    path = ((path.length > 0 ? path + '-' : '') + param.url);
+
+
+                                }
+
+                                var result = await insertParams(ob, path, 0);
+                                console.log(result);
+
+                            }
+                        }
+
+                    }
 
 
                 }
@@ -112,18 +351,71 @@ var ScriptController = {
 
             }
 
-            // with city, district, ward, street
+
+        }
+
+
+    },
+
+    generateUrl: async function (req, res, next) {
+
+        try {
+
+            var urlParam;
+
+            let buys = data.cateListBuy;
+
+            for (let buy of buys) {
+
+                urlParam = new UrlParamModel();
+                urlParam.param = urlSlug(buy.name);
+                urlParam.postType = global.POST_TYPE_BUY;
+                urlParam.formality = buy.id;
+
+                await urlParam.save();
+
+                let children = buy.children;
+                for (let child of children) {
+
+                    urlParam = new UrlParamModel();
+                    urlParam.param = urlSlug(child.name);
+                    urlParam.postType = global.POST_TYPE_BUY;
+                    urlParam.formality = buy.id;
+                    urlParam.type = child.id;
+                    await urlParam.save();
+                }
+            }
+            let sales = data.cateList;
+
+            for (let sale of sales) {
+
+                urlParam = new UrlParamModel();
+                urlParam.param = urlSlug(sale.name);
+                urlParam.postType = global.POST_TYPE_SALE;
+                urlParam.formality = sale.id;
+                urlParam.save();
+
+                let children = sale.children;
+
+                for (let child of children) {
+
+                    urlParam = new UrlParamModel();
+                    urlParam.param = urlSlug(child.name);
+                    urlParam.postType = global.POST_TYPE_SALE;
+                    urlParam.formality = sale.id;
+                    urlParam.type = child.id;
+
+                    await urlParam.save();
+                }
+            }
 
             let cities = data.cityListOTher1;
 
-            var params = await UrlParamModel.find({postType : 1});
+            var params = await UrlParamModel.find({postType: 1});
 
             for (let city of cities) {
 
-                // await forEach(cities, async city => {
-
                 for (let param of params) {
-                    // await forEach(params, async param => {
 
                     urlParam = new UrlParamModel();
                     urlParam.param = urlSlug(param.param + ' tai ' + city.name);
@@ -132,16 +424,13 @@ var ScriptController = {
                     urlParam.type = param.type;
                     urlParam.city = city.code;
 
-                    console.log(urlParam.param);
-
-
                     urlParam.save();
 
 
                     let districts = city.district;
 
                     for (let district of districts) {
-                        // await forEach(districts, async district => {
+
                         urlParam = new UrlParamModel();
 
                         urlParam.param = urlSlug(param.param + ' ' + district.pre + ' ' + district.name + ' ' + city.name);
@@ -151,9 +440,6 @@ var ScriptController = {
                         urlParam.city = city.code;
                         urlParam.district = district.id;
 
-                        console.log(urlParam.param);
-
-
                         urlParam.save();
 
 
@@ -161,7 +447,6 @@ var ScriptController = {
 
 
                         for (let ward of wards) {
-                            // await forEach(wards, async ward => {
 
                             urlParam = new UrlParamModel();
 
@@ -179,17 +464,12 @@ var ScriptController = {
                             urlParam.district = district.id;
                             urlParam.ward = ward.id;
 
-
-                            console.log(urlParam.param);
-
                             await urlParam.save();
-
                         }
 
 
                         let streets = district.street;
                         for (let street of streets) {
-                            // await forEach(wards, async ward => {
 
                             urlParam = new UrlParamModel();
 
@@ -207,20 +487,16 @@ var ScriptController = {
                             urlParam.district = district.id;
                             urlParam.street = street.id;
 
-
-                            console.log(urlParam.param);
-
                             await urlParam.save();
 
 
                             for (let ward of wards) {
-                                // await forEach(wards, async ward => {
 
                                 urlParam = new UrlParamModel();
 
                                 urlParam.param = urlSlug(param.param + ' ' + street.pre + ' ' + street.name + ' ' + ward.pre + ' ' + ward.name);
 
-                                 let checkParam = await UrlParamModel.findOne({param: urlParam.param});
+                                let checkParam = await UrlParamModel.findOne({param: urlParam.param});
                                 if (checkParam) {
                                     urlParam.param += '-' + ward.id;
                                     let checkParam = await UrlParamModel.findOne({param: urlParam.param});
@@ -237,24 +513,16 @@ var ScriptController = {
                                 urlParam.ward = ward.id;
                                 urlParam.street = street.id;
 
-
-                                console.log(urlParam.param);
-
                                 await urlParam.save();
-
                             }
-
                         }
-
                     }
-
-
                 }
 
 
             }
 
-            params = await UrlParamModel.find({postType : 1});
+            params = await UrlParamModel.find({postType: 1});
 
             for (let param of params) {
                 let directions = data.directionList;
@@ -273,15 +541,13 @@ var ScriptController = {
                     urlParam.street = param.street;
                     urlParam.balconyDirection = direction.value;
 
-                    console.log(urlParam.param);
-
                     await urlParam.save();
                 }
 
 
             }
 
-            params = await UrlParamModel.find({postType : 1});
+            params = await UrlParamModel.find({postType: 1});
 
             for (let param of params) {
                 let prices = data.priceLevel;
@@ -303,18 +569,13 @@ var ScriptController = {
                     urlParam.priceMin = price.min.value;
                     urlParam.price = price.Name;
 
-                    // priceMax: Number,
-                    //     priceMin: Number,
-
-                    console.log(urlParam.param);
-
                     await urlParam.save();
                 }
 
 
             }
 
-            params = await UrlParamModel.find({postType : 1});
+            params = await UrlParamModel.find({postType: 1});
 
             for (let param of params) {
                 let areas = data.areaList;
@@ -338,11 +599,6 @@ var ScriptController = {
                     urlParam.areaMax = area.max.value;
                     urlParam.areaMin = area.min.value;
                     urlParam.area = area.Name;
-
-                    // priceMax: Number,
-                    //     priceMin: Number,
-
-                    console.log(urlParam.param);
 
                     await urlParam.save();
                 }
