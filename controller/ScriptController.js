@@ -1,5 +1,4 @@
-var UrlParamModel4 = require('../models/UrlParamModel4');
-var UrlParamModel42 = require('../models/UrlParamModel42');
+var UrlParamModel4 = require('../models/UrlParamModel2');
 var data= require('../files/js/selectorX');
 var data2 = require('../files/js/selectorX2');
 var data3 = require('../files/js/selectorX3');
