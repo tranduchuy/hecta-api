@@ -461,6 +461,91 @@ const SearchController = {
             logger.error('SearchController::search:error', e);
             return next(e);
         }
+    },
+
+    getUrlToRedirect: async (req, res, next) => {
+        logger.info('SearchController::getUrlToRedirect is called');
+
+        try {
+            const url = req.query.url;
+
+            if (!url || url.length === 0) {
+                logger.error('SearchController::getUrlToRedirect::error. Url is required');
+                return next(new Error('Url is required'));
+            }
+
+            const splitUrl = url.trim().split('/');
+
+            if (!splitUrl || splitUrl.length !== 2) {
+                logger.error('SearchController::getUrlToRedirect::error. Invalid url, splitUrl: ', splitUrl);
+                return next(new Error('Invalid url'));
+            }
+
+            let slug = splitUrl[0];
+            let param = splitUrl[1];
+
+            if (!slug || slug.length === 0 || !param || param.length === 0) {
+                logger.error('SearchController::getUrlToRedirect::error. Invalid url params, splitUrl: ', splitUrl);
+                return next(new Error('Invalid url params'));
+            }
+
+            if (isValidSlugSearch(slug)) {
+                let post = await PostModel.findOne({
+                    status: global.STATUS.ACTIVE,
+                    $or: [
+                        {url: param},
+                        {customUrl: param}
+                    ]
+                });
+
+                if (!post) {
+                    return res.json({
+                       status: HttpCode.ERROR,
+                       message: ['Post not found'],
+                       data: {}
+                    });
+                }
+
+                return res.json({
+                    status: HttpCode.SUCCESS,
+                    message: ['Success'],
+                    data: {
+                        url: `${slug}/${post.customUrl || post.url}`
+                    }
+                });
+            }
+
+            if (isValidSlugCategorySearch(slug)) {
+                let cat = await UrlParamModel.findOne({
+                    $or: [
+                        {param},
+                        {customParam: param}
+                    ]
+                });
+
+                if (!cat) {
+                    return res.json({
+                        status: HttpCode.ERROR,
+                        message: ['Category not found'],
+                        data: {}
+                    });
+                }
+
+                return res.json({
+                    status: HttpCode.SUCCESS,
+                    message: ['Success'],
+                    data: {
+                        url: `${slug}/${cat.customParam || cat.param}`
+                    }
+                });
+            }
+
+            logger.error('SearchController::getUrlToRedirect:error. Invalid url. Not match case slug', url);
+            return next(new Error('Invalid url. Not match case slug: ' + url));
+        } catch (e) {
+            logger.error('SearchController::getUrlToRedirect:error', e);
+            return next(e);
+        }
     }
 };
 
