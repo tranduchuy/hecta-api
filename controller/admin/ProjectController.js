@@ -42,7 +42,7 @@ const ProjectController = {
 
             }
 
-            var types = await UrlParamModel.find({postType: 3});
+            var types = await UrlParamModel.find({postType: global.POST_TYPE_PROJECT});
 
 
             let results = types.map(type => {

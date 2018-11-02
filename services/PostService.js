@@ -66,7 +66,7 @@ const generateStageQueryPostNews = (req) => {
 };
 
 const generateStageQueryPostProject = (req) => {
-    const {createdByType, status, id} = req.query;
+    const {createdByType, status, id, title, city, type} = req.query;
     const pageCond = RequestUtils.extractPaginationCondition(req);
 
     const stages = [
@@ -101,6 +101,21 @@ const generateStageQueryPostProject = (req) => {
 
     if (id) {
         stageFilter["projectInfo._id"] = id;
+    }
+
+    if (city) {
+        stageFilter["projectInfo.city"] = city;
+    }
+
+    if (type) {
+        stageFilter["projectInfo.type"] = type;
+    }
+
+    if (title) {
+        stageFilter['projectInfo.title'] = {
+            $regex: title,
+            $options: 'i'
+        }
     }
 
     if (Object.keys(stageFilter).length !== 0) {
