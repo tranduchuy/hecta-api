@@ -1,5 +1,5 @@
-var UrlParamModel = require('../models/UrlParamModel');
-var UrlParamModel2 = require('../models/UrlParamModel2');
+var UrlParamModel4 = require('../models/UrlParamModel4');
+var UrlParamModel42 = require('../models/UrlParamModel42');
 var data= require('../files/js/selectorX');
 var data2 = require('../files/js/selectorX2');
 var data3 = require('../files/js/selectorX3');
@@ -186,7 +186,7 @@ function getCities() {
 
 async function insertParams(ob, path, error) {
 
-    var model = new UrlParamModel(ob);
+    var model = new UrlParamModel4(ob);
     var result = undefined;
 
 
@@ -367,7 +367,7 @@ var ScriptController = {
 
             for (let buy of buys) {
 
-                urlParam = new UrlParamModel();
+                urlParam = new UrlParamModel4();
                 urlParam.param = urlSlug(buy.name);
                 urlParam.postType = global.POST_TYPE_BUY;
                 urlParam.formality = buy.id;
@@ -377,7 +377,7 @@ var ScriptController = {
                 let children = buy.children;
                 for (let child of children) {
 
-                    urlParam = new UrlParamModel();
+                    urlParam = new UrlParamModel4();
                     urlParam.param = urlSlug(child.name);
                     urlParam.postType = global.POST_TYPE_BUY;
                     urlParam.formality = buy.id;
@@ -389,7 +389,7 @@ var ScriptController = {
 
             for (let sale of sales) {
 
-                urlParam = new UrlParamModel();
+                urlParam = new UrlParamModel4();
                 urlParam.param = urlSlug(sale.name);
                 urlParam.postType = global.POST_TYPE_SALE;
                 urlParam.formality = sale.id;
@@ -399,7 +399,7 @@ var ScriptController = {
 
                 for (let child of children) {
 
-                    urlParam = new UrlParamModel();
+                    urlParam = new UrlParamModel4();
                     urlParam.param = urlSlug(child.name);
                     urlParam.postType = global.POST_TYPE_SALE;
                     urlParam.formality = sale.id;
@@ -411,13 +411,13 @@ var ScriptController = {
 
             let cities = data.cityListOTher1;
 
-            var params = await UrlParamModel.find({postType: 1});
+            var params = await UrlParamModel4.find({postType: 1});
 
             for (let city of cities) {
 
                 for (let param of params) {
 
-                    urlParam = new UrlParamModel();
+                    urlParam = new UrlParamModel4();
                     urlParam.param = urlSlug(param.param + ' tai ' + city.name);
                     urlParam.postType = param.postType;
                     urlParam.formality = param.formality;
@@ -431,7 +431,7 @@ var ScriptController = {
 
                     for (let district of districts) {
 
-                        urlParam = new UrlParamModel();
+                        urlParam = new UrlParamModel4();
 
                         urlParam.param = urlSlug(param.param + ' ' + district.pre + ' ' + district.name + ' ' + city.name);
                         urlParam.postType = param.postType;
@@ -448,11 +448,11 @@ var ScriptController = {
 
                         for (let ward of wards) {
 
-                            urlParam = new UrlParamModel();
+                            urlParam = new UrlParamModel4();
 
                             urlParam.param = urlSlug(param.param + ' ' + ward.pre + ' ' + ward.name + ' ' + district.pre + ' ' + district.name);
 
-                            let checkParam = await UrlParamModel.findOne({param: urlParam.param});
+                            let checkParam = await UrlParamModel4.findOne({param: urlParam.param});
                             if (checkParam) {
                                 urlParam.param += '-' + ward.id;
                             }
@@ -471,11 +471,11 @@ var ScriptController = {
                         let streets = district.street;
                         for (let street of streets) {
 
-                            urlParam = new UrlParamModel();
+                            urlParam = new UrlParamModel4();
 
                             urlParam.param = urlSlug(param.param + ' ' + street.pre + ' ' + street.name + ' ' + district.pre + ' ' + district.name);
 
-                            let checkParam = await UrlParamModel.findOne({param: urlParam.param});
+                            let checkParam = await UrlParamModel4.findOne({param: urlParam.param});
                             if (checkParam) {
                                 urlParam.param += '-' + street.id;
                             }
@@ -492,14 +492,14 @@ var ScriptController = {
 
                             for (let ward of wards) {
 
-                                urlParam = new UrlParamModel();
+                                urlParam = new UrlParamModel4();
 
                                 urlParam.param = urlSlug(param.param + ' ' + street.pre + ' ' + street.name + ' ' + ward.pre + ' ' + ward.name);
 
-                                let checkParam = await UrlParamModel.findOne({param: urlParam.param});
+                                let checkParam = await UrlParamModel4.findOne({param: urlParam.param});
                                 if (checkParam) {
                                     urlParam.param += '-' + ward.id;
-                                    let checkParam = await UrlParamModel.findOne({param: urlParam.param});
+                                    let checkParam = await UrlParamModel4.findOne({param: urlParam.param});
                                     if (checkParam) {
                                         urlParam.param += '-' + ward.id + '-d';
                                     }
@@ -522,13 +522,13 @@ var ScriptController = {
 
             }
 
-            params = await UrlParamModel.find({postType: 1});
+            params = await UrlParamModel4.find({postType: 1});
 
             for (let param of params) {
                 let directions = data.directionList;
                 for (let direction of directions) {
 
-                    urlParam = new UrlParamModel();
+                    urlParam = new UrlParamModel4();
 
                     urlParam.param = urlSlug(param.param + ' huong ' + direction.name);
 
@@ -547,13 +547,13 @@ var ScriptController = {
 
             }
 
-            params = await UrlParamModel.find({postType: 1});
+            params = await UrlParamModel4.find({postType: 1});
 
             for (let param of params) {
                 let prices = data.priceLevel;
                 for (let price of prices) {
 
-                    urlParam = new UrlParamModel();
+                    urlParam = new UrlParamModel4();
 
                     urlParam.param = urlSlug(param.param + ' gia ' + price.Value);
 
@@ -575,13 +575,13 @@ var ScriptController = {
 
             }
 
-            params = await UrlParamModel.find({postType: 1});
+            params = await UrlParamModel4.find({postType: 1});
 
             for (let param of params) {
                 let areas = data.areaList;
                 for (let area of areas) {
 
-                    urlParam = new UrlParamModel();
+                    urlParam = new UrlParamModel4();
 
                     urlParam.param = urlSlug(param.param + ' dien tich ' + area.Value);
 
@@ -606,7 +606,7 @@ var ScriptController = {
 
             }
 
-            let count = await UrlParamModel.count();
+            let count = await UrlParamModel4.count();
 
             return res.json({
                 status: 1,

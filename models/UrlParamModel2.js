@@ -4,7 +4,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var urlParamSchema = new Schema({
+var urlParamSchema4 = new Schema({
 
 
     // param: {
@@ -61,6 +61,6 @@ var urlParamSchema = new Schema({
 });
 
 
-var UrlParamModel = mongoose.model('UrlParam4', urlParamSchema);
-module.exports = UrlParamModel;
-module.exports.Model = urlParamSchema;
+var UrlParamModel4 = mongoose.model('UrlParam4', urlParamSchema4);
+module.exports = UrlParamModel4;
+module.exports.Model = urlParamSchema4;
