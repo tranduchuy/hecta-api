@@ -1,4 +1,5 @@
 require('../config/def');
+const urlSlug = require('url-slug');
 const dbConnect = require('../config/db');
 const CityModel = require('../models/CityModel');
 const DistrictModel = require('../models/DistrictModel');
@@ -49,8 +50,35 @@ async function importDistrict(districtData, cityObj) {
 
 // check duplicate by title
 // sample: {"id":2324,"name":"13B Conic Phong Phú","lat":10.71240234375,"lng":106.64177703857422,"cats":[40,48,50,51,59,163,324,325,326]}
-async function importProjectPost(projectData, districtObj) {
+async function importProjectPost(projectData, districtObj, cityObj) {
+    let project = await ProjectModel.findOne({title: projectData.name});
 
+    if (project) {
+        return Promise.resolve(null);
+    }
+
+    project = new ProjectModel();
+    project.title = projectData.name;
+    project.id = parseInt(projectData.id);
+    project.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+    project.city = cityObj.code;
+    project.district = districtObj.id;
+    await project.save();
+
+    const post = new PostModel();
+    post.paymentStatus = global.STATUS.PAYMENT_FREE;
+    post.status = global.STATUS.ACTIVE;
+    post.postType = global.POST_TYPE_PROJECT;
+    post.contentId = project._id;
+    let url = urlSlug(projectData.name);
+    const count = await PostModel.find({url: new RegExp('^' + url)});
+    if (count > 0) {
+        url += '-' + count;
+    }
+
+    post.url = url;
+    await post.save();
+    return project;
 }
 
 async function run() {
@@ -61,15 +89,13 @@ async function run() {
         cityData.district.forEach(async (districtData) => {
             // create district
             const district = await importDistrict(districtData, city);
-
             districtData.project.forEach(async (projectData) => {
-                // create project
-                // await importProjectPost(projectData, district);
+                await importProjectPost(projectData, district, city);
             });
         });
     });
-
-    console.log('Importing done');
 }
 
-dbConnect(run);
+dbConnect(async () => {
+    await run();
+});

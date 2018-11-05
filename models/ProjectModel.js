@@ -4,6 +4,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const projectSchema = new Schema({
+    id: {type: Number, default: null}, // use for old selector
     status: Number,
     isShowOverview: Boolean,
     type: String,
