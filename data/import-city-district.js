@@ -5,10 +5,10 @@ const CityModel = require('../models/CityModel');
 const DistrictModel = require('../models/DistrictModel');
 const ProjectModel = require('../models/ProjectModel');
 const PostModel = require('../models/PostModel');
-const list1 = require('./selectors/file1');
-const list2 = require('./selectors/file2');
-const list3 = require('./selectors/file3');
-const list4 = require('./selectors/file4');
+const list1 = require('./selectors/cityList1');
+const list2 = require('./selectors/cityList2');
+const list3 = require('./selectors/cityList3');
+const list4 = require('./selectors/cityList4');
 const cities = [
     ...list1,
     ...list2,

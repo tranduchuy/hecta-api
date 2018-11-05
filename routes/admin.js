@@ -1,20 +1,16 @@
-var express = require('express');
-var router = express.Router();
-
-// var ProjectController = require('../controller/ProjectController');
-
-var TransactionController = require('../controller/TransactionController');
-var PostPriorityController = require('../controller/PostPriorityController');
-
-var AdminController = require('../controller/admin/AdminController');
-var AdminUserController = require('../controller/admin/UserController');
-var AdminProjectController = require('../controller/admin/ProjectController');
-var AdminNewsController = require('../controller/admin/NewsController');
-var AdminBuyController = require('../controller/admin/BuyController');
-var AdminSaleController = require('../controller/admin/SaleController');
-var AdminPostController = require('../controller/admin/PostController');
-var AdminCategoryController = require('../controller/admin/CategoryController');
-var AdminTagController = require('../controller/admin/TagController');
+const express = require('express');
+const router = express.Router({});
+const TransactionController = require('../controller/TransactionController');
+const PostPriorityController = require('../controller/PostPriorityController');
+const AdminController = require('../controller/admin/AdminController');
+const AdminUserController = require('../controller/admin/UserController');
+const AdminProjectController = require('../controller/admin/ProjectController');
+const AdminNewsController = require('../controller/admin/NewsController');
+const AdminBuyController = require('../controller/admin/BuyController');
+const AdminSaleController = require('../controller/admin/SaleController');
+const AdminPostController = require('../controller/admin/PostController');
+const AdminCategoryController = require('../controller/admin/CategoryController');
+const AdminTagController = require('../controller/admin/TagController');
 
 // router.get('/projects/list', AdminProjectController.list);
 router.get('/projects/types', AdminProjectController.typeList);
