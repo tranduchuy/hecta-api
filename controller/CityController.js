@@ -5,6 +5,14 @@ const CityModel = require('../models/CityModel');
 const ProjectModel = require('../models/ProjectModel');
 const moment = require('moment');
 
+function compare(a, b) {
+    if (a.name < b.name)
+        return -1;
+    if (a.name > b.name)
+        return 1;
+    return 0;
+}
+
 const getList = async (req, res, next) => {
     logger.info('CityController::getList is called');
     try {
@@ -33,6 +41,12 @@ const getList = async (req, res, next) => {
                     })
                     .lean();
 
+                district.project.forEach((p) => {
+                   p.name = p.title;
+                   delete p.title;
+                });
+
+                district.project.sort(compare);
                 district.ward = district.wards;
                 district.street = district.streets;
                 delete district.wards;
@@ -42,11 +56,15 @@ const getList = async (req, res, next) => {
 
                 return district;
             }));
+
+            city.district.sort(compare);
             delete city['districts'];
             delete city.__v;
             delete city._id;
             return city;
         }));
+
+        cities.sort(compare);
 
         const filePath = `${__dirname}/../public/files/selectors/selector-${moment().format('YYYY-MM-DD-hh-mm')}.json`;
         fs.writeFile(filePath, JSON.stringify(cities), 'utf8', (err) => {
