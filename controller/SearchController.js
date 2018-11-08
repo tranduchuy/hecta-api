@@ -310,9 +310,9 @@ const SearchController = {
                 ward,
                 street,
                 project,
-                balconyDirection,
-                bedroomCount,
                 //Todo
+                // balconyDirection,
+                // bedroomCount,
                 // area,
                 // price
             };
@@ -333,7 +333,7 @@ const SearchController = {
             url = urlSlug(url);
             
             let countDuplicate = await UrlParamModel.countDocuments({param: url});
-            url = url + "-" + countDuplicate;
+            if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
             cat = new UrlParamModel({
                 formality,
@@ -343,9 +343,9 @@ const SearchController = {
                 ward,
                 street,
                 project,
-                balconyDirection,
-                bedroomCount,
                 //Todo
+                // balconyDirection,
+                // bedroomCount,
                 // area,
                 // price
                 param: url,

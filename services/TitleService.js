@@ -7,11 +7,11 @@ const getTitle = (data) => {
         
         let formality = getFormilitySaleByValue(data.formality);
         if (formality)
-            title = data.formality.name;
+            title = formality.name;
         else {
             formality = getFormilityBuyByValue(data.formality);
             if (formality)
-                title = data.formality.name;
+                title = formality.name;
         }
         
         if (formality && data.type) {
@@ -103,7 +103,7 @@ const getDistrictByValue = (city, value) => {
 
 const getProjectByValue = (district, value) => {
     return district.project.find(w => {
-        return w.id.toString() === value;
+        return w._id.toString() === value;
     });
 }
 
