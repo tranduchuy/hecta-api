@@ -8,21 +8,55 @@ const postSchema = new Schema({
     },
     type: {
         type: Number,
-        
+        index: true,
     },
-    formality: Number,
+    formality: {
+        type: Number,
+        index: true
+    },
     admin: String,
-    status: Number,
-    paymentStatus: {type : Number, default : global.STATUS.PAYMENT_UNPAID},
+    status: {
+        type: Number,
+        index: true
+    },
+    paymentStatus: {
+        type : Number,
+        default : global.STATUS.PAYMENT_UNPAID,
+        index: true
+    },
     price: Number,
-    priority: Number,
-    from: Number,
-    to: Number,
+    priority: {
+        type: Number,
+        index: true,
+    },
+    from: {
+      type: Number,
+      index: true
+    },
+    to: {
+        type: Number,
+        index: true
+    },
     params: String,
-    url: String,
-    customUrl: {type: String, default: ''},
-    date: {type: Number, default: Date.now},
-    refresh: {type: Number, default: Date.now},
+    url: {
+        type: String,
+        index: true,
+    },
+    customUrl: {
+        type: String,
+        default: '',
+        index: true
+    },
+    date: {
+        type: Number,
+        default: Date.now,
+        index: true
+    },
+    refresh: {
+        type: Number,
+        default: Date.now,
+        index: true
+    },
     metaTitle: String,
     metaDescription: String,
     metaType: String,
