@@ -9,6 +9,7 @@ const urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const HttpCode = require('../config/http-code');
+const TitleService = require("../services/TitleService");
 
 /**
  * Get model type by cat.postType
@@ -261,73 +262,42 @@ const SearchController = {
         logger.info('SearchController::filter is called');
         try {
             let {
-                postType, formality, type, city, district, ward,
+                formality, type, city, district, ward,
                 street, project, balconyDirection, bedroomCount,
                 areaMax, areaMin, area, priceMax, priceMin, price
             } = req.body;
-
-            if (formality) {
-                formality = formality.value
-            }
-
-            if (type) {
-                type = type.value
-            }
-
-            if (city) {
-                city = city.value;
-            }
-
-            if (district) {
-                district = district.value;
-            }
-
-            if (ward) {
-                ward = ward.value;
-            }
-
-            if (street) {
-                street = street.value;
-            }
-
-            if (project) {
-                project = project.value;
-            }
-
-            if (balconyDirection) {
-                balconyDirection = balconyDirection.value;
-            }
-
-            if (bedroomCount) {
-                bedroomCount = bedroomCount.value;
-            }
-
-            if (areaMax) {
-                areaMax = areaMax.value;
-            }
-
-            if (areaMin) {
-                areaMin = areaMin.value;
-            }
-
-            if (area) {
-                area = area.value;
-            }
-
-            if (priceMax) {
-                priceMax = priceMax.value;
-            }
-
-            if (priceMin) {
-                priceMin = priceMin.value;
-            }
-
-            if (price) {
-                price = price.value;
-            }
+    
+            formality = formality? formality.value : null;
+    
+            type = type ? type.value : null;
+    
+            city = city ? city.value: null;
+    
+            district = district ? district.value : null;
+    
+            ward = ward ? ward.value : null;
+    
+            street = street ? street.value : null;
+    
+            project = project ? project.value : null;
+    
+            balconyDirection = balconyDirection ? balconyDirection.value : null;
+    
+            bedroomCount = bedroomCount ? bedroomCount.value : null;
+    
+            areaMax = areaMax ? areaMax.value : null;
+    
+            areaMin = areaMin ? areaMin.value : null;
+    
+            area = area ? area.value : null;
+    
+            priceMax = priceMax ? priceMax.value : null;
+    
+            priceMin = priceMin ? priceMin.value : null;
+    
+            price = price ? price.value : null;
 
             const query = {
-                postType,
                 formality,
                 type,
                 city,
@@ -337,54 +307,30 @@ const SearchController = {
                 project,
                 balconyDirection,
                 bedroomCount,
-                area,
-                price
+                //Todo
+                // area,
+                // price
             };
 
-            const cats = await UrlParamModel.find(query);
-            let mainUrl = global.PARAM_NOT_FOUND;
-
-            switch (postType) {
-                case global.POST_TYPE_BUY :
-                    mainUrl = global.PARAM_NOT_FOUND_BUY;
-                    break;
-                case global.POST_TYPE_SALE :
-                    mainUrl = global.PARAM_NOT_FOUND_SALE;
-                    break;
-                case global.POST_TYPE_NEWS :
-                    mainUrl = global.PARAM_NOT_FOUND_NEWS;
-                    break;
-                case global.POST_TYPE_PROJECT :
-                    mainUrl = global.PARAM_NOT_FOUND_PROJECT;
-                    break;
+            let cat = await UrlParamModel.findOne(query);
+            
+            if (cat){
+                return res.json({
+                    status: HttpCode.SUCCESS,
+                    //Todo return data list post
+                    data: {url: cat.param},
+                    message: 'Success'
+                });
             }
+    
+            // Insert new param to UrlParams
+            let url = TitleService.getTitle(query) + ' ' + TitleService.getLocationTitle(query);
+            url = urlSlug(url);
+            
+            let countDuplicate = await UrlParamModel.countDocuments({param: url});
+            url = url + "-" + countDuplicate;
 
-            cats.forEach(cat => {
-                if (cat.areaMax === areaMax && cat.areaMin === areaMin &&
-                    cat.priceMax === priceMax && cat.priceMin === priceMin) {
-                    return res.json({
-                        status: HttpCode.SUCCESS,
-                        data: {url: cat.param},
-                        message: 'Success'
-                    });
-                }
-
-                if (cat.areaMax === undefined && cat.areaMin === undefined &&
-                    cat.priceMax === undefined && cat.priceMin === undefined) {
-                    mainUrl = cat.url;
-                }
-            });
-
-
-            let url = mainUrl + ((priceMax || priceMin) ? ('-gia' + (priceMin ? ('-tu-' + priceMin) : '') + (priceMax ? ('-den-' + priceMax) : '')) : '') + ((areaMax || areaMin) ? ('-dien-tich' + (areaMin ? ('-tu-' + areaMin) : '') + (areaMax ? ('-den-' + areaMax) : '')) : '');
-            let param = await UrlParamModel.findOne({param: url});
-            while (param) {
-                url = url + '-';
-                param = await UrlParamModel.findOne({param: url});
-            }
-
-            const cat = new UrlParamModel({
-                postType,
+            cat = new UrlParamModel({
                 formality,
                 type,
                 city,
@@ -394,19 +340,16 @@ const SearchController = {
                 project,
                 balconyDirection,
                 bedroomCount,
-                areaMax,
-                areaMin,
-                area,
-                priceMax,
-                priceMin,
-                price,
-                param
+                //Todo
+                // area,
+                // price
+                param: url,
             });
             await cat.save();
 
             return res.json({
                 status: HttpCode.SUCCESS,
-                data: {url: cat.param},
+                data: {url},
                 message: 'Success'
             });
         } catch (e) {
