@@ -7,12 +7,12 @@ var Schema = mongoose.Schema;
 var urlParamSchema4 = new Schema({
 
 
-    // param: {
-    //     type: String,
-    //     required: true,
-    //     unique: true
-    // },
-    param: String, //{type: String, unique: false},
+    param: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    // param: String, //{type: String, unique: false},
     customParam: {type: String, default: ''},
     postType: Number,
 
@@ -58,7 +58,9 @@ var urlParamSchema4 = new Schema({
 // let canonical = req.body.canonical;
 // let textEndPage = req.bdy.textEndPage;
 
-});
+},
+    {timestamp: true}
+);
 
 
 var UrlParamModel4 = mongoose.model('UrlParam4', urlParamSchema4);

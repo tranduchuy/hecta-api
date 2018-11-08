@@ -4,7 +4,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const tagSchema = new Schema({
-    slug: String,
+    slug: {
+        type: String,
+        required: true,
+        index: true
+    },
     keyword: String,
     refresh: Number,
     status: {type: Number, default: global.STATUS.ACTIVE},

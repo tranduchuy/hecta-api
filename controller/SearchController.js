@@ -357,7 +357,6 @@ const SearchController = {
                 case global.POST_TYPE_PROJECT :
                     mainUrl = global.PARAM_NOT_FOUND_PROJECT;
                     break;
-
             }
 
             cats.forEach(cat => {

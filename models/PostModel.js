@@ -2,8 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const postSchema = new Schema({
     contentId: Schema.Types.ObjectId,
-    postType: Number,
-    type: Number,
+    postType: {
+        type: Number,
+        index: true
+    },
+    type: {
+        type: Number,
+        
+    },
     formality: Number,
     admin: String,
     status: Number,
