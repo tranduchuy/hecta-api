@@ -9,6 +9,11 @@ const tagSchema = new Schema({
         required: true,
         index: true
     },
+    customSlug: {
+        type: String,
+        index: true,
+        default: ''
+    },
     keyword: String,
     refresh: Number,
     status: {type: Number, default: global.STATUS.ACTIVE},
