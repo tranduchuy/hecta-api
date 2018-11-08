@@ -5,6 +5,7 @@ const BuyModel = require('../models/BuyModel');
 const SaleModel = require('../models/SaleModel');
 const NewsModel = require('../models/NewsModel');
 const ProjectModel = require('../models/ProjectModel');
+const TagModel = require('../models/TagModel');
 const urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
@@ -40,6 +41,10 @@ const isValidSlugCategorySearch = (slug) => {
     return slug === global.SLUG_CATEGORY_SELL_OR_BUY ||
         slug === global.SLUG_CATEGORY_NEWS ||
         slug === global.SLUG_CATEGORY_PROJECT;
+};
+
+const isValidSlugTag = (slug) => {
+    return slug === global.SLUG_TAG;
 };
 
 const mapCategoryToQuery = (catObj, query, additionalProperties = []) => {
@@ -478,6 +483,31 @@ const SearchController = {
                     message: ['Success'],
                     data: {
                         url: `${slug}/${cat.customParam || cat.param}`
+                    }
+                });
+            }
+
+            if (isValidSlugTag(slug)) {
+                const tag = await TagModel.findOne({
+                    $or: [
+                        {slug: param},
+                        {customSlug: param}
+                    ]
+                });
+
+                if (!tag) {
+                    return res.json({
+                        status: HttpCode.ERROR,
+                        message: ['Tag not found'],
+                        data: {}
+                    });
+                }
+
+                return res.json({
+                    status: HttpCode.SUCCESS,
+                    message: ['Success'],
+                    data: {
+                        url: `${slug}/${tag.customSlug || tag.slug}`
                     }
                 });
             }

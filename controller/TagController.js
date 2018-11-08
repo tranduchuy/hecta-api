@@ -252,10 +252,11 @@ var TagController = {
 
             }));
 
-
+            const redirectUrl = tag.customSlug !== tag.slug ? tag.customSlug : null;
             return res.json({
                 status: 1,
                 data: {
+                    url: redirectUrl,
                     itemCount : count,
                     keyword: tag.keyword,
                     items: results,
