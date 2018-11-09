@@ -220,7 +220,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
         results = await Promise.all(data.map(async (item) => {
             const post = await PostModel.findOne({contentId: item._id});
             if (!post) {
-                return {};
+                return null;
             }
 
             switch (cat.postType) {
@@ -233,6 +233,10 @@ const handleSearchCaseCategory = async (res, param, page) => {
             }
         }));
     }
+    
+    results = results.filter(function (el) {
+        return el != null;
+    });
 
     query.postType = cat.postType;
 
