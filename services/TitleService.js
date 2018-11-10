@@ -86,12 +86,25 @@ const getOrderTitle = (data) => {
     let orderTitle = '';
     
     if (data.bedroomCount)
-        orderTitle = data.bedroomCount.value;
+        orderTitle = data.bedroomCount;
         
-    if (data.balconyDirection)
-        orderTitle = orderTitle + " " + data.balconyDirection.text.toString();
+    if (data.balconyDirection){
+        const balconyDirection = getDirectionsByValue(data.balconyDirection);
+        if (balconyDirection)
+            orderTitle = orderTitle + " " + balconyDirection.name.toString();
+    }
     
     return orderTitle.trim();
+}
+
+const getDirectionsByValue = (value) => {
+    if (isUndefinedOrNull(value)) {
+        return null;
+    }
+    
+    return selector.directionList.find(d => {
+        return d.value.toString() === value.toString();
+    });
 }
 
 const isUndefinedOrNull = (value) => {
