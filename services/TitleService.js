@@ -11,7 +11,7 @@ const getPostType = (data) => {
         else {
             formality = getFormilityBuyByValue(data);
             if (formality)
-                postType = POST_TYPE_SALE;
+                postType = POST_TYPE_BUY;
         }
     }
     
@@ -44,7 +44,7 @@ const getTitle = (data) => {
 }
 
 const getLocationTitle = (data) => {
-    let locationTitle = 'Việt Nam';
+    let locationTitle = '';
     
     if (data.city) {
         const city = getCityByCode(data.city);

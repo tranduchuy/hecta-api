@@ -25,7 +25,7 @@ const urlParamSchema = new Schema({
     },
     city: {
         type : String,
-        enum: ["AG", "VT", "BD", "BP", "BTH", "BDD", "BL", "BG", "BK", "BN", "BTR", "CB", "CM", "CT", "GL", "HN", "HG", "HNA", "HT", "HB", "HY", "HD", "HP", "HGI", "SG", "KH", "KG", "KT", "LCH", "LA", "LCA", "LDD", "LS", "NDD", "NA", "NB", "NT", "PT", "PY", "QB", "QNA", "QNG", "QNI", "QT", "ST", "SL", "TH", "TB", "TN", "TTH", "TG", "TV", "TQ", "TNI", "VL", "VP", "YB", "DDB", "DDN", "DDL", "DNO", "DNA", "DDT"],
+        enum: ["AG", "VT", "BD", "BP", "BTH", "BDD", "BL", "BG", "BK", "BN", "BTR", "CB", "CM", "CT", "GL", "HN", "HG", "HNA", "HT", "HB", "HY", "HD", "HP", "HGI", "SG", "KH", "KG", "KT", "LCH", "LA", "LCA", "LDD", "LS", "NDD", "NA", "NB", "NT", "PT", "PY", "QB", "QNA", "QNG", "QNI", "QT", "ST", "SL", "TH", "TB", "TN", "TTH", "TG", "TV", "TQ", "TNI", "VL", "VP", "YB", "DDB", "DDN", "DDL", "DNO", "DNA", "DDT", null],
         index: true
     },
     district: {
