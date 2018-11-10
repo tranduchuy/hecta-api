@@ -1,5 +1,23 @@
 const selector = require("../config/selector");
 
+const getPostType = (data) => {
+    let postType = POST_TYPE_SALE;
+    
+    if (data) {
+        
+        let formality = getFormilitySaleByValue(data);
+        if (formality)
+            postType = POST_TYPE_SALE;
+        else {
+            formality = getFormilityBuyByValue(data);
+            if (formality)
+                postType = POST_TYPE_SALE;
+        }
+    }
+    
+    return postType;
+}
+
 const getTitle = (data) => {
     let title = '';
     
@@ -63,6 +81,19 @@ const getLocationTitle = (data) => {
     return locationTitle;
 }
 
+const getOrderTitle = (data) => {
+    
+    let orderTitle = '';
+    
+    if (data.bedroomCount)
+        orderTitle = data.bedroomCount.value.toString();
+        
+    if (data.balconyDirection)
+        orderTitle = orderTitle + " " + data.balconyDirection.text.toString();
+    
+    return orderTitle.trim();
+}
+
 const isUndefinedOrNull = (value) => {
     return value === undefined || value === null;
 }
@@ -120,6 +151,8 @@ const getStreetByValue = (district, value) => {
 }
 
 module.exports = {
+    getPostType,
     getLocationTitle,
     getTitle,
+    getOrderTitle,
 };

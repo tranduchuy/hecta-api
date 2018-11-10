@@ -305,8 +305,11 @@ const SearchController = {
             priceMin = priceMin ? priceMin.value : null;
     
             price = price ? price.value : null;
+    
+            const postType = TitleService.getPostType(formality);
 
             const query = {
+                postType,
                 formality,
                 type,
                 city,
@@ -314,9 +317,9 @@ const SearchController = {
                 ward,
                 street,
                 project,
+                balconyDirection,
+                bedroomCount,
                 //Todo
-                // balconyDirection,
-                // bedroomCount,
                 // area,
                 // price
             };
@@ -333,13 +336,16 @@ const SearchController = {
             }
     
             // Insert new param to UrlParams
-            let url = TitleService.getTitle(query) + ' ' + TitleService.getLocationTitle(query);
-            url = urlSlug(url);
+            let url = TitleService.getTitle(query) + ' ' +
+                        TitleService.getLocationTitle(query) + ' ' +
+                        TitleService.getOrderTitle(query);
+            url = urlSlug(url.trim());
             
             let countDuplicate = await UrlParamModel.countDocuments({param: url});
             if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
             cat = new UrlParamModel({
+                postType,
                 formality,
                 type,
                 city,
@@ -347,9 +353,9 @@ const SearchController = {
                 ward,
                 street,
                 project,
+                balconyDirection,
+                bedroomCount,
                 //Todo
-                // balconyDirection,
-                // bedroomCount,
                 // area,
                 // price
                 param: url,
