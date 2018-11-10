@@ -3,11 +3,15 @@ const CheckToken = require('./CheckToken');
 
 let flag = 0;
 let result = null;
+
+// init res object
 const res = {
     json: (value) => {
         result = value;
     }
 };
+
+// init next function
 const nextFn = () => {
     flag++;
 };
