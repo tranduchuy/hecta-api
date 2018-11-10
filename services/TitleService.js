@@ -86,7 +86,7 @@ const getOrderTitle = (data) => {
     let orderTitle = '';
     
     if (data.bedroomCount)
-        orderTitle = data.bedroomCount.value.toString();
+        orderTitle = data.bedroomCount.value;
         
     if (data.balconyDirection)
         orderTitle = orderTitle + " " + data.balconyDirection.text.toString();
