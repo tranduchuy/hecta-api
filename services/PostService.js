@@ -260,9 +260,30 @@ const generateStageQueryPostSale = (req) => {
     return stages;
 };
 
+const generateStageQueryPost = (req) => {
+    const pageCond = RequestUtils.extractPaginationCondition(req);
+    const stages = [];
+
+    // pagination
+    stages.push({
+        $facet: {
+            entries: [
+                {$skip: (pageCond.page - 1) * pageCond.limit},
+                {$limit: pageCond.limit},
+            ],
+            meta: [
+                {$group: {_id: null, totalItems: {$sum: 1}}},
+            ],
+        },
+    });
+
+    return stages;
+};
+
 module.exports = {
     generateStageQueryPostNews,
     generateStageQueryPostProject,
     generateStageQueryPostBuy,
-    generateStageQueryPostSale
+    generateStageQueryPostSale,
+    generateStageQueryPost
 };
