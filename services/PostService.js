@@ -1,4 +1,5 @@
 const RequestUtils = require('../utils/RequestUtil');
+const moment = require('moment');
 
 /**
  * Generate stage to run aggregate on Posts-News
@@ -260,9 +261,68 @@ const generateStageQueryPostSale = (req) => {
     return stages;
 };
 
+/**
+ * Can be filtered by:
+ * ++ status: number
+ * ++ formality: number
+ * ++ type: number
+ * ++ url: string like
+ * ++ customUrl: string like
+ * ++ from: string date -> should convert to number by getTime()
+ * ++ to: string date -> should convert to number by getTime()
+ */
 const generateStageQueryPost = (req) => {
+    const {status, formality, type, url, customUrl, from, to} = req.query;
     const pageCond = RequestUtils.extractPaginationCondition(req);
     const stages = [];
+
+    // filter
+    const stageFilter = {};
+    if (status && !isNaN(status)) {
+        stageFilter['status'] = parseInt(status);
+    }
+
+    if (formality && !isNaN(formality)) {
+        stageFilter['formality'] = parseInt(formality);
+    }
+
+    if (type && !isNaN(type)) {
+        stageFilter['type'] = parseInt(type);
+    }
+
+    if (url && url.toString().trim() !== '') {
+        stageFilter['url'] = {
+            $regex: url,
+            $options: 'i'
+        }
+    }
+
+    if (customUrl && customUrl.toString().trim() !== '') {
+        stageFilter['customUrl'] = {
+            $regex: customUrl,
+            $options: 'i'
+        }
+    }
+
+    if (from && from.length === 10) {
+        const fromObj = moment(from, 'YYYY-MM-DD').toDate();
+        stageFilter['from'] = {
+            $gte: fromObj.getTime()
+        }
+    }
+
+    if (to && to.length === 10) {
+        const toObj = moment(to, 'YYYY-MM-DD').toDate();
+        stageFilter['to'] = {
+            $lte: toObj.getTime()
+        }
+    }
+
+    if (Object.keys(stageFilter).length !== 0) {
+        stages.push({
+            $match: stageFilter
+        });
+    }
 
     // pagination
     stages.push({
