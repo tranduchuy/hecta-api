@@ -23,7 +23,7 @@ var urlParamSchema4 = new Schema({
     district: Number,
     ward: Number,
     street: Number,
-    balconyDirection: Number,
+    direction: Number,
     bedroomCount: Number,
     areaMax: Number,
     areaMin: Number,

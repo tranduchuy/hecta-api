@@ -54,7 +54,7 @@ const mapCategoryToQuery = (catObj, query, additionalProperties = []) => {
 
     const catProperties = [
         ...additionalProperties, 'formality', 'type', 'city', 'district',
-        'ward', 'street', 'project', 'balconyDirection',
+        'ward', 'street', 'project', 'direction',
         'bedroomCount', 'areaMax', 'areaMin', 'area',
         'priceMax', 'priceMin', 'price'
     ];

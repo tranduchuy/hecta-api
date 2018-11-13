@@ -79,7 +79,7 @@ function getDirections() {
     for (let direction of directions) {
         results.push({
             params: {
-                balconyDirection: direction.value
+                direction: direction.value
             },
             url: urlSlug(' huong ' + direction.name)
         });
@@ -538,7 +538,7 @@ var ScriptController = {
                     urlParam.district = param.district;
                     urlParam.ward = param.ward;
                     urlParam.street = param.street;
-                    urlParam.balconyDirection = direction.value;
+                    urlParam.direction = direction.value;
 
                     await urlParam.save();
                 }
@@ -563,7 +563,7 @@ var ScriptController = {
                     urlParam.district = param.district;
                     urlParam.ward = param.ward;
                     urlParam.street = param.street;
-                    urlParam.balconyDirection = param.balconyDirection;
+                    urlParam.direction = param.direction;
                     urlParam.priceMax = price.max.value;
                     urlParam.priceMin = price.min.value;
                     urlParam.price = price.Name;
