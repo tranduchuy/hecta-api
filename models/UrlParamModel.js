@@ -44,7 +44,10 @@ const urlParamSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Projects'
     },
-    balconyDirection: Number,
+    direction: {
+        type: Number,
+        index: true,
+    },
     bedroomCount: Number,
     areaMax: Number,
     areaMin: Number,

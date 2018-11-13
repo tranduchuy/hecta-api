@@ -88,10 +88,10 @@ const getOrderTitle = (data) => {
     if (data.bedroomCount)
         orderTitle = data.bedroomCount;
         
-    if (data.balconyDirection){
-        const balconyDirection = getDirectionsByValue(data.balconyDirection);
-        if (balconyDirection)
-            orderTitle = orderTitle + " " + balconyDirection.name.toString();
+    if (data.direction){
+        const direction = getDirectionsByValue(data.direction);
+        if (direction)
+            orderTitle = orderTitle + " " + direction.name.toString();
     }
     
     return orderTitle.trim();

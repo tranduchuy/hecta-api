@@ -272,7 +272,7 @@ const SearchController = {
         try {
             let {
                 formality, type, city, district, ward,
-                street, project, balconyDirection, bedroomCount,
+                street, project, direction, bedroomCount,
                 areaMax, areaMin, area, priceMax, priceMin, price
             } = req.body;
     
@@ -290,9 +290,9 @@ const SearchController = {
     
             project = project ? project.value : null;
     
-            balconyDirection = balconyDirection ? balconyDirection.value : null;
+            direction = (direction && (direction.value != "0")) ? direction.value : null;
     
-            bedroomCount = bedroomCount ? bedroomCount.value : null;
+            bedroomCount = (bedroomCount && (bedroomCount.value != "0")) ? bedroomCount.value : null;
     
             areaMax = areaMax ? areaMax.value : null;
     
@@ -317,7 +317,7 @@ const SearchController = {
                 ward,
                 street,
                 project,
-                balconyDirection,
+                direction,
                 bedroomCount,
                 //Todo
                 // area,
@@ -353,7 +353,7 @@ const SearchController = {
                 ward,
                 street,
                 project,
-                balconyDirection,
+                direction,
                 bedroomCount,
                 //Todo
                 // area,
