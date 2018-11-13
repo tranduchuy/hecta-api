@@ -78,13 +78,7 @@ const PostController = {
             }
 
             let {postType} = req.query;
-
-            if (postType === undefined) {
-                logger.error('Admin/PostController::list2::error. Invalid postType');
-                return next(new Error('Invalid postType'));
-            }
-
-            postType = parseInt(postType, 0);
+            postType = parseInt(postType || '-999999', 0);
 
             let stages = [];
             switch (postType) {
@@ -99,6 +93,9 @@ const PostController = {
                     break;
                 case global.POST_TYPE_NEWS:
                     stages = PostService.generateStageQueryPostNews(req);
+                    break;
+                default:
+                    stages = PostService.generateStageQueryPost(req);
                     break;
             }
 

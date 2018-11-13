@@ -12,19 +12,14 @@ const AdminPostController = require('../controller/admin/PostController');
 const AdminCategoryController = require('../controller/admin/CategoryController');
 const AdminTagController = require('../controller/admin/TagController');
 
-// router.get('/projects/list', AdminProjectController.list);
 router.get('/projects/types', AdminProjectController.typeList);
 
 router.post('/projects/add', AdminProjectController.add);
 router.post('/projects/update/:id', AdminProjectController.update);
-// router.get('/projects/detail/:id', AdminProjectController.detail);
 
-// router.get('/news/list', AdminNewsController.list);
 router.get('/news/cats', AdminNewsController.catList);
-
 router.post('/news/add', AdminNewsController.add);
 router.post('/news/update/:id', AdminNewsController.update);
-// router.get('/news/detail/:id', AdminNewsController.detail);
 
 
 router.get('/posts/list', AdminPostController.list2);
@@ -32,13 +27,11 @@ router.get('/posts/detail/:id', AdminPostController.detail);
 router.post('/posts/update/url/:id', AdminPostController.updateUrl);
 router.delete('/posts/delete', AdminController.removePost);
 
-
 router.post('/buys/update/:id', AdminBuyController.update);
 router.post('/sales/update/:id', AdminSaleController.update);
 
 router.post('/payments/add/:id', TransactionController.addMain);
 router.post('/promos/add/:id', TransactionController.addPromo);
-
 
 router.get('/users/list', AdminUserController.list);
 router.post('/users/update/:id', AdminUserController.update);
@@ -49,7 +42,6 @@ router.post('/admins/create', AdminController.create);
 router.post('/admins/update', AdminController.update);
 router.post('/admins/login', AdminController.login);
 router.post('/admins/status/:id', AdminController.status);
-
 
 router.get('/vips/list', PostPriorityController.listAdmin);
 router.post('/vips/update/:id', PostPriorityController.update);

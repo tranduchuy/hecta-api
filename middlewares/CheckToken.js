@@ -63,7 +63,7 @@ const returnInvalidToken = function (req, res, next) {
 };
 
 module.exports = async function (req, res, next) {
-    const token = req.headers['accesstoken'];
+    const token = req.headers['accesstoken'] || req.query['accesstoken'];
 
     if (token == null || typeof token === undefined) {
         returnInvalidToken(req, res, next);
