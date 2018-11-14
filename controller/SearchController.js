@@ -10,7 +10,10 @@ const urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const HttpCode = require('../config/http-code');
+
+// service
 const TitleService = require("../services/TitleService");
+const StringService = require('../services/StringService');
 
 /**
  * Get model type by cat.postType
@@ -377,7 +380,7 @@ const SearchController = {
         logger.info('SearchController::search is called');
 
         try {
-            const url = req.query.url;
+            const url = StringService.removeQueryStringFromPath(req.query.url || '');
             let page = req.query.page;
 
             if (!page || page < 1) {
