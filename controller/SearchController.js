@@ -427,7 +427,8 @@ const SearchController = {
         logger.info('SearchController::getUrlToRedirect is called');
 
         try {
-            const url = req.query.url;
+            const queryStr = StringService.getQueryStringFromPath(req.query.url || '');
+            const url = StringService.removeQueryStringFromPath(req.query.url || '');
 
             if (!url || url.length === 0) {
                 logger.error('SearchController::getUrlToRedirect::error. Url is required');
@@ -470,7 +471,7 @@ const SearchController = {
                     status: HttpCode.SUCCESS,
                     message: ['Success'],
                     data: {
-                        url: `${slug}/${post.customUrl || post.url}`
+                        url: `${slug}/${post.customUrl || post.url}?${queryStr}`
                     }
                 });
             }
@@ -495,7 +496,7 @@ const SearchController = {
                     status: HttpCode.SUCCESS,
                     message: ['Success'],
                     data: {
-                        url: `${slug}/${cat.customParam || cat.param}`
+                        url: `${slug}/${cat.customParam || cat.param}?${queryStr}`
                     }
                 });
             }
@@ -520,7 +521,7 @@ const SearchController = {
                     status: HttpCode.SUCCESS,
                     message: ['Success'],
                     data: {
-                        url: `${slug}/${tag.customSlug || tag.slug}`
+                        url: `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
                     }
                 });
             }

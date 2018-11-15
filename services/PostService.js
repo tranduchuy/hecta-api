@@ -7,7 +7,10 @@ const moment = require('moment');
  * @returns {Array}
  */
 const generateStageQueryPostNews = (req) => {
-    const {createdByType, status, id} = req.query;
+    const {
+        createdByType, status, id, from, to, title,
+        sortBy, sortDirection
+    } = req.query;
     const pageCond = RequestUtils.extractPaginationCondition(req);
 
     const stages = [
@@ -44,11 +47,45 @@ const generateStageQueryPostNews = (req) => {
         stageFilter["newsInfo._id"] = id;
     }
 
+    if (title) {
+        stageFilter['newsInfo.title'] = {
+            $regex: title,
+            $options: 'i'
+        }
+    }
+
+    if (from && from.toString().length === 10) {
+        const fromObj = moment(from, 'YYYY-MM-DD').toDate();
+        stageFilter['from'] = {
+            $gte: fromObj.getTime()
+        }
+    }
+
+    if (to && to.toString().length === 10) {
+        const toObj = moment(to, 'YYYY-MM-DD').toDate();
+        stageFilter['to'] = {
+            $lte: toObj.getTime()
+        }
+    }
+
     if (Object.keys(stageFilter).length !== 0) {
         stages.push({
             $match: stageFilter
         });
     }
+
+    // sort
+    let stageSort = {
+        $sort: {}
+    };
+
+    if (sortBy) {
+        stageSort.$sort[sortBy] = sortDirection === 'ASC' ? 1 : -1
+    } else {
+        stageSort.$sort['date'] = -1; // default sort by date descending
+    }
+
+    stages.push(stageSort);
 
     // pagination
     stages.push({
