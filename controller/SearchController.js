@@ -469,9 +469,9 @@ const SearchController = {
 
                 let url = '';
                 if (queryStr) {
-                    url = `${slug}/${post.customSlug || post.slug}?${queryStr}`
+                    url = `${slug}/${post.customUrl || post.url}?${queryStr}`
                 } else {
-                    `${slug}/${post.customSlug || post.slug}`
+                    url = `${slug}/${post.customUrl || post.url}`
                 }
 
                 return res.json({
@@ -501,9 +501,9 @@ const SearchController = {
 
                 let url = '';
                 if (queryStr) {
-                    url = `${slug}/${cat.customSlug || cat.slug}?${queryStr}`
+                    url = `${slug}/${cat.customParam || cat.param}?${queryStr}`
                 } else {
-                    `${slug}/${cat.customSlug || cat.slug}`
+                    url = `${slug}/${cat.customParam || cat.param}`
                 }
 
                 return res.json({
@@ -535,7 +535,7 @@ const SearchController = {
                 if (queryStr) {
                     url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
                 } else {
-                    `${slug}/${tag.customSlug || tag.slug}`
+                    url = `${slug}/${tag.customSlug || tag.slug}`
                 }
 
                 return res.json({
