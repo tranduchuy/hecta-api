@@ -469,9 +469,9 @@ const SearchController = {
 
                 let url = '';
                 if (queryStr) {
-                    url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+                    url = `${slug}/${post.customSlug || post.slug}?${queryStr}`
                 } else {
-                    `${slug}/${tag.customSlug || tag.slug}`
+                    `${slug}/${post.customSlug || post.slug}`
                 }
 
                 return res.json({
@@ -501,9 +501,9 @@ const SearchController = {
 
                 let url = '';
                 if (queryStr) {
-                    url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+                    url = `${slug}/${cat.customSlug || cat.slug}?${queryStr}`
                 } else {
-                    `${slug}/${tag.customSlug || tag.slug}`
+                    `${slug}/${cat.customSlug || cat.slug}`
                 }
 
                 return res.json({
