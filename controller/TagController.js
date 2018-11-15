@@ -1,12 +1,14 @@
-var SaleModel = require('../models/SaleModel');
-var BuyModel = require('../models/BuyModel');
-var PostModel = require('../models/PostModel');
-var TagModel = require('../models/TagModel');
-var urlSlug = require('url-slug');
+const SaleModel = require('../models/SaleModel');
+const BuyModel = require('../models/BuyModel');
+const PostModel = require('../models/PostModel');
+const TagModel = require('../models/TagModel');
+const urlSlug = require('url-slug');
+const _ = require('lodash');
+const HttpCode = require('../config/http-code');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Controllers');
 
-var _ = require('lodash');
-
-var TagController = {
+const TagController = {
 
     highlight: async function (req, res, next) {
 
@@ -14,7 +16,7 @@ var TagController = {
         try {
 
 
-            let tags = await TagModel.find({status:global.STATUS.ACTIVE}).sort({refresh: -1}).limit(10);
+            let tags = await TagModel.find({status: global.STATUS.ACTIVE}).sort({refresh: -1}).limit(10);
 
             return res.json({
                 status: 1,
@@ -34,6 +36,7 @@ var TagController = {
 
 
     },
+
     list: async function (req, res, next) {
 
         // var slug = req.query.slug;
@@ -55,8 +58,8 @@ var TagController = {
             }
 
 
-            let tags = await TagModel.find({status : global.STATUS.ACTIVE}).sort({refresh: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-            let count = await TagModel.count({status : global.STATUS.ACTIVE});
+            let tags = await TagModel.find({status: global.STATUS.ACTIVE}).sort({refresh: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            let count = await TagModel.count({status: global.STATUS.ACTIVE});
 
             return res.json({
                 status: 1,
@@ -257,7 +260,7 @@ var TagController = {
                 status: 1,
                 data: {
                     url: redirectUrl,
-                    itemCount : count,
+                    itemCount: count,
                     keyword: tag.keyword,
                     items: results,
                     page: page,
@@ -277,8 +280,64 @@ var TagController = {
         }
 
 
+    },
+
+    getRelated: async (req, res, next) => {
+        logger.info('TagController::getRelated is called');
+
+        try {
+            const {slug} = req.query;
+
+            if (!slug) {
+                logger.error('TagController::getRelated::error. Invalid slug tag');
+                return next(new Error('Invalid slug tag'));
+            }
+
+            const tag = await TagModel.findOne({
+                $or: [
+                    {slug},
+                    {customSlug: slug}
+                ]
+            });
+
+            if (!tag) {
+                logger.error('TagController::getRelated::error Tag not found');
+                return next(new Error('Tag not found'));
+            }
+
+            const posts = await PostModel.find({
+                tags: tag._id
+            }).lean();
+
+            let tagIds = [];
+            posts.forEach(post => {
+                const tags = post.tags || [];
+                tagIds = tagIds.concat(
+                    tags.filter(tagId => tagId.toString() !== tag._id.toString())
+                );
+            });
+
+            // limit related 20 tag => use slice
+            const relatedTags = await TagModel.find({_id: {$in: tagIds.slice(20)}})
+                .select({
+                    slug: 1,
+                    customSlug: 1,
+                    keyword: 1
+                })
+                .lean();
+
+            return res.json({
+                status: HttpCode.SUCCESS,
+                message: ['Success'],
+                data: {
+                    entries: relatedTags
+                }
+            });
+        } catch (e) {
+            logger.error('TagController::getRelated::error', e);
+            return next(e);
+        }
     }
+};
 
-
-}
 module.exports = TagController
