@@ -467,11 +467,18 @@ const SearchController = {
                     });
                 }
 
+                let url = '';
+                if (queryStr) {
+                    url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+                } else {
+                    `${slug}/${tag.customSlug || tag.slug}`
+                }
+
                 return res.json({
                     status: HttpCode.SUCCESS,
                     message: ['Success'],
                     data: {
-                        url: `${slug}/${post.customUrl || post.url}?${queryStr}`
+                        url
                     }
                 });
             }
@@ -492,11 +499,18 @@ const SearchController = {
                     });
                 }
 
+                let url = '';
+                if (queryStr) {
+                    url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+                } else {
+                    `${slug}/${tag.customSlug || tag.slug}`
+                }
+
                 return res.json({
                     status: HttpCode.SUCCESS,
                     message: ['Success'],
                     data: {
-                        url: `${slug}/${cat.customParam || cat.param}?${queryStr}`
+                        url
                     }
                 });
             }
@@ -517,11 +531,18 @@ const SearchController = {
                     });
                 }
 
+                let url = '';
+                if (queryStr) {
+                    url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+                } else {
+                    `${slug}/${tag.customSlug || tag.slug}`
+                }
+
                 return res.json({
                     status: HttpCode.SUCCESS,
                     message: ['Success'],
                     data: {
-                        url: `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+                        url
                     }
                 });
             }
