@@ -1,10 +1,12 @@
+// modules
 const _ = require('lodash');
 const log4js = require('log4js');
+const urlSlug = require('url-slug');
+
 const SaleModel = require('../models/SaleModel');
 const BuyModel = require('../models/BuyModel');
 const PostModel = require('../models/PostModel');
 const TagModel = require('../models/TagModel');
-const urlSlug = require('url-slug');
 const HttpCode = require('../config/http-code');
 const logger = log4js.getLogger('Controllers');
 
@@ -126,10 +128,12 @@ const query = async (req, res, next) => {
                     }
                 });
 
-                return Object.assign({}, post, buy, {postId: post._id,
+                return Object.assign({}, post, buy, {
+                    postId: post._id,
                     url: post.url,
                     id: buy._id,
-                    keywordList: keys});
+                    keywordList: keys
+                });
             }
         }));
 
