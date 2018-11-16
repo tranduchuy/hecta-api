@@ -269,291 +269,293 @@ const handleSearchCaseCategory = async (res, param, page) => {
     });
 };
 
-const SearchController = {
-    filter: async function (req, res, next) {
-        logger.info('SearchController::filter is called');
-        try {
-            let {
-                formality, type, city, district, ward,
-                street, project, direction, bedroomCount,
-                areaMax, areaMin, area, priceMax, priceMin, price
-            } = req.body;
-    
-            formality = formality? formality.value : null;
-    
-            type = type ? type.value : null;
-    
-            city = city ? city.value: null;
-    
-            district = district ? district.value : null;
-    
-            ward = ward ? ward.value : null;
-    
-            street = street ? street.value : null;
-    
-            project = project ? project.value : null;
-    
-            direction = (direction && (direction.value != "0")) ? direction.value : null;
-    
-            bedroomCount = (bedroomCount && (bedroomCount.value != "0")) ? bedroomCount.value : null;
-    
-            areaMax = areaMax ? areaMax.value : null;
-    
-            areaMin = areaMin ? areaMin.value : null;
-    
-            area = area ? area.value : null;
-    
-            priceMax = priceMax ? priceMax.value : null;
-    
-            priceMin = priceMin ? priceMin.value : null;
-    
-            price = price ? price.value : null;
-    
-            const postType = TitleService.getPostType(formality);
+const filter = async (req, res, next) => {
+    logger.info('SearchController::filter is called');
+    try {
+        let {
+            formality, type, city, district, ward,
+            street, project, direction, bedroomCount,
+            areaMax, areaMin, area, priceMax, priceMin, price
+        } = req.body;
 
-            const query = {
-                postType,
-                formality,
-                type,
-                city,
-                district,
-                ward,
-                street,
-                project,
-                direction,
-                bedroomCount,
-                //Todo
-                // area,
-                // price
-            };
+        formality = formality? formality.value : null;
 
-            let cat = await UrlParamModel.findOne(query);
-            
-            if (cat){
-                return res.json({
-                    status: HttpCode.SUCCESS,
-                    //Todo return data list post
-                    data: {url: cat.param},
-                    message: 'Success'
-                });
-            }
-    
-            // Insert new param to UrlParams
-            let url = TitleService.getTitle(query) + ' ' +
-                        TitleService.getLocationTitle(query) + ' ' +
-                        TitleService.getOrderTitle(query);
-            url = urlSlug(url.trim());
-            
-            let countDuplicate = await UrlParamModel.countDocuments({param: url});
-            if (countDuplicate > 0) url = url + "-" + countDuplicate;
+        type = type ? type.value : null;
 
-            cat = new UrlParamModel({
-                postType,
-                formality,
-                type,
-                city,
-                district,
-                ward,
-                street,
-                project,
-                direction,
-                bedroomCount,
-                //Todo
-                // area,
-                // price
-                param: url,
-            });
-            await cat.save();
+        city = city ? city.value: null;
 
+        district = district ? district.value : null;
+
+        ward = ward ? ward.value : null;
+
+        street = street ? street.value : null;
+
+        project = project ? project.value : null;
+
+        direction = (direction && (direction.value != "0")) ? direction.value : null;
+
+        bedroomCount = (bedroomCount && (bedroomCount.value != "0")) ? bedroomCount.value : null;
+
+        areaMax = areaMax ? areaMax.value : null;
+
+        areaMin = areaMin ? areaMin.value : null;
+
+        area = area ? area.value : null;
+
+        priceMax = priceMax ? priceMax.value : null;
+
+        priceMin = priceMin ? priceMin.value : null;
+
+        price = price ? price.value : null;
+
+        const postType = TitleService.getPostType(formality);
+
+        const query = {
+            postType,
+            formality,
+            type,
+            city,
+            district,
+            ward,
+            street,
+            project,
+            direction,
+            bedroomCount,
+            //Todo
+            // area,
+            // price
+        };
+
+        let cat = await UrlParamModel.findOne(query);
+
+        if (cat){
             return res.json({
                 status: HttpCode.SUCCESS,
-                data: {url},
+                //Todo return data list post
+                data: {url: cat.param},
                 message: 'Success'
             });
-        } catch (e) {
-            logger.error('SearchController::filter::error', e);
-            return next(e);
         }
-    },
 
-    search: async function (req, res, next) {
-        logger.info('SearchController::search is called');
+        // Insert new param to UrlParams
+        let url = TitleService.getTitle(query) + ' ' +
+            TitleService.getLocationTitle(query) + ' ' +
+            TitleService.getOrderTitle(query);
+        url = urlSlug(url.trim());
 
-        try {
-            const url = StringService.removeQueryStringFromPath(req.query.url || '');
-            let page = req.query.page;
+        let countDuplicate = await UrlParamModel.countDocuments({param: url});
+        if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
-            if (!page || page < 1) {
-                page = 1;
-            }
+        cat = new UrlParamModel({
+            postType,
+            formality,
+            type,
+            city,
+            district,
+            ward,
+            street,
+            project,
+            direction,
+            bedroomCount,
+            //Todo
+            // area,
+            // price
+            param: url,
+        });
+        await cat.save();
 
-            if (!url || url.length === 0) {
-                logger.error('SearchController::search::error. Url is required');
-                return next(new Error('Url is required'));
-            }
-
-            const splitUrl = url.trim().split('/');
-
-            if (!splitUrl || splitUrl.length !== 2) {
-                logger.error('SearchController::search::error. Invalid url, splitUrl: ', splitUrl);
-                return next(new Error('Invalid url'));
-            }
-
-            let slug = splitUrl[0];
-            let param = splitUrl[1];
-
-            if (!slug || slug.length === 0 || !param || param.length === 0) {
-                logger.error('SearchController::search::error. Invalid url params, splitUrl: ', splitUrl);
-                return next(new Error('Invalid url params'));
-            }
-
-            if (isValidSlugSearch(slug)) {
-                return await handleSearchCaseNotCategory(res, param, slug, next);
-            }
-
-            if (isValidSlugCategorySearch(slug)) {
-                return await handleSearchCaseCategory(res, param, page, next);
-            }
-
-            logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
-            return next(new Error('Invalid url. Not match case slug: ' + url));
-        } catch (e) {
-            logger.error('SearchController::search:error', e);
-            return next(e);
-        }
-    },
-
-    getUrlToRedirect: async (req, res, next) => {
-        logger.info('SearchController::getUrlToRedirect is called');
-
-        try {
-            const queryStr = StringService.getQueryStringFromPath(req.query.url || '');
-            const url = StringService.removeQueryStringFromPath(req.query.url || '');
-
-            if (!url || url.length === 0) {
-                logger.error('SearchController::getUrlToRedirect::error. Url is required');
-                return next(new Error('Url is required'));
-            }
-
-            const splitUrl = url.trim().split('/');
-
-            if (!splitUrl || splitUrl.length !== 2) {
-                logger.error('SearchController::getUrlToRedirect::error. Invalid url, splitUrl: ', splitUrl);
-                return next(new Error('Invalid url'));
-            }
-
-            let slug = splitUrl[0];
-            let param = splitUrl[1];
-
-            if (!slug || slug.length === 0 || !param || param.length === 0) {
-                logger.error('SearchController::getUrlToRedirect::error. Invalid url params, splitUrl: ', splitUrl);
-                return next(new Error('Invalid url params'));
-            }
-
-            if (isValidSlugSearch(slug)) {
-                let post = await PostModel.findOne({
-                    status: global.STATUS.ACTIVE,
-                    $or: [
-                        {url: param},
-                        {customUrl: param}
-                    ]
-                });
-
-                if (!post) {
-                    return res.json({
-                       status: HttpCode.ERROR,
-                       message: ['Post not found'],
-                       data: {}
-                    });
-                }
-
-                let url = '';
-                if (queryStr) {
-                    url = `${slug}/${post.customUrl || post.url}?${queryStr}`
-                } else {
-                    url = `${slug}/${post.customUrl || post.url}`
-                }
-
-                return res.json({
-                    status: HttpCode.SUCCESS,
-                    message: ['Success'],
-                    data: {
-                        url
-                    }
-                });
-            }
-
-            if (isValidSlugCategorySearch(slug)) {
-                let cat = await UrlParamModel.findOne({
-                    $or: [
-                        {param},
-                        {customParam: param}
-                    ]
-                });
-
-                if (!cat) {
-                    return res.json({
-                        status: HttpCode.ERROR,
-                        message: ['Category not found'],
-                        data: {}
-                    });
-                }
-
-                let url = '';
-                if (queryStr) {
-                    url = `${slug}/${cat.customParam || cat.param}?${queryStr}`
-                } else {
-                    url = `${slug}/${cat.customParam || cat.param}`
-                }
-
-                return res.json({
-                    status: HttpCode.SUCCESS,
-                    message: ['Success'],
-                    data: {
-                        url
-                    }
-                });
-            }
-
-            if (isValidSlugTag(slug)) {
-                const tag = await TagModel.findOne({
-                    $or: [
-                        {slug: param},
-                        {customSlug: param}
-                    ]
-                });
-
-                if (!tag) {
-                    return res.json({
-                        status: HttpCode.ERROR,
-                        message: ['Tag not found'],
-                        data: {}
-                    });
-                }
-
-                let url = '';
-                if (queryStr) {
-                    url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
-                } else {
-                    url = `${slug}/${tag.customSlug || tag.slug}`
-                }
-
-                return res.json({
-                    status: HttpCode.SUCCESS,
-                    message: ['Success'],
-                    data: {
-                        url
-                    }
-                });
-            }
-
-            logger.error('SearchController::getUrlToRedirect:error. Invalid url. Not match case slug', url);
-            return next(new Error('Invalid url. Not match case slug: ' + url));
-        } catch (e) {
-            logger.error('SearchController::getUrlToRedirect:error', e);
-            return next(e);
-        }
+        return res.json({
+            status: HttpCode.SUCCESS,
+            data: {url},
+            message: 'Success'
+        });
+    } catch (e) {
+        logger.error('SearchController::filter::error', e);
+        return next(e);
     }
 };
 
-module.exports = SearchController;
+const search = async (req, res, next) => {
+    logger.info('SearchController::search is called');
+
+    try {
+        const url = StringService.removeQueryStringFromPath(req.query.url || '');
+        let page = req.query.page;
+
+        if (!page || page < 1) {
+            page = 1;
+        }
+
+        if (!url || url.length === 0) {
+            logger.error('SearchController::search::error. Url is required');
+            return next(new Error('Url is required'));
+        }
+
+        const splitUrl = url.trim().split('/');
+
+        if (!splitUrl || splitUrl.length !== 2) {
+            logger.error('SearchController::search::error. Invalid url, splitUrl: ', splitUrl);
+            return next(new Error('Invalid url'));
+        }
+
+        let slug = splitUrl[0];
+        let param = splitUrl[1];
+
+        if (!slug || slug.length === 0 || !param || param.length === 0) {
+            logger.error('SearchController::search::error. Invalid url params, splitUrl: ', splitUrl);
+            return next(new Error('Invalid url params'));
+        }
+
+        if (isValidSlugSearch(slug)) {
+            return await handleSearchCaseNotCategory(res, param, slug, next);
+        }
+
+        if (isValidSlugCategorySearch(slug)) {
+            return await handleSearchCaseCategory(res, param, page, next);
+        }
+
+        logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
+        return next(new Error('Invalid url. Not match case slug: ' + url));
+    } catch (e) {
+        logger.error('SearchController::search:error', e);
+        return next(e);
+    }
+};
+
+const getUrlToRedirect = async (req, res, next) => {
+    logger.info('SearchController::getUrlToRedirect is called');
+
+    try {
+        const queryStr = StringService.getQueryStringFromPath(req.query.url || '');
+        const url = StringService.removeQueryStringFromPath(req.query.url || '');
+
+        if (!url || url.length === 0) {
+            logger.error('SearchController::getUrlToRedirect::error. Url is required');
+            return next(new Error('Url is required'));
+        }
+
+        const splitUrl = url.trim().split('/');
+
+        if (!splitUrl || splitUrl.length !== 2) {
+            logger.error('SearchController::getUrlToRedirect::error. Invalid url, splitUrl: ', splitUrl);
+            return next(new Error('Invalid url'));
+        }
+
+        let slug = splitUrl[0];
+        let param = splitUrl[1];
+
+        if (!slug || slug.length === 0 || !param || param.length === 0) {
+            logger.error('SearchController::getUrlToRedirect::error. Invalid url params, splitUrl: ', splitUrl);
+            return next(new Error('Invalid url params'));
+        }
+
+        if (isValidSlugSearch(slug)) {
+            let post = await PostModel.findOne({
+                status: global.STATUS.ACTIVE,
+                $or: [
+                    {url: param},
+                    {customUrl: param}
+                ]
+            });
+
+            if (!post) {
+                return res.json({
+                    status: HttpCode.ERROR,
+                    message: ['Post not found'],
+                    data: {}
+                });
+            }
+
+            let url = '';
+            if (queryStr) {
+                url = `${slug}/${post.customUrl || post.url}?${queryStr}`
+            } else {
+                url = `${slug}/${post.customUrl || post.url}`
+            }
+
+            return res.json({
+                status: HttpCode.SUCCESS,
+                message: ['Success'],
+                data: {
+                    url
+                }
+            });
+        }
+
+        if (isValidSlugCategorySearch(slug)) {
+            let cat = await UrlParamModel.findOne({
+                $or: [
+                    {param},
+                    {customParam: param}
+                ]
+            });
+
+            if (!cat) {
+                return res.json({
+                    status: HttpCode.ERROR,
+                    message: ['Category not found'],
+                    data: {}
+                });
+            }
+
+            let url = '';
+            if (queryStr) {
+                url = `${slug}/${cat.customParam || cat.param}?${queryStr}`
+            } else {
+                url = `${slug}/${cat.customParam || cat.param}`
+            }
+
+            return res.json({
+                status: HttpCode.SUCCESS,
+                message: ['Success'],
+                data: {
+                    url
+                }
+            });
+        }
+
+        if (isValidSlugTag(slug)) {
+            const tag = await TagModel.findOne({
+                $or: [
+                    {slug: param},
+                    {customSlug: param}
+                ]
+            });
+
+            if (!tag) {
+                return res.json({
+                    status: HttpCode.ERROR,
+                    message: ['Tag not found'],
+                    data: {}
+                });
+            }
+
+            let url = '';
+            if (queryStr) {
+                url = `${slug}/${tag.customSlug || tag.slug}?${queryStr}`
+            } else {
+                url = `${slug}/${tag.customSlug || tag.slug}`
+            }
+
+            return res.json({
+                status: HttpCode.SUCCESS,
+                message: ['Success'],
+                data: {
+                    url
+                }
+            });
+        }
+
+        logger.error('SearchController::getUrlToRedirect:error. Invalid url. Not match case slug', url);
+        return next(new Error('Invalid url. Not match case slug: ' + url));
+    } catch (e) {
+        logger.error('SearchController::getUrlToRedirect:error', e);
+        return next(e);
+    }
+};
+
+module.exports = {
+    filter,
+    search,
+    getUrlToRedirect
+};
