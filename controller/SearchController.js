@@ -91,6 +91,8 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
     query._id = {$ne: post._id};
 
     let related = await PostModel.find(query).limit(10);
+    let relatedCates = [];
+    let relatedTags = [];
 
     if (slug === global.SLUG_NEWS) {
         if (post.postType !== global.POST_TYPE_NEWS) {
@@ -133,6 +135,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             return next(new Error('Slug and post.postType not match case SLUG_SELL_OR_BUY'));
         }
 
+        // TODO: get relatedCates
         if (post.postType === global.POST_TYPE_BUY) {
             let buy = await BuyModel.findOne({
                 _id: post.contentId
@@ -174,10 +177,12 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             textEndPage: post.textEndPage
         },
         isList: false,
-        related: related,
+        related,
+        relatedCates,
+        relatedTags,
         params: query,
         data: data,
-        message: 'request success'
+        message: 'Success'
     });
 };
 
@@ -243,6 +248,8 @@ const handleSearchCaseCategory = async (res, param, page) => {
 
     query.postType = cat.postType;
 
+    // TODO: get relatedCates, relatedTags
+
     return res.json({
         status: HttpCode.SUCCESS,
         type: cat.postType,
@@ -292,9 +299,9 @@ const filter = async (req, res, next) => {
 
         project = project ? project.value : null;
 
-        direction = (direction && (direction.value != "0")) ? direction.value : null;
+        direction = (direction && (direction.value !== '0')) ? direction.value : null;
 
-        bedroomCount = (bedroomCount && (bedroomCount.value != "0")) ? bedroomCount.value : null;
+        bedroomCount = (bedroomCount && (bedroomCount.value !== '0')) ? bedroomCount.value : null;
 
         areaMax = areaMax ? areaMax.value : null;
 
