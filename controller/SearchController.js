@@ -14,6 +14,7 @@ const HttpCode = require('../config/http-code');
 // service
 const TitleService = require("../services/TitleService");
 const StringService = require('../services/StringService');
+const UrlParamService = require('../services/UrlParamService');
 
 /**
  * Get model type by cat.postType
@@ -34,22 +35,43 @@ const getModelByCatPostType = (cat) => {
     }
 };
 
+/**
+ * Check slug is case SLUG SEARCH DETAIL POST or not
+ * @param slug
+ * @return {boolean}
+ */
 const isValidSlugSearch = (slug) => {
     return slug === global.SLUG_NEWS ||
         slug === global.SLUG_PROJECT ||
         slug === global.SLUG_SELL_OR_BUY;
 };
 
+/**
+ * Check slug is case SLUG CATEGORY or not
+ * @param slug
+ * @return {boolean}
+ */
 const isValidSlugCategorySearch = (slug) => {
     return slug === global.SLUG_CATEGORY_SELL_OR_BUY ||
         slug === global.SLUG_CATEGORY_NEWS ||
         slug === global.SLUG_CATEGORY_PROJECT;
 };
 
+/**
+ * Check slug is SLUG_TAG or not
+ * @param slug
+ * @return {boolean}
+ */
 const isValidSlugTag = (slug) => {
     return slug === global.SLUG_TAG;
 };
 
+/**
+ *
+ * @param catObj
+ * @param query reference OUTPUT
+ * @param additionalProperties
+ */
 const mapCategoryToQuery = (catObj, query, additionalProperties = []) => {
     if (!catObj) {
         return;
@@ -85,10 +107,15 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
     }
 
     let cat = await UrlParamModel.findOne({_id: post.params});
-    let query = {status: global.STATUS.ACTIVE};
-    mapCategoryToQuery(cat, query, ['postType']);
+    let query = {
+        status: global.STATUS.ACTIVE,
+        _id: {
+            $ne: post._id
+        }
+    };
 
-    query._id = {$ne: post._id};
+    // output is query
+    mapCategoryToQuery(cat, query, ['postType']);
 
     let related = await PostModel.find(query).limit(10);
     let relatedCates = [];
@@ -135,7 +162,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             return next(new Error('Slug and post.postType not match case SLUG_SELL_OR_BUY'));
         }
 
-        // TODO: get relatedCates
+        relatedCates = UrlParamService.getRelatedUrlParams(cat._id);
         if (post.postType === global.POST_TYPE_BUY) {
             let buy = await BuyModel.findOne({
                 _id: post.contentId
@@ -203,6 +230,8 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
 const handleSearchCaseCategory = async (res, param, page) => {
     const query = {status: global.STATUS.ACTIVE};
     let results = [];
+    let relatedCates = [];
+    let relatedTags = [];
     let count = 0;
     let cat = await UrlParamModel.findOne({
         $or: [
@@ -213,9 +242,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
 
     if (cat) {
         mapCategoryToQuery(cat, query);
-    }
 
-    if (cat) {
         // model maybe: SaleModel, BuyModel, ProjectModel, NewsModel
         const model = getModelByCatPostType(cat);
 
@@ -240,6 +267,9 @@ const handleSearchCaseCategory = async (res, param, page) => {
                     return Object.assign({}, post.toObject(), item.toObject(), {id: post._id});
             }
         }));
+
+        // get related urlParams (cats)
+        relatedCates = UrlParamService.getRelatedUrlParams(cat._id);
     }
     
     results = results.filter(function (el) {
@@ -248,7 +278,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
 
     query.postType = cat.postType;
 
-    // TODO: get relatedCates, relatedTags
+    // TODO: query relatedTags
 
     return res.json({
         status: HttpCode.SUCCESS,
@@ -272,7 +302,9 @@ const handleSearchCaseCategory = async (res, param, page) => {
             page: page,
             total: _.ceil(count / global.PAGE_SIZE)
         },
-        message: 'Success'
+        message: 'Success',
+        relatedCates,
+        relatedTags
     });
 };
 
@@ -286,37 +318,22 @@ const filter = async (req, res, next) => {
         } = req.body;
 
         formality = formality? formality.value : null;
-
         type = type ? type.value : null;
-
         city = city ? city.value: null;
-
         district = district ? district.value : null;
-
         ward = ward ? ward.value : null;
-
         street = street ? street.value : null;
-
         project = project ? project.value : null;
-
         direction = (direction && (direction.value !== '0')) ? direction.value : null;
-
         bedroomCount = (bedroomCount && (bedroomCount.value !== '0')) ? bedroomCount.value : null;
-
         areaMax = areaMax ? areaMax.value : null;
-
         areaMin = areaMin ? areaMin.value : null;
-
         area = area ? area.value : null;
-
         priceMax = priceMax ? priceMax.value : null;
-
         priceMin = priceMin ? priceMin.value : null;
-
         price = price ? price.value : null;
 
         const postType = TitleService.getPostType(formality);
-
         const query = {
             postType,
             formality,
@@ -328,17 +345,17 @@ const filter = async (req, res, next) => {
             project,
             direction,
             bedroomCount,
-            //Todo
+            // TODO: implement query by area, price
             // area,
             // price
         };
 
         let cat = await UrlParamModel.findOne(query);
 
-        if (cat){
+        if (cat) {
             return res.json({
                 status: HttpCode.SUCCESS,
-                //Todo return data list post
+                // TODO return data list post
                 data: {url: cat.param},
                 message: 'Success'
             });
@@ -349,7 +366,6 @@ const filter = async (req, res, next) => {
             TitleService.getLocationTitle(query) + ' ' +
             TitleService.getOrderTitle(query);
         url = urlSlug(url.trim());
-
         let countDuplicate = await UrlParamModel.countDocuments({param: url});
         if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
@@ -364,11 +380,12 @@ const filter = async (req, res, next) => {
             project,
             direction,
             bedroomCount,
-            //Todo
+            // TODO: create urlParam with area, price info
             // area,
             // price
             param: url,
         });
+
         await cat.save();
 
         return res.json({
@@ -405,7 +422,7 @@ const search = async (req, res, next) => {
             return next(new Error('Invalid url'));
         }
 
-        let slug = splitUrl[0];
+        let slug = splitUrl[0];``
         let param = splitUrl[1];
 
         if (!slug || slug.length === 0 || !param || param.length === 0) {
