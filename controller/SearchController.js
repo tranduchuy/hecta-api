@@ -269,7 +269,14 @@ const handleSearchCaseCategory = async (res, param, page) => {
         }));
 
         // get related urlParams (cats)
-        relatedCates = UrlParamService.getRelatedUrlParams(cat._id);
+        relatedCates = await UrlParamService.getRelatedUrlParams(cat._id);
+    } else {
+        logger.error('SearchController::handleSearchCaseCategory. Url not found with url: ' + param);
+        return res.json({
+            status: HttpCode.BAD_REQUEST,
+            message: 'Url not found',
+            data: {}
+        });
     }
     
     results = results.filter(function (el) {
@@ -422,7 +429,7 @@ const search = async (req, res, next) => {
             return next(new Error('Invalid url'));
         }
 
-        let slug = splitUrl[0];``
+        let slug = splitUrl[0];
         let param = splitUrl[1];
 
         if (!slug || slug.length === 0 || !param || param.length === 0) {

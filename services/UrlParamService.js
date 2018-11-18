@@ -1,11 +1,12 @@
 const log4js = require('log4js');
+const urlSlug = require('url-slug');
 const UrlParamModel = require('../models/UrlParamModel');
 const logger = log4js.getLogger('Services');
 const TitleService = require('../services/TitleService');
 const CityModel = require('../models/CityModel');
 const DistrictModel = require('../models/DistrictModel');
 
-const MIN_TARGETS = {
+const MIN_TARGETS_CONST = {
     CITY: 'CITY',
     DISTRICT: 'DISTRICT',
     WARD: 'WARD'
@@ -21,15 +22,15 @@ const detectMinTarget = (query) => {
     query = query || {};
 
     if (query['ward'] || query['district']) {
-        return MIN_TARGETS.WARD;
+        return MIN_TARGETS_CONST.WARD;
     }
 
     if (query['city']) {
-        return MIN_TARGETS.DISTRICT;
+        return MIN_TARGETS_CONST.DISTRICT;
     }
 
     if (query['type'] || query['formality']) {
-        return MIN_TARGETS.CITY;
+        return MIN_TARGETS_CONST.CITY;
     }
 
     return '';
@@ -59,16 +60,15 @@ const getQueryObjOfUrlParam = (urlParam) => {
  */
 const generateQueriesCaseCity = async (rootQuery) => {
     try {
-        const cities = CityModel.find({}).lean();
+        const cities = await CityModel.find({}).lean();
 
-        return cities.each(city => {
+        return cities.map(city => {
             return Object.assign({}, rootQuery, {city: city.code, district: null, ward: null});
-        })
+        });
     } catch (e) {
         logger.warn('UrlParamService::generateQueriesCaseCity::error', e);
+        return [];
     }
-
-    return [];
 };
 
 /**
@@ -145,11 +145,11 @@ const generateQueriesCaseWard = async (rootQuery) => {
  */
 const generateQueries = async (rootQuery, minTarget) => {
     switch (minTarget) {
-        case MIN_TARGETS.CITY:
+        case MIN_TARGETS_CONST.CITY:
             return await generateQueriesCaseCity(rootQuery);
-        case MIN_TARGETS.DISTRICT:
+        case MIN_TARGETS_CONST.DISTRICT:
             return await generateQueriesCaseDistrict(rootQuery);
-        case MIN_TARGETS.WARD:
+        case MIN_TARGETS_CONST.WARD:
             return await generateQueriesCaseWard(rootQuery);
         default:
             return [];
@@ -169,9 +169,36 @@ const findOrCreateUrlParamByQuery = async (queries) => {
             return urlParam;
         }
 
-        // TODO: confirm with Long about field param when create new urlParam
+        const postType = TitleService.getPostType(query.formality);
+        let url = TitleService.getTitle(query) + ' ' +
+            TitleService.getLocationTitle(query);
 
+        url = urlSlug(url.trim());
+        let countDuplicate = await UrlParamModel.countDocuments({param: url});
+        if (countDuplicate > 0) {
+            url += `-${countDuplicate}`;
+        }
 
+        const newUrlParam = new UrlParamModel({
+            formality: query.formality,
+            type: query.type || null,
+            status: 100, // TODO: just for debug, should be replaced by global.STATUS.ACTIVE
+            param: url,
+            customParam: '',
+            postType,
+            city: query.city || null,
+            district: query.district || null,
+            ward: query.ward || null,
+            street: null,
+            area: null,
+            price: null,
+            bedroomCount: null,
+            updatedBy: [],
+            project: null
+        });
+
+        await newUrlParam.save();
+        return newUrlParam;
     }));
 };
 
@@ -185,7 +212,7 @@ const findOrCreateUrlParamByQuery = async (queries) => {
  * @return Object[] <param, customParam, _id>[]
  */
 const getRelatedUrlParams = async (urlParamId, options) => {
-    logger.info(`UrlParamService::getRelatedUrlParams is called with id=${urlParamId}, query=${JSON.stringify(query)}`);
+    logger.info(`UrlParamService::getRelatedUrlParams is called with id=${urlParamId}`);
     try {
         options = options || {};
 
@@ -219,11 +246,14 @@ const getRelatedUrlParams = async (urlParamId, options) => {
         const urlParams = await findOrCreateUrlParamByQuery(queries);
 
         // Step 5:
-        const relatedUrlParams = urlParams.map(urlParam => {
+        const relatedUrlParams = urlParams
+            .filter(urlParam => urlParam._id.toString() !== urlParamId.toString())
+            .map(urlParam => {
             return {
                 _id: urlParam._id,
                 param: urlParam.param,
-                customParam: url.customParam
+                customParam: urlParam.customParam,
+                status: urlParam.status
             }
         });
 
