@@ -331,7 +331,7 @@ const filter = async (req, res, next) => {
         let {
             formality, type, city, district, ward,
             street, project, direction, bedroomCount,
-            areaMax, areaMin, area, priceMax, priceMin, price
+            area, price
         } = req.body;
 
         formality = formality ? formality.value : null;
@@ -343,11 +343,7 @@ const filter = async (req, res, next) => {
         project = project ? project.value : null;
         direction = (direction && (direction.value !== '0')) ? direction.value : null;
         bedroomCount = (bedroomCount && (bedroomCount.value !== '0')) ? bedroomCount.value : null;
-        areaMax = areaMax ? areaMax.value : null;
-        areaMin = areaMin ? areaMin.value : null;
         area = area ? area.value : null;
-        priceMax = priceMax ? priceMax.value : null;
-        priceMin = priceMin ? priceMin.value : null;
         price = price ? price.value : null;
 
         const postType = TitleService.getPostType(formality);
@@ -362,9 +358,8 @@ const filter = async (req, res, next) => {
             project,
             direction,
             bedroomCount,
-            // TODO: implement query by area, price
-            // area,
-            // price
+            area,
+            price
         };
 
         let cat = await UrlParamModel.findOne(query);
@@ -377,12 +372,17 @@ const filter = async (req, res, next) => {
                 message: 'Success'
             });
         }
-
+    
         // Insert new param to UrlParams
-        let url = TitleService.getTitle(query) + ' ' +
-            TitleService.getLocationTitle(query) + ' ' +
-            TitleService.getOrderTitle(query);
-        url = urlSlug(url.trim());
+        let url = TitleService.getTitle(...query) + ' ' +
+            TitleService.getLocationTitle(...query);
+    
+        let orderSlug = TitleService.getOrderTitle(...query);
+        orderSlug = urlSlug(orderSlug.trim());
+        if (orderSlug != '')
+            url = urlSlug(url.trim()) + "/" + orderSlug;
+        else url = urlSlug(url.trim());
+        
         let countDuplicate = await UrlParamModel.countDocuments({param: url});
         if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
@@ -397,9 +397,8 @@ const filter = async (req, res, next) => {
             project,
             direction,
             bedroomCount,
-            // TODO: create urlParam with area, price info
-            // area,
-            // price
+            area,
+            price,
             param: url,
         });
 
