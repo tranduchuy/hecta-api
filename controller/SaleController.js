@@ -16,6 +16,8 @@ const NotifyTypes = require('../config/notify-type');
 const SocketEvents = require('../config/socket-event');
 const HTTP_CODE = require('../config/http-code');
 const ImageService = require('../services/ImageService');
+const selector = require("../config/selector");
+const postService = require("../services/PostService");
 
 const checkUserPayment = async (user, post, price) => {
     if (!user) {
@@ -178,8 +180,12 @@ const SaleController = {
             sale.ward = ward;
             sale.street = street;
             sale.project = project;
-            sale.area = area;
-            sale.price = price;
+            
+            sale.areaData = area;
+            sale.priceData = price;
+            sale.area = postService.getValueAreaRange(area);
+            sale.price = postService.getValuePriceRange(price);
+            
             sale.unit = unit;
             sale.address = address;
 
@@ -228,68 +234,12 @@ const SaleController = {
                 post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             }
 
-            let param = await UrlParamModel.findOne({
-                postType: global.POST_TYPE_SALE,
-
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
-                balconyDirection: balconyDirection,
-                bedroomCount: bedroomCount,
-                area: area,
-                price: price,
-                areaMax: undefined,
-                areaMin: undefined,
-                priceMax: undefined,
-                priceMin: undefined,
-                extra: undefined,
-                text: undefined
-            });
-
-
-            if (!param) {
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_SALE,
-
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    param: 'bds-' + Date.now(),
-                    street: street,
-                    project: project,
-                    balconyDirection: balconyDirection,
-                    bedroomCount: bedroomCount,
-                    area: area,
-                    price: price,
-                    areaMax: undefined,
-                    areaMin: undefined,
-                    priceMax: undefined,
-                    priceMin: undefined,
-                    extra: undefined,
-                    text: undefined
-                });
-
-                param = await param.save();
-
-            }
             var url = urlSlug(title);
-
-            var count = await PostModel.find({url: new RegExp("^" + url)});
-
-            if (count > 0) {
-                url += ('-' + count);
-            }
+            let countDuplicate = await PostModel.countDocuments({url: url});
+            if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
             post.url = url;
-            post.params = param._id;
-
-
+            
             if (keywordList && keywordList.length > 0) {
                 for (var i = 0; i < keywordList.length; i++) {
                     var key = keywordList[i];
@@ -308,7 +258,6 @@ const SaleController = {
                             keyword: key,
                         });
                         tag = await tag.save();
-
                     }
                     post.tags.push(tag._id);
                 }
@@ -524,10 +473,17 @@ const SaleController = {
 
             var from = req.body.from;
             var to = req.body.to;
-
-
-            if (title) {
+    
+    
+            if (title && (sale.title != title)) {
                 sale.title = title;
+        
+                var url = urlSlug(title);
+        
+                let countDuplicate = await PostModel.countDocuments({url: url});
+                if (countDuplicate > 0) url = url + "-" + countDuplicate;
+        
+                post.url = url;
             }
 
             if (formality) {
@@ -552,10 +508,12 @@ const SaleController = {
                 sale.project = project;
             }
             if (area) {
-                sale.area = area;
+                sale.areaData = area;
+                sale.area = postService.getValueAreaRange(area);
             }
             if (price) {
-                sale.price = price;
+                sale.priceData = price;
+                sale.price = postService.getValuePriceRange(price);
             }
             if (unit) {
                 sale.unit = unit;
@@ -622,72 +580,6 @@ const SaleController = {
 
             sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             sale = await sale.save();
-
-
-            let param = await UrlParamModel.findOne({
-                postType: global.POST_TYPE_SALE,
-
-                formality: sale.formality,
-                type: sale.type,
-                city: sale.city,
-                district: sale.district,
-                ward: sale.ward,
-                street: sale.street,
-                project: sale.project,
-                balconyDirection: sale.balconyDirection,
-                bedroomCount: sale.bedroomCount,
-                area: sale.area,
-                price: sale.price,
-                areaMax: undefined,
-                areaMin: undefined,
-                priceMax: undefined,
-                priceMin: undefined,
-                extra: undefined,
-                text: undefined
-            });
-
-
-            if (!param) {
-
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_SALE,
-                    formality: sale.formality,
-                    type: sale.type,
-                    city: sale.city,
-                    param: 'bds-' + Date.now(),
-                    district: sale.district,
-                    ward: sale.ward,
-                    street: sale.street,
-                    project: sale.project,
-                    balconyDirection: sale.balconyDirection,
-                    bedroomCount: sale.bedroomCount,
-                    area: sale.area,
-                    price: sale.price,
-                    areaMax: undefined,
-                    areaMin: undefined,
-                    priceMax: undefined,
-                    priceMin: undefined,
-                    extra: undefined,
-                    text: undefined
-                });
-
-                param = await param.save();
-
-            }
-
-            if (title) {
-                var url = urlSlug(title);
-
-                var count = await PostModel.find({url: new RegExp("^" + url)});
-
-                if (count > 0) {
-                    url += ('-' + count);
-                }
-
-                post.url = url;
-            }
-
-            post.params = param._id;
 
             post.type = sale.type;
             post.priority = sale.priority;

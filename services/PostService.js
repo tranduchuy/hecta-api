@@ -6,6 +6,18 @@ const moment = require('moment');
  * @param req
  * @returns {Array}
  */
+
+const getValueAreaRange = (areaData) => {
+    
+    //Todo: getValueAreaRange
+    return null;
+}
+
+const getValuePriceRange = (priceData) => {
+    
+    //Todo: getValuePriceRange
+    return null;
+}
 const generateStageQueryPostNews = (req) => {
     const {
         createdByType, status, id, from, to, title,
@@ -382,5 +394,7 @@ module.exports = {
     generateStageQueryPostProject,
     generateStageQueryPostBuy,
     generateStageQueryPostSale,
-    generateStageQueryPost
+    generateStageQueryPost,
+    getValueAreaRange,
+    getValuePriceRange
 };

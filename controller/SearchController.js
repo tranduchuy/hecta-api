@@ -297,15 +297,7 @@ const SearchController = {
     
             bedroomCount = (bedroomCount && (bedroomCount.value != "0")) ? bedroomCount.value : null;
     
-            areaMax = areaMax ? areaMax.value : null;
-    
-            areaMin = areaMin ? areaMin.value : null;
-    
             area = area ? area.value : null;
-    
-            priceMax = priceMax ? priceMax.value : null;
-    
-            priceMin = priceMin ? priceMin.value : null;
     
             price = price ? price.value : null;
     
@@ -322,9 +314,8 @@ const SearchController = {
                 project,
                 direction,
                 bedroomCount,
-                //Todo
-                // area,
-                // price
+                area,
+                price
             };
 
             let cat = await UrlParamModel.findOne(query);
@@ -339,10 +330,14 @@ const SearchController = {
             }
     
             // Insert new param to UrlParams
-            let url = TitleService.getTitle(query) + ' ' +
-                        TitleService.getLocationTitle(query) + ' ' +
-                        TitleService.getOrderTitle(query);
-            url = urlSlug(url.trim());
+            let url = TitleService.getTitle(...query) + ' ' +
+                        TitleService.getLocationTitle(...query);
+                        
+            let orderSlug = TitleService.getOrderTitle(...query);
+            orderSlug = urlSlug(orderSlug.trim());
+            if (orderSlug != '')
+                url = urlSlug(url.trim()) + "/" + orderSlug;
+            else url = urlSlug(url.trim());
             
             let countDuplicate = await UrlParamModel.countDocuments({param: url});
             if (countDuplicate > 0) url = url + "-" + countDuplicate;
@@ -358,9 +353,8 @@ const SearchController = {
                 project,
                 direction,
                 bedroomCount,
-                //Todo
-                // area,
-                // price
+                area,
+                price,
                 param: url,
             });
             await cat.save();

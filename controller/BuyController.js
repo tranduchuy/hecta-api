@@ -14,7 +14,7 @@ const BuyController = {
         const {
             title, description, keywordList, formality,
             type, city, district, ward, street, project,
-            areaMin, areaMax, priceMin, priceMax, unit,
+            area, price, unit,
             address, images, contactName, contactAddress,
             contactPhone, contactMobile, contactEmail,
             receiveMail, from, to, createdByType
@@ -138,10 +138,8 @@ const BuyController = {
             buy.ward = ward;
             buy.street = street;
             buy.project = project;
-            buy.areaMin = areaMin;
-            buy.areaMax = areaMax;
-            buy.priceMin = priceMin;
-            buy.priceMax = priceMax;
+            buy.area = (area && (area > 0)) ? area : null;
+            buy.price = (price && (price > 0)) ? price : null;
             buy.unit = unit;
             buy.address = address;
             
@@ -163,67 +161,16 @@ const BuyController = {
             
             buy = await buy.save();
             
-            let param = await UrlParamModel.findOne({
-                postType: global.POST_TYPE_BUY,
-                formality: formality,
-                type: type,
-                city: city,
-                district: district,
-                ward: ward,
-                street: street,
-                project: project,
-                balconyDirection: undefined,
-                bedroomCount: undefined,
-                area: undefined,
-                price: undefined,
-                areaMax: areaMax,
-                areaMin: areaMin,
-                priceMax: priceMax,
-                priceMin: priceMin,
-                extra: undefined,
-                text: undefined
-            });
-            
-            if (!param) {
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_BUY,
-                    param: 'bds-' + Date.now(),
-                    formality: formality,
-                    type: type,
-                    city: city,
-                    district: district,
-                    ward: ward,
-                    street: street,
-                    project: project,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    area: undefined,
-                    price: undefined,
-                    areaMax: areaMax,
-                    areaMin: areaMin,
-                    priceMax: priceMax,
-                    priceMin: priceMin,
-                    extra: undefined,
-                    text: undefined
-                });
-                param = await param.save();
-                
-            }
-            
             var url = urlSlug(title);
-            var count = await PostModel.find({url: new RegExp("^" + url)});
             
-            if (count > 0) {
-                url += ('-' + count);
-            }
+            let countDuplicate = await PostModel.countDocuments({url: url});
+            if (countDuplicate > 0) url = url + "-" + countDuplicate;
             
             post.url = url;
-            post.params = param._id;
             post.postType = global.POST_TYPE_BUY;
             post.formality = buy.formality;
             post.type = buy.type;
             post.contentId = new mongoose.Types.ObjectId(buy._id);
-            // post.priority = priority.priority;
             post.from = from;
             post.to = to;
             if (createdByType) {
@@ -343,16 +290,13 @@ const BuyController = {
             var ward = req.body.ward;
             var street = req.body.street;
             var project = req.body.project;
-            var areaMin = req.body.areaMin;
-            var areaMax = req.body.areaMax;
-            var priceMin = req.body.priceMin;
-            var priceMax = req.body.priceMax;
+            var area = req.body.area;
+            var price = req.body.price;
             var unit = req.body.unit;
             
             var address = req.body.address;
             
             var images = req.body.images;
-            ImageService.putUpdateImage(buy.images, images);
             
             var contactName = req.body.contactName;
             var contactAddress = req.body.contactAddress;
@@ -365,12 +309,17 @@ const BuyController = {
             var from = req.body.from;
             var to = req.body.to;
             
-            // var priority = req.body.priority;
-            
-            
-            if (title) {
+            if (title && (buy.title != title)) {
                 buy.title = title;
+                
+                var url = urlSlug(title);
+    
+                let countDuplicate = await PostModel.countDocuments({url: url});
+                if (countDuplicate > 0) url = url + "-" + countDuplicate;
+                
+                post.url = url;
             }
+            
             if (description) {
                 buy.description = description;
             }
@@ -400,17 +349,12 @@ const BuyController = {
             if (project) {
                 buy.project = project;
             }
-            if (areaMin) {
-                buy.areaMin = areaMin;
+            if (area) {
+                
+                buy.area = (area > 0) ? area : null;
             }
-            if (areaMax) {
-                buy.areaMax = areaMax;
-            }
-            if (priceMin) {
-                buy.priceMin = priceMin;
-            }
-            if (priceMax) {
-                buy.priceMax = priceMax;
+            if (price) {
+                buy.price = (price > 0) ? price : null;
             }
             if (unit) {
                 buy.unit = unit;
@@ -420,6 +364,7 @@ const BuyController = {
                 buy.address = address;
             }
             if (images) {
+                ImageService.putUpdateImage(buy.images, images);
                 buy.images = images;
             }
             
@@ -450,70 +395,6 @@ const BuyController = {
             buy.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
             buy = await buy.save();
             
-            
-            let param = await UrlParamModel.findOne({
-                postType: global.POST_TYPE_BUY,
-                
-                formality: buy.formality,
-                type: buy.type,
-                city: buy.city,
-                district: buy.district,
-                ward: buy.ward,
-                street: buy.street,
-                project: buy.project,
-                balconyDirection: undefined,
-                bedroomCount: undefined,
-                area: undefined,
-                price: undefined,
-                areaMax: buy.areaMax,
-                areaMin: buy.areaMin,
-                priceMax: buy.priceMax,
-                priceMin: buy.priceMin,
-                extra: undefined,
-                text: undefined
-            });
-            
-            if (!param) {
-                
-                param = new UrlParamModel({
-                    postType: global.POST_TYPE_BUY,
-                    
-                    formality: buy.formality,
-                    type: buy.type,
-                    city: buy.city,
-                    district: buy.district,
-                    ward: buy.ward,
-                    param: 'bds-' + Date.now(),
-                    street: buy.street,
-                    project: buy.project,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    area: undefined,
-                    price: undefined,
-                    areaMax: buy.areaMax,
-                    areaMin: buy.areaMin,
-                    priceMax: buy.priceMax,
-                    priceMin: buy.priceMin,
-                    extra: undefined,
-                    text: undefined
-                });
-                param = await param.save();
-                
-            }
-            
-            if (title) {
-                var url = urlSlug(title);
-                
-                var count = await PostModel.find({url: new RegExp("^" + url)});
-                
-                if (count > 0) {
-                    url += ('-' + count);
-                }
-                
-                post.url = url;
-            }
-            post.params = param._id;
-            
             post.formality = buy.formality;
             post.type = buy.type;
             
@@ -534,14 +415,7 @@ const BuyController = {
                 post.status = status;
             }
             
-            // if (priority) {
-            //     post.priority = priority;
-            //     post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-            //     post.status = global.STATUS.PAYMENT_UNPAID;
-            // }
-            
             post.tags = [];
-            
             
             if (keywordList && keywordList.length > 0) {
                 for (var i = 0; i < keywordList.length; i++) {

@@ -53,21 +53,21 @@ const getLocationTitle = (data) => {
         if (city && data.district) {
             const district = getDistrictByValue(city, data.district);
             if (district)
-            locationTitle = (`${district.pre || ''} ${district.name}, ${locationTitle}`).trim();
-    
+                locationTitle = (`${district.pre || ''} ${district.name}, ${locationTitle}`).trim();
+            
             if (district) {
                 if (data.project) {
                     const project = getProjectByValue(district, data.project);
                     if (project)
                         return locationTitle = project.name + ', ' + locationTitle;
                 }
-    
+                
                 if (data.ward) {
                     const ward = getWardByValue(district, data.ward);
                     if (ward)
                         locationTitle = (`${ward.pre || ''} ${ward.name}, ${locationTitle}`).trim();
                 }
-    
+                
                 if (data.street) {
                     const street = getStreetByValue(district, data.street);
                     if (street)
@@ -84,14 +84,33 @@ const getLocationTitle = (data) => {
 const getOrderTitle = (data) => {
     
     let orderTitle = '';
+    // '30-50m2-1-2-ty-2-phong-ngu-huong-dong-nam'
+    
+    if (data.area) {
+        const area = getAreaByValue(area);
+        if (area)
+            orderTitle = orderTitle + " " + area.text;
+    }
+    
+    if (data.price) {
+        let formality = getFormilitySaleByValue(data.formality);
+        if (!formality)
+            formality = getFormilityBuyByValue(data.formality);
+        
+        if (formality) {
+            const price = getPriceByValue(data.price, formality);
+            if (price)
+                orderTitle = orderTitle + " " + price.text;
+        }
+    }
     
     if (data.bedroomCount)
-        orderTitle = data.bedroomCount;
-        
-    if (data.direction){
+        orderTitle = orderTitle + " " + data.bedroomCount + " phong ngu";
+    
+    if (data.direction) {
         const direction = getDirectionsByValue(data.direction);
         if (direction)
-            orderTitle = orderTitle + " " + direction.name.toString();
+            orderTitle = orderTitle + " huong " + direction.name.toString();
     }
     
     return orderTitle.trim();
@@ -104,6 +123,30 @@ const getDirectionsByValue = (value) => {
     
     return selector.directionList.find(d => {
         return d.value.toString() === value.toString();
+    });
+}
+
+const getPriceByValue = (value, prices) => {
+    if (this.isUndefinedOrNull(value) || (value < 0)) {
+        return null;
+    }
+    
+    if (value < 0) return null;
+    
+    return prices.find(d => {
+        return d.value === value;
+    });
+}
+
+const getAreaByValue = (value) => {
+    if (this.isUndefinedOrNull(value)) {
+        return null;
+    }
+    
+    if (value < 0) return null;
+    
+    return AreaList.find(d => {
+        return d.value === value;
     });
 }
 
