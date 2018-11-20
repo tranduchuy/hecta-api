@@ -91,9 +91,9 @@ const getOrderTitle = (data) => {
     }
     
     if (data.price) {
-        let formality = getFormilitySaleByValue(data.formality);
+        let formality = getFormalitySaleByValue(data.formality);
         if (!formality)
-            formality = getFormilityBuyByValue(data.formality);
+            formality = getFormalityBuyByValue(data.formality);
         
         if (formality) {
             const price = getPriceByValue(data.price, formality);

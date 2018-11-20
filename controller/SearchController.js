@@ -381,10 +381,10 @@ const filter = async (req, res, next) => {
         }
     
         // Insert new param to UrlParams
-        let url = TitleService.getTitle(...query) + ' ' +
-            TitleService.getLocationTitle(...query);
+        let url = TitleService.getTitle(query) + ' ' +
+            TitleService.getLocationTitle(query);
     
-        let orderSlug = TitleService.getOrderTitle(...query);
+        let orderSlug = TitleService.getOrderTitle(query);
         orderSlug = urlSlug(orderSlug.trim());
         if (orderSlug != '')
             url = urlSlug(url.trim()) + "/" + orderSlug;
@@ -440,13 +440,15 @@ const search = async (req, res, next) => {
 
         const splitUrl = url.trim().split('/');
 
-        if (!splitUrl || splitUrl.length !== 2) {
+        if (!splitUrl || splitUrl.length > 3) {
             logger.error('SearchController::search::error. Invalid url, splitUrl: ', splitUrl);
             return next(new Error('Invalid url'));
         }
 
         let slug = splitUrl[0];
         let param = splitUrl[1];
+        if (splitUrl.length === 3)
+            param = splitUrl[1] + "/" + splitUrl[2];
 
         if (!slug || slug.length === 0 || !param || param.length === 0) {
             logger.error('SearchController::search::error. Invalid url params, splitUrl: ', splitUrl);
