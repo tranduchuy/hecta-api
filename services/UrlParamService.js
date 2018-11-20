@@ -197,7 +197,7 @@ const findOrCreateUrlParamByQuery = async (queries) => {
         const newUrlParam = new UrlParamModel({
             formality: query.formality,
             type: query.type || null,
-            status: 100, // TODO: just for debug, should be replaced by global.STATUS.ACTIVE
+            status: global.STATUS.ACTIVE,
             param: url,
             customParam: '',
             postType,
