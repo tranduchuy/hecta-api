@@ -7,8 +7,10 @@ const SaleModel = require('../models/SaleModel');
 const BuyModel = require('../models/BuyModel');
 const PostModel = require('../models/PostModel');
 const TagModel = require('../models/TagModel');
+const UrlParamModel = require('../models/UrlParamModel');
 const HttpCode = require('../config/http-code');
 const logger = log4js.getLogger('Controllers');
+const UrlParamService = require('../services/UrlParamService');
 
 const highlight = async (req, res, next) => {
     logger.info('TagController::highlight is called');
@@ -68,6 +70,8 @@ const list = async (req, res, next) => {
 const query = async (req, res, next) => {
     logger.info('TagController::query is called');
     try {
+        let relatedCates = [];
+        let relatedTags = [];
         let {page, slug} = req.query;
 
         if (!slug) {
@@ -113,6 +117,8 @@ const query = async (req, res, next) => {
                     }
                 });
 
+                relatedTags = relatedTags.concat(keys);
+
                 return Object.assign({}, post, sale, {
                     postId: post._id,
                     url: post.url,
@@ -137,6 +143,17 @@ const query = async (req, res, next) => {
             }
         }));
 
+        if (results.length > 0) {
+            let i = 0;
+            let theFirstPost = results[i];
+            while (!await UrlParamModel.findOne({_id: theFirstPost.params}) && i < results.length - 1) {
+                i++;
+                theFirstPost = results[i];
+            }
+
+            relatedCates = await UrlParamService.getRelatedUrlParams(theFirstPost.params);
+        }
+
         const redirectUrl = tag.customSlug !== tag.slug ? tag.customSlug : null;
         return res.json({
             status: HttpCode.SUCCESS,
@@ -146,7 +163,9 @@ const query = async (req, res, next) => {
                 keyword: tag.keyword,
                 items: results,
                 page,
-                total: _.ceil(count / global.PAGE_SIZE)
+                total: _.ceil(count / global.PAGE_SIZE),
+                relatedCates,
+                relatedTags
             },
             message: 'Success'
         });

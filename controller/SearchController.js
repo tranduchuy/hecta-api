@@ -40,7 +40,7 @@ const getModelByCatPostType = (cat) => {
  * @param slug
  * @return {boolean}
  */
-const isValidSlugSearch = (slug) => {
+const isValidSlugDetail = (slug) => {
     return slug === global.SLUG_NEWS ||
         slug === global.SLUG_PROJECT ||
         slug === global.SLUG_SELL_OR_BUY;
@@ -153,7 +153,10 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             return next(new Error('Project not found'));
         }
 
-        Object.assign(data, project.toObject(), post.toObject(), {id: post._id, createdByType: post.createdByType || null});
+        Object.assign(data, project.toObject(), post.toObject(), {
+            id: post._id,
+            createdByType: post.createdByType || null
+        });
     }
 
     if (slug === global.SLUG_SELL_OR_BUY) {
@@ -222,9 +225,9 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
     });
 
     return Object.assign({},
-                        buyOrSale.toObject(),
-                        post.toObject(),
-                        {id: post._id, keywordList});
+        buyOrSale.toObject(),
+        post.toObject(),
+        {id: post._id, keywordList});
 };
 
 const handleSearchCaseCategory = async (res, param, page) => {
@@ -278,14 +281,21 @@ const handleSearchCaseCategory = async (res, param, page) => {
             data: {}
         });
     }
-    
+
     results = results.filter(function (el) {
         return el != null;
     });
 
     query.postType = cat.postType;
 
-    // TODO: query relatedTags
+    if (cat.postType === global.POST_TYPE_SALE || cat.postType === global.POST_TYPE_BUY) {
+        relatedTags = results
+            .map(r => r.keywordList)
+            .reduce((keywords, keywordList) => {
+                return keywords.concat(keywordList)
+            })
+            .slice(0, 20);
+    }
 
     return res.json({
         status: HttpCode.SUCCESS,
@@ -324,9 +334,9 @@ const filter = async (req, res, next) => {
             areaMax, areaMin, area, priceMax, priceMin, price
         } = req.body;
 
-        formality = formality? formality.value : null;
+        formality = formality ? formality.value : null;
         type = type ? type.value : null;
-        city = city ? city.value: null;
+        city = city ? city.value : null;
         district = district ? district.value : null;
         ward = ward ? ward.value : null;
         street = street ? street.value : null;
@@ -437,7 +447,7 @@ const search = async (req, res, next) => {
             return next(new Error('Invalid url params'));
         }
 
-        if (isValidSlugSearch(slug)) {
+        if (isValidSlugDetail(slug)) {
             return await handleSearchCaseNotCategory(res, param, slug, next);
         }
 
@@ -480,7 +490,7 @@ const getUrlToRedirect = async (req, res, next) => {
             return next(new Error('Invalid url params'));
         }
 
-        if (isValidSlugSearch(slug)) {
+        if (isValidSlugDetail(slug)) {
             let post = await PostModel.findOne({
                 status: global.STATUS.ACTIVE,
                 $or: [
