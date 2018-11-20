@@ -222,21 +222,14 @@ const findOrCreateUrlParamByQuery = async (queries) => {
  * Input: urlParamId
  * Output: <url, customUrl, _id>[]
  *
- * @param urlParamId string
+ * @param rootQuery object
  * @param options object
  * @return Object[] <param, customParam, _id>[]
  */
-const getRelatedUrlParams = async (urlParamId, options) => {
-    logger.info(`UrlParamService::getRelatedUrlParams is called with id=${urlParamId}`);
+const getRelatedUrlParams = async (rootQuery, options) => {
+    logger.info(`UrlParamService::getRelatedUrlParams is called with query object: ${JSON.stringify(rootQuery)}`);
     try {
         options = options || {};
-
-        const urlParam = await UrlParamModel.findOne({_id: urlParamId}).lean();
-        if (!urlParam) {
-            logger.warn('UrlParamService::getRelatedUrlParams. UrlParam not found by id: ' + urlParamId);
-            return [];
-        }
-
         /*
         * Note, steps:
         * 1. Get object query of urlParam
@@ -249,7 +242,7 @@ const getRelatedUrlParams = async (urlParamId, options) => {
         * */
 
         // Step 1: Get object query of urlParam
-        const rootQuery = getQueryObjOfUrlParam(urlParam);
+        // const rootQuery = getQueryObjOfUrlParam(urlParam);
 
         // Step 2: Detect min target to generate
         const minTarget = detectMinTarget(rootQuery);
@@ -262,7 +255,6 @@ const getRelatedUrlParams = async (urlParamId, options) => {
 
         // Step 5:
         const relatedUrlParams = urlParams
-            .filter(urlParam => urlParam._id !== urlParamId.toString())
             .map(urlParam => {
                 return {
                     _id: urlParam._id,
@@ -288,5 +280,6 @@ const getRelatedUrlParams = async (urlParamId, options) => {
 };
 
 module.exports = {
+    getQueryObjOfUrlParam,
     getRelatedUrlParams
 };

@@ -165,7 +165,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             return next(new Error('Slug and post.postType not match case SLUG_SELL_OR_BUY'));
         }
 
-        relatedCates = UrlParamService.getRelatedUrlParams(cat._id);
+
         if (post.postType === global.POST_TYPE_BUY) {
             let buy = await BuyModel.findOne({
                 _id: post.contentId
@@ -177,6 +177,9 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             }
 
             data = mapBuyOrSaleItemToResultCaseCategory(post, buy);
+
+            const rootQuery = UrlParamService.getQueryObjOfUrlParam(buy);
+            relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
         }
 
         if (post.postType === global.POST_TYPE_SALE) {
@@ -190,6 +193,9 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             }
 
             data = mapBuyOrSaleItemToResultCaseCategory(post, sale);
+
+            const rootQuery = UrlParamService.getQueryObjOfUrlParam(sale);
+            relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
         }
     }
 
@@ -272,7 +278,8 @@ const handleSearchCaseCategory = async (res, param, page) => {
         }));
 
         // get related urlParams (cats)
-        relatedCates = await UrlParamService.getRelatedUrlParams(cat._id);
+        const rootQuery = UrlParamService.getQueryObjOfUrlParam(cat);
+        relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
     } else {
         logger.error('SearchController::handleSearchCaseCategory. Url not found with url: ' + param);
         return res.json({
