@@ -295,7 +295,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
 
     query.postType = cat.postType;
 
-    if (cat.postType === global.POST_TYPE_SALE || cat.postType === global.POST_TYPE_BUY) {
+    if ((cat.postType === global.POST_TYPE_SALE || cat.postType === global.POST_TYPE_BUY) && (results.length > 0)) {
         relatedTags = results
             .map(r => r.keywordList)
             .reduce((keywords, keywordList) => {

@@ -85,7 +85,7 @@ const getOrderTitle = (data) => {
     // '30-50m2-1-2-ty-2-phong-ngu-huong-dong-nam'
     
     if (data.area) {
-        const area = getAreaByValue(area);
+        const area = getAreaByValue(data.area);
         if (area)
             orderTitle = orderTitle + " " + area.text;
     }
@@ -96,7 +96,7 @@ const getOrderTitle = (data) => {
             formality = getFormalityBuyByValue(data.formality);
         
         if (formality) {
-            const price = getPriceByValue(data.price, formality);
+            const price = getPriceByValue(data.price, formality.priceLevelValue);
             if (price)
                 orderTitle = orderTitle + " " + price.text;
         }
@@ -124,26 +124,26 @@ const getDirectionsByValue = (value) => {
     });
 };
 
-const getPriceByValue = (value, prices) => {
-    if (this.isUndefinedOrNull(value) || (value < 0)) {
+const getPriceByValue = (value, priceLevelValue) => {
+    if (isUndefinedOrNull(value) || (value < 0)) {
         return null;
     }
     
     if (value < 0) return null;
     
-    return prices.find(d => {
+    return priceLevelValue.find(d => {
         return d.value === value;
     });
 }
 
 const getAreaByValue = (value) => {
-    if (this.isUndefinedOrNull(value)) {
+    if (isUndefinedOrNull(value)) {
         return null;
     }
     
     if (value < 0) return null;
     
-    return selector.AreaList.find(d => {
+    return selector.areaListValue.find(d => {
         return d.value === value;
     });
 }

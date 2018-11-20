@@ -1,28 +1,28 @@
 const priceLevelValue = [
     [
-        {text: 'Thoả thuận', value: -1},
-        {text: '< 500 triệu', value: 1},
-        {text: '500 - 800 triệu', value: 2},
-        {text: '800 triệu - 1 tỷ', value: 3},
-        {text: '1 - 2 tỷ', value: 4},
-        {text: '2 - 3 tỷ', value: 5},
-        {text: '3 - 5 tỷ', value: 6},
-        {text: '5 - 7 tỷ', value: 7},
-        {text: '7 - 10 tỷ', value: 8},
-        {text: '10 - 20 tỷ', value: 9},
-        {text: '20 - 30 tỷ', value: 10},
-        {text: '> 30 tỷ', value: 11}
+        {value: -1, text: "Thỏa thuận", min: {value: null}, max: {value: null}},
+        {value: 1, text: "\u003c 500 triệu", min: {value: null}, max: {value: 5e8}},
+        {value: 2, text: "500 - 800 triệu", min: {value: 5e8}, max: {value: 8e8}},
+        {value: 3, text: "800 triệu - 1 tỷ", min: {value: 8e8}, max: {value: 1e9}},
+        {value: 4, text: "1 - 2 tỷ", min: {value: 1e9}, max: {value: 1e9}},
+        {value: 5, text: "2 - 3 tỷ", min: {value: 2e9}, max: {value: 3e9}},
+        {value: 6, text: "3 - 5 tỷ", min: {value: 3e9}, max: {value: 5e9}},
+        {value: 7, text: "5 - 7 tỷ", min: {value: 5e9}, max: {value: 7e9}},
+        {value: 8, text: "7 - 10 tỷ", min: {value: 7e9}, max: {value: 10e9}},
+        {value: 9, text: "10 - 20 tỷ", min: {value: 10e9}, max: {value: 20e9}},
+        {value: 10, text: "20 - 30 tỷ", min: {value: 20e9}, max: {value: 30e9}},
+        {value: 11, text: "\u003e 30 tỷ", min: {value: 30e9}, max: {value: null}}
     ],
     [
-        {text: 'Thỏa thuận', value: -1},
-        {value: 1, text: '\u003c 1 triệu'},
-        {value: 2, text: '1 - 3 triệu'},
-        {value: 3, text: '3 - 5 triệu'},
-        {value: 4, text: '5 - 10 triệu'},
-        {value: 5, text: '10 - 40 triệu'},
-        {value: 6, text: '40 - 70 triệu'},
-        {value: 7, text: '70 - 100 triệu'},
-        {value: 8, text: '\u003e 100 triệu'}
+        {value: -1, text: "Thỏa thuận", min: {value: null}, max: {value: null}},
+        {value: 1, text: "\u003c 1 triệu", min: {value: null}, max: {value: 1e6}},
+        {value: 2, text: "1 - 3 triệu", min: {value: 1e6}, max: {value: 3e6}},
+        {value: 3, text: "3 - 5 triệu", min: {value: 3e6}, max: {value: 5e6}},
+        {value: 4, text: "5 - 10 triệu", min: {value: 5e6}, max: {value: 10e6}},
+        {value: 5, text: "10 - 40 triệu", min: {value: 10e6}, max: {value: 40e6}},
+        {value: 6, text: "40 - 70 triệu", min: {value: 40e6}, max: {value: 70e6}},
+        {value: 7, text: "70 - 100 triệu", min: {value: 70e6}, max: {value: 100e6}},
+        {value: 8, text: "\u003e 100 triệu", min: {value: 100e6}, max: {value: null}}
     ]
 ];
 
@@ -172,58 +172,17 @@ module.exports.unitPriceList = [113.636, 47.272, 30, 14, 275, 1.2, 0];
 module.exports.unitPriceListNew = [168.181, 68.181, 50, 27.272, 454.545, 1.727, 0];
 
 module.exports.areaListValue = [
-    {value: -1, text: 'Chưa xác định'},
-    {value: 1, text: '\u003c 30 m2'},
-    {value: 2, text: '30 - 50 m2'},
-    {value: 3, text: '50 - 80 m2'},
-    {value: 4, text: '80 - 100 m2'},
-    {value: 5, text: '100 - 150 m2'},
-    {value: 6, text: '150 - 200 m2'},
-    {value: 7, text: '200 - 250 m2'},
-    {value: 8, text: '250 - 300 m2'},
-    {value: 9, text: '300 - 500 m2'},
-    {value: 10, text: '\u003e 500 m2'}];
-
-module.exports.priceLevel = [
-    [
-        {"Name": -1, "Value": "Thỏa thuận", min: {value: null}, max: {value: null}},
-        {"Name": 1, "Value": "\u003c 500 triệu", min: {value: null}, max: {value: 5e8}},
-        {"Name": 2, "Value": "500 - 800 triệu", min: {value: 5e8}, max: {value: 8e8}},
-        {"Name": 3, "Value": "800 triệu - 1 tỷ", min: {value: 8e8}, max: {value: 1e9}},
-        {"Name": 4, "Value": "1 - 2 tỷ", min: {value: 1e9}, max: {value: 1e9}},
-        {"Name": 5, "Value": "2 - 3 tỷ", min: {value: 2e9}, max: {value: 3e9}},
-        {"Name": 6, "Value": "3 - 5 tỷ", min: {value: 3e9}, max: {value: 5e9}},
-        {"Name": 7, "Value": "5 - 7 tỷ", min: {value: 5e9}, max: {value: 7e9}},
-        {"Name": 8, "Value": "7 - 10 tỷ", min: {value: 7e9}, max: {value: 10e9}},
-        {"Name": 9, "Value": "10 - 20 tỷ", min: {value: 10e9}, max: {value: 20e9}},
-        {"Name": 10, "Value": "20 - 30 tỷ", min: {value: 20e9}, max: {value: 30e9}},
-        {"Name": 11, "Value": "\u003e 30 tỷ", min: {value: 30e9}, max: {value: null}}
-    ],
-    [
-        {"Name": -1, "Value": "Thỏa thuận", min: {value: null}, max: {value: null}},
-        {"Name": 1, "Value": "\u003c 1 triệu", min: {value: null}, max: {value: 1e6}},
-        {"Name": 2, "Value": "1 - 3 triệu", min: {value: 1e6}, max: {value: 3e6}},
-        {"Name": 3, "Value": "3 - 5 triệu", min: {value: 3e6}, max: {value: 5e6}},
-        {"Name": 4, "Value": "5 - 10 triệu", min: {value: 5e6}, max: {value: 10e6}},
-        {"Name": 5, "Value": "10 - 40 triệu", min: {value: 10e6}, max: {value: 40e6}},
-        {"Name": 6, "Value": "40 - 70 triệu", min: {value: 40e6}, max: {value: 70e6}},
-        {"Name": 7, "Value": "70 - 100 triệu", min: {value: 70e6}, max: {value: 100e6}},
-        {"Name": 8, "Value": "\u003e 100 triệu", min: {value: 100e6}, max: {value: null}}
-    ]
-];
-
-module.exports.areaList = [
-    {"Name": -1, "Value": "Chưa xác định", min: {value: null}, max: {value: null}},
-    {"Name": 1, "Value": "\u003c 30 m2", min: {value: null}, max: {value: 30}},
-    {"Name": 2, "Value": "30 - 50 m2", min: {value: 30}, max: {value: 50}},
-    {"Name": 3, "Value": "50 - 80 m2", min: {value: 50}, max: {value: 80}},
-    {"Name": 4, "Value": "80 - 100 m2", min: {value: 80}, max: {value: 100}},
-    {"Name": 5, "Value": "100 - 150 m2", min: {value: 100}, max: {value: 150}},
-    {"Name": 6, "Value": "150 - 200 m2", min: {value: 150}, max: {value: 200}},
-    {"Name": 7, "Value": "200 - 250 m2", min: {value: 200}, max: {value: 250}},
-    {"Name": 8, "Value": "250 - 300 m2", min: {value: 250}, max: {value: 300}},
-    {"Name": 9, "Value": "300 - 500 m2", min: {value: 300}, max: {value: 500}},
-    {"Name": 11, "Value": "\u003e 500 m2", min: {value: 500}, max: {value: null}}
+    {value: -1, text: "Chưa xác định", min: {value: null}, max: {value: null}},
+    {value: 1, text: "\u003c 30 m2", min: {value: null}, max: {value: 30}},
+    {value: 2, text: "30 - 50 m2", min: {value: 30}, max: {value: 50}},
+    {value: 3, text: "50 - 80 m2", min: {value: 50}, max: {value: 80}},
+    {value: 4, text: "80 - 100 m2", min: {value: 80}, max: {value: 100}},
+    {value: 5, text: "100 - 150 m2", min: {value: 100}, max: {value: 150}},
+    {value: 6, text: "150 - 200 m2", min: {value: 150}, max: {value: 200}},
+    {value: 7, text: "200 - 250 m2", min: {value: 200}, max: {value: 250}},
+    {value: 8, text: "250 - 300 m2", min: {value: 250}, max: {value: 300}},
+    {value: 9, text: "300 - 500 m2", min: {value: 300}, max: {value: 500}},
+    {value: 10, text: "\u003e 500 m2", min: {value: 500}, max: {value: null}}
 ];
 
 module.exports.cityListOTher1 = require('./selector.json');
