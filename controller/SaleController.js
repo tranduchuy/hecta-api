@@ -184,7 +184,7 @@ const SaleController = {
             sale.areaData = area;
             sale.priceData = price;
             sale.area = postService.getValueAreaRange(area);
-            sale.price = postService.getValuePriceRange(price);
+            sale.price = postService.getValuePriceRange(price, formality);
             
             sale.unit = unit;
             sale.address = address;
@@ -513,7 +513,7 @@ const SaleController = {
             }
             if (price) {
                 sale.priceData = price;
-                sale.price = postService.getValuePriceRange(price);
+                sale.price = postService.getValuePriceRange(price, formality);
             }
             if (unit) {
                 sale.unit = unit;

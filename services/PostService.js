@@ -13,7 +13,7 @@ const getValueAreaRange = (areaData) => {
     return null;
 }
 
-const getValuePriceRange = (priceData) => {
+const getValuePriceRange = (priceData, formality) => {
     
     //Todo: getValuePriceRange
     return null;

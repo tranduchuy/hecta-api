@@ -143,7 +143,7 @@ const getAreaByValue = (value) => {
     
     if (value < 0) return null;
     
-    return AreaList.find(d => {
+    return selector.AreaList.find(d => {
         return d.value === value;
     });
 }
