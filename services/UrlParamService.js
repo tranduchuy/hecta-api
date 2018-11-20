@@ -63,7 +63,12 @@ const generateQueriesCaseCity = async (rootQuery) => {
         const cities = await CityModel.find({}).lean();
 
         return cities.map(city => {
-            return Object.assign({}, rootQuery, {city: city.code, district: null, ward: null});
+            return Object.assign({}, rootQuery, {
+                city: city.code,
+                district: null,
+                ward: null,
+                textLink: city.name
+            });
         });
     } catch (e) {
         logger.warn('UrlParamService::generateQueriesCaseCity::error', e);
@@ -92,7 +97,11 @@ const generateQueriesCaseDistrict = async (rootQuery) => {
             .lean();
 
         return districts.map(d => {
-           return Object.assign({}, rootQuery, {district: d.id, ward: null});
+            return Object.assign({}, rootQuery, {
+                district: d.id,
+                ward: null,
+                textLink: `${d.pre} ${d.name}`.trim()
+            });
         });
     } catch (e) {
         logger.warn('UrlParamService::generateQueriesCaseDistrict::error', e);
@@ -128,7 +137,10 @@ const generateQueriesCaseWard = async (rootQuery) => {
         }
 
         return district.wards.map(w => {
-            return Object.assign({}, rootQuery, {ward: w.id});
+            return Object.assign({}, rootQuery, {
+                ward: w.id,
+                textLink: `${w.pre} ${w.name}`.trim()
+            });
         });
     } catch (e) {
         logger.warn('UrlParamService::generateQueriesCaseWard::error', e);
@@ -163,10 +175,13 @@ const generateQueries = async (rootQuery, minTarget) => {
  */
 const findOrCreateUrlParamByQuery = async (queries) => {
     return await Promise.all(queries.map(async (query) => {
+        const saveTextLink = query.textLink;
+        delete query.textLink;
+
         const urlParam = await UrlParamModel.findOne(query).lean();
 
         if (urlParam) {
-            return urlParam;
+            return Object.assign({textLink: saveTextLink}, urlParam);
         }
 
         const postType = TitleService.getPostType(query.formality);
@@ -198,7 +213,7 @@ const findOrCreateUrlParamByQuery = async (queries) => {
         });
 
         await newUrlParam.save();
-        return newUrlParam;
+        return Object.assign({textLink: saveTextLink}, JSON.parse(JSON.stringify(newUrlParam)));
     }));
 };
 
@@ -247,18 +262,24 @@ const getRelatedUrlParams = async (urlParamId, options) => {
 
         // Step 5:
         const relatedUrlParams = urlParams
-            .filter(urlParam => urlParam._id.toString() !== urlParamId.toString())
+            .filter(urlParam => urlParam._id !== urlParamId.toString())
             .map(urlParam => {
-            return {
-                _id: urlParam._id,
-                param: urlParam.param,
-                customParam: urlParam.customParam,
-                status: urlParam.status
-            }
+                return {
+                    _id: urlParam._id,
+                    param: urlParam.param,
+                    customParam: urlParam.customParam,
+                    textLink: urlParam.textLink
+                }
+            });
+
+        relatedUrlParams.sort(function (a, b) {
+            const textA = a.textLink.toUpperCase();
+            const textB = b.textLink.toUpperCase();
+            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
         });
 
         logger.info('UrlParamService::getRelatedUrlParams::success. Related urlParams length: ' + relatedUrlParams.length);
-        return relatedUrlParams;
+        return relatedUrlParams.slice(0, 20);
 
     } catch (e) {
         logger.error('UrlParamService::getRelatedUrlParams::error', e);
