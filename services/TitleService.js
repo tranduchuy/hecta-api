@@ -1,33 +1,33 @@
-const selector = require("../config/selector");
+const selector = require('../config/selector.js');
+const CityList = require('../config/selector.json');
 
 const getPostType = (data) => {
     let postType = POST_TYPE_SALE;
     
     if (data) {
         
-        let formality = getFormilitySaleByValue(data);
+        let formality = getFormalitySaleByValue(data);
         if (formality)
             postType = POST_TYPE_SALE;
         else {
-            formality = getFormilityBuyByValue(data);
+            formality = getFormalityBuyByValue(data);
             if (formality)
                 postType = POST_TYPE_BUY;
         }
     }
     
     return postType;
-}
+};
 
 const getTitle = (data) => {
     let title = '';
     
     if (data.formality) {
-        
-        let formality = getFormilitySaleByValue(data.formality);
+        let formality = getFormalitySaleByValue(data.formality);
         if (formality)
             title = formality.name;
         else {
-            formality = getFormilityBuyByValue(data.formality);
+            formality = getFormalityBuyByValue(data.formality);
             if (formality)
                 title = formality.name;
         }
@@ -38,10 +38,8 @@ const getTitle = (data) => {
         }
     }
     
-    if (title == '') title = 'Bất Động Sản';
-    
-    return title;
-}
+    return title || 'Bất Động Sản';
+};
 
 const getLocationTitle = (data) => {
     let locationTitle = '';
@@ -79,7 +77,7 @@ const getLocationTitle = (data) => {
     }
     
     return locationTitle;
-}
+};
 
 const getOrderTitle = (data) => {
     
@@ -114,7 +112,7 @@ const getOrderTitle = (data) => {
     }
     
     return orderTitle.trim();
-}
+};
 
 const getDirectionsByValue = (value) => {
     if (isUndefinedOrNull(value)) {
@@ -124,7 +122,7 @@ const getDirectionsByValue = (value) => {
     return selector.directionList.find(d => {
         return d.value.toString() === value.toString();
     });
-}
+};
 
 const getPriceByValue = (value, prices) => {
     if (this.isUndefinedOrNull(value) || (value < 0)) {
@@ -152,19 +150,19 @@ const getAreaByValue = (value) => {
 
 const isUndefinedOrNull = (value) => {
     return value === undefined || value === null;
-}
+};
 
-const getFormilitySaleByValue = (value) => {
+const getFormalitySaleByValue = (value) => {
     return selector.cateList.find(c => {
         return c.id === value;
     });
-}
+};
 
-const getFormilityBuyByValue = (value) => {
+const getFormalityBuyByValue = (value) => {
     return selector.cateListBuy.find(c => {
         return c.id === value;
     });
-}
+};
 
 const getTypeByValue = (formality, value) => {
     if (isUndefinedOrNull(value)) {
@@ -174,37 +172,37 @@ const getTypeByValue = (formality, value) => {
     return formality.children.find(t => {
         return t.id.toString() === value.toString();
     });
-}
+};
 
 const getCityByCode = (cd) => {
-    return selector.cityListOTher1.find(city => {
+    return CityList.find(city => {
         return city.code === cd;
     });
-}
+};
 
 const getDistrictByValue = (city, value) => {
     return city.district.find(d => {
         return d.id === value;
     });
-}
+};
 
 const getProjectByValue = (district, value) => {
     return district.project.find(w => {
         return w._id.toString() === value;
     });
-}
+};
 
 const getWardByValue = (district, value) => {
     return district.ward.find(w => {
         return w.id === value;
     });
-}
+};
 
 const getStreetByValue = (district, value) => {
     return district.street.find(w => {
         return w.id === value;
     });
-}
+};
 
 module.exports = {
     getPostType,

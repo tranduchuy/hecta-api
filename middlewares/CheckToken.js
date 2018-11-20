@@ -24,6 +24,7 @@ const urlToPassCheckingToken = [
     '/api/v1/tags/query',
     '/api/v1/tags/list',
     '/api/v1/tags/highlight',
+    '/api/v1/tags/related',
 
     '/api/v1/news/highlight',
     '/api/v1/posts/latest',

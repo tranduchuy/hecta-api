@@ -68,10 +68,12 @@ const updateConfig = async (req, res, next) => {
     logger.info('SystemController::updateConfig is called');
 
     try {
+        const { crawl } = req.body;
         const admin = req.user;
 
-        // TODO check role admin to update
-        const { crawl } = req.body;
+        if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
+            return next(new Error('Permission denied'));
+        }
 
         if (!crawl) {
             return res.json({
@@ -101,7 +103,7 @@ const getDefaultSystemConfig = async (req, res, next) => {
     logger.info('SystemController::getDefaultSystemConfig is called');
 
     try {
-        const config = await SystemModel.findOne();
+        const config = await SystemModel.findOne().lean();
         return res.json({
             status: HttpCode.SUCCESS,
             message: '',
