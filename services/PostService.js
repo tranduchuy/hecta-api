@@ -61,7 +61,7 @@ const convertValueSalePriceToID = (value, formality) => {
 
 const generateStageQueryPostNews = (req) => {
     const {
-        createdByType, status, id, from, to, title,
+        createdByType, status, id, dateFrom, dateTo, title,
         sortBy, sortDirection
     } = req.query;
     const pageCond = RequestUtils.extractPaginationCondition(req);
@@ -107,17 +107,22 @@ const generateStageQueryPostNews = (req) => {
         }
     }
 
-    if (from && from.toString().length === 10) {
-        const fromObj = moment(from, 'YYYY-MM-DD').toDate();
-        stageFilter['from'] = {
-            $gte: fromObj.getTime()
-        }
-    }
+    // filter date by query dateFrom and dateTo
+    if (dateFrom || dateTo) {
+        const dateFilterObj = {};
 
-    if (to && to.toString().length === 10) {
-        const toObj = moment(to, 'YYYY-MM-DD').toDate();
-        stageFilter['to'] = {
-            $lte: toObj.getTime()
+        if (dateFrom && dateFrom.toString().length === 10) {
+            const fromObj = moment(dateFrom, 'YYYY-MM-DD').toDate();
+            dateFilterObj['$gte'] = fromObj.getTime()
+        }
+
+        if (dateTo && dateTo.toString().length === 10) {
+            const toObj = moment(dateTo, 'YYYY-MM-DD').toDate();
+            dateFilterObj['$lte'] = toObj.getTime();
+        }
+
+        if (Object.keys(dateFilterObj).length !== 0) {
+            stageFilter['date'] = dateFilterObj;
         }
     }
 
