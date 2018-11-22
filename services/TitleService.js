@@ -1,5 +1,5 @@
 const selector = require('../config/selector.js');
-const CityList = require('../config/selector.json');
+const CityList = require('../config/cities.json');
 
 const getPostType = (data) => {
     let postType = POST_TYPE_SALE;

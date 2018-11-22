@@ -1,3 +1,7 @@
+/*
+* This script handle imports cities, districts into database
+* */
+
 require('../config/def');
 const urlSlug = require('url-slug');
 const dbConnect = require('../config/db');

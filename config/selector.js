@@ -189,4 +189,4 @@ module.exports.areaListValue = [
     {value: 10, text: "\u003e 500 m2", min: 500, max: null}
 ];
 
-module.exports.cityListOTher1 = require('./selector.json');
+module.exports.cityList = require('./cities.json');
