@@ -29,8 +29,8 @@ router.use('/api/v1/news', news);
 router.use('/api/v1/vips', vips);
 router.use('/api/v1/notifies', notify);
 router.use('/api/v1/systems', system);
-router.use('/admin/v1/', admin);
 router.use('/api/v1/posts', postRouter);
 router.use('/api/v1/search', searchRouter);
+router.use('/admin/v1/', admin);
 
 module.exports = router;

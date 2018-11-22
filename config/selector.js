@@ -74,39 +74,40 @@ module.exports.cateListBuy = [
         "brokerdomain": null
     }];
 
-module.exports.cateList = [{
-    "id": 38,
-    "name": "Nhà đất bán",
-    "children": [
-        {"id": 324, "name": "Bán căn hộ chung cư"},
-        {"id": 41, "name": "Bán nhà riêng"},
-        {"id": 325, "name": "Bán nhà biệt thự, liền kề"},
-        {"id": 163, "name": "Bán nhà mặt phố"},
-        {"id": 40, "name": "Bán đất nền dự án"},
-        {"id": 283, "name": "Bán đất"},
-        {"id": 44, "name": "Bán trang trại, khu nghỉ dưỡng"},
-        {"id": 45, "name": "Bán kho, nhà xưởng"},
-        {"id": 48, "name": "Bán loại bất động sản khác"}
-    ],
-    "prices": [
-        {"name": "Thỏa thuận", "id": "-1"},
-        {"name": "Triệu", "id": "1"},
-        {"name": "Tỷ", "id": "2"},
-        {"name": "Trăm nghìn/m2", "id": "6"},
-        {"name": "Triệu/m2", "id": "7"}],
-    'priceLevelValue': priceLevelValue[0],
-    "brokerdomain": [
-        {"id": 8, "name": "Bán căn hộ chung cư"},
-        {"id": 7, "name": "Bán đất"},
-        {"id": 1, "name": "Bán đất nền dự án"},
-        {"id": 4, "name": "Bán kho, nhà xưởng"},
-        {"id": 5, "name": "Bán loại bất động sản khác"},
-        {"id": 9, "name": "Bán nhà biệt thự, liền kề"},
-        {"id": 6, "name": "Bán nhà mặt phố"},
-        {"id": 2, "name": "Bán nhà riêng"},
-        {"id": 3, "name": "Bán trang trại, khu nghỉ dưỡng"}
-    ]
-},
+module.exports.cateList = [
+    {
+        "id": 38,
+        "name": "Nhà đất bán",
+        "children": [
+            {"id": 324, "name": "Bán căn hộ chung cư"},
+            {"id": 41, "name": "Bán nhà riêng"},
+            {"id": 325, "name": "Bán nhà biệt thự, liền kề"},
+            {"id": 163, "name": "Bán nhà mặt phố"},
+            {"id": 40, "name": "Bán đất nền dự án"},
+            {"id": 283, "name": "Bán đất"},
+            {"id": 44, "name": "Bán trang trại, khu nghỉ dưỡng"},
+            {"id": 45, "name": "Bán kho, nhà xưởng"},
+            {"id": 48, "name": "Bán loại bất động sản khác"}
+        ],
+        "prices": [
+            {"name": "Thỏa thuận", "id": "-1"},
+            {"name": "Triệu", "id": "1"},
+            {"name": "Tỷ", "id": "2"},
+            {"name": "Trăm nghìn/m2", "id": "6"},
+            {"name": "Triệu/m2", "id": "7"}],
+        'priceLevelValue': priceLevelValue[0],
+        "brokerdomain": [
+            {"id": 8, "name": "Bán căn hộ chung cư"},
+            {"id": 7, "name": "Bán đất"},
+            {"id": 1, "name": "Bán đất nền dự án"},
+            {"id": 4, "name": "Bán kho, nhà xưởng"},
+            {"id": 5, "name": "Bán loại bất động sản khác"},
+            {"id": 9, "name": "Bán nhà biệt thự, liền kề"},
+            {"id": 6, "name": "Bán nhà mặt phố"},
+            {"id": 2, "name": "Bán nhà riêng"},
+            {"id": 3, "name": "Bán trang trại, khu nghỉ dưỡng"}
+        ]
+    },
     {
         "id": 49, "name": "Nhà đất cho thuê",
         "children": [
@@ -138,8 +139,8 @@ module.exports.cateList = [{
             {"id": 13, "name": "Cho thuê nhà riêng"},
             {"id": 17, "name": "Cho thuê nhà trọ, phòng trọ"},
             {"id": 11, "name": "Cho thuê văn phòng"}]
-    }];
-
+    }
+];
 
 module.exports.beds = [
     {text: 'Không xác định', value: '0'},
@@ -157,6 +158,7 @@ module.exports.vipTypeList = [
     {"name": "Tin Vip 2", "id": "2"},
     {"name": "Tin Vip 1", "id": "1"},
     {"name": "Vip đặc biệt", "id": "0"}];
+
 module.exports.directionList = [
     {"name": "KXĐ", "value": "0"},
     {"name": "Đông", "value": "1"},
@@ -168,7 +170,9 @@ module.exports.directionList = [
     {"name": "Tây-Nam", "value": "7"},
     {"name": "Đông-Nam", "value": "8"}
 ];
+
 module.exports.unitPriceList = [113.636, 47.272, 30, 14, 275, 1.2, 0];
+
 module.exports.unitPriceListNew = [168.181, 68.181, 50, 27.272, 454.545, 1.727, 0];
 
 module.exports.areaListValue = [

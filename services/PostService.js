@@ -1,23 +1,38 @@
 const RequestUtils = require('../utils/RequestUtil');
 const moment = require('moment');
+const selector = require('../config/selector.js');
 
-/**
- * Generate stage to run aggregate on Posts-News
- * @param req
- * @returns {Array}
- */
+const convertValueAreaToID = (value) => {
+    for (let i = 0; i < selector.areaListValue.length; i++) {
+        const areaConfig = selector.areaListValue[i];
+        if (areaConfig.min === null && areaConfig.max === null) {
+            continue;
+        }
 
-const getValueAreaRange = (areaData) => {
-    
-    //Todo: getValueAreaRange
+        if (areaConfig.min && areaConfig.max) {
+            if (value >= areaConfig.min && value < areaConfig.max) {
+                return areaConfig.value;
+            }
+        } else if (areaConfig.min) {
+            if (value >= areaConfig.min) {
+                return areaConfig.value;
+            }
+        } else if (areaConfig.max) {
+            if (value < areaConfig.max) {
+                return areaConfig.value;
+            }
+        }
+    }
+
+    return -1;
+};
+
+const convertValueSalePriceToID = (value, formality) => {
+
+    //Todo: convertValueSalePriceToID
     return null;
-}
+};
 
-const getValuePriceRange = (priceData, formality) => {
-    
-    //Todo: getValuePriceRange
-    return null;
-}
 const generateStageQueryPostNews = (req) => {
     const {
         createdByType, status, id, from, to, title,
@@ -395,6 +410,6 @@ module.exports = {
     generateStageQueryPostBuy,
     generateStageQueryPostSale,
     generateStageQueryPost,
-    getValueAreaRange,
-    getValuePriceRange
+    convertValueAreaToID,
+    convertValueSalePriceToID
 };
