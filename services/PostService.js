@@ -297,7 +297,7 @@ const generateStageQueryPostBuy = (req) => {
 };
 
 const generateStageQueryPostSale = (req) => {
-    const {createdByType, status, id} = req.query;
+    const {createdByType, status, id, title, sortBy, sortDirection, dateFrom, dateTo} = req.query;
     const pageCond = RequestUtils.extractPaginationCondition(req);
 
     const stages = [
@@ -334,11 +334,50 @@ const generateStageQueryPostSale = (req) => {
         stageFilter["saleInfo._id"] = id;
     }
 
+    if (title) {
+        stageFilter['saleInfo.title'] = {
+            $regex: title,
+            $options: 'i'
+        }
+    }
+
+    // filter date by query dateFrom and dateTo
+    if (dateFrom || dateTo) {
+        const dateFilterObj = {};
+
+        if (dateFrom && dateFrom.toString().length === 10) {
+            const fromObj = moment(dateFrom, 'YYYY-MM-DD').toDate();
+            dateFilterObj['$gte'] = fromObj.getTime()
+        }
+
+        if (dateTo && dateTo.toString().length === 10) {
+            const toObj = moment(dateTo, 'YYYY-MM-DD').toDate();
+            dateFilterObj['$lte'] = toObj.getTime();
+        }
+
+        if (Object.keys(dateFilterObj).length !== 0) {
+            stageFilter['date'] = dateFilterObj;
+        }
+    }
+
     if (Object.keys(stageFilter).length !== 0) {
         stages.push({
             $match: stageFilter
         });
     }
+
+    // stage sort
+    let stageSort = {
+        $sort: {}
+    };
+
+    if (sortBy) {
+        stageSort.$sort[sortBy] = sortDirection === 'ASC' ? 1 : -1
+    } else {
+        stageSort.$sort['date'] = -1; // default sort by date descending
+    }
+
+    stages.push(stageSort);
 
     // pagination
     stages.push({
