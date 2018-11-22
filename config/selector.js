@@ -2,6 +2,7 @@ const priceLevelValue = [
     [
         {value: -1, text: 'Thỏa thuận', min: null, max: null},
         {value: 1, text: '\u003c 500 triệu', min: null, max: 5e8},
+        {value: 2, text: "500 - 800 triệu", min: {value: 5e8}, max: {value: 8e8}},
         {value: 3, text: '800 triệu - 1 tỷ', min: 8e8, max: 1e9},
         {value: 4, text: '1 - 2 tỷ', min: 1e9, max: 2e9},
         {value: 5, text: '2 - 3 tỷ', min: 2e9, max: 3e9},
