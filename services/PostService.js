@@ -24,13 +24,39 @@ const convertValueAreaToID = (value) => {
         }
     }
 
-    return -1;
+    return -1; // Default: Chưa xác định
 };
 
 const convertValueSalePriceToID = (value, formality) => {
+    const formalityDetail = selector.cateList.find(f => f.id.toString() === formality.toString());
+    if (!formalityDetail) {
+        return -1;
+    }
 
-    //Todo: convertValueSalePriceToID
-    return null;
+    const priceList = formalityDetail.priceLevelValue || [];
+
+    for (let i = 0; i < priceList.length; i++) {
+        const priceConfig = priceList[i];
+        if (priceConfig.min === null && priceConfig.max === null) {
+            continue;
+        }
+
+        if (priceConfig.min && priceConfig.max) {
+            if (value >= priceConfig.min && value < priceConfig.max) {
+                return priceConfig.value;
+            }
+        } else if (priceConfig.min) {
+            if (value >= priceConfig.min) {
+                return priceConfig.value;
+            }
+        } else if (priceConfig.max) {
+            if (value < priceConfig.max) {
+                return priceConfig.value;
+            }
+        }
+    }
+
+    return -1; // Default: Thỏa thuận
 };
 
 const generateStageQueryPostNews = (req) => {
