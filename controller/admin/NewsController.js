@@ -40,34 +40,22 @@ const NewsController = {
     },
 
     update: async function (req, res, next) {
+        logger.info('Admin/NewsController::update is called');
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
-                return res.json({
-                    status: HttpCode.BAD_REQUEST,
-                    data: {},
-                    message: 'Permission denied'
-                });
+                return next(new Error('Permission denied'));
             }
 
             let id = req.params.id;
-
             if (!id || id.length === 0) {
-                return res.json({
-                    status: HttpCode.ERROR,
-                    data: {},
-                    message: 'id invalid'
-                });
+                return next(new Error('Invalid id'));
             }
 
             let post = await PostModel.findOne({_id: id});
-
             if (!post) {
-                return res.json({
-                    status: HttpCode.ERROR,
-                    data: {},
-                    message: 'Post not found'
-                });
+                logger.error('Admin/NewsController::update::error. Post not found');
+                return next(new Error('Post not found'));
             }
 
             let news = await NewsModel.findOne({
@@ -175,15 +163,13 @@ const NewsController = {
         }
     },
 
-    add: async function (req, res) {
+    add: async function (req, res, next) {
+        logger.info('Admin/NewsController::add is called');
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
-                return res.json({
-                    status: HttpCode.BAD_REQUEST,
-                    data: {},
-                    message: 'Permission denied'
-                });
+                logger.error('Admin/NewsController::add::error. Permission denied');
+                return next(new Error('Permission denied'));
             }
 
             const {
@@ -195,12 +181,9 @@ const NewsController = {
     
             if (createdByType) {
                 const duplicateTitle = await NewsModel.findOne({title: req.body.title});
-                if (duplicateTitle){
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'Crawler duplicate title'
-                    });
+                if (duplicateTitle) {
+                    logger.warn('Admin/NewsController::add::error. Crawling duplicated title');
+                    return next(new Error('Crawler duplicate title'));
                 }
             }
             
@@ -262,15 +245,11 @@ const NewsController = {
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: post,
-                message: 'request post news success !'
+                message: 'Success'
             });
-        }
-        catch (e) {
-            return res.json({
-                status: HttpCode.ERROR,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
+        } catch (e) {
+            logger.error('Admin/NewsController::add:error', e);
+            return next(e);
         }
     }
 };
