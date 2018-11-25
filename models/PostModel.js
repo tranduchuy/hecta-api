@@ -37,7 +37,6 @@ const postSchema = new Schema({
         type: Number,
         index: true
     },
-    params: String,
     url: {
         type: String,
         index: true,

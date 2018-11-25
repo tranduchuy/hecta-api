@@ -9,38 +9,39 @@ const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 
 const NewsController = {
-    catList: async function (req, res) {
+    catList: async (req, res, next) => {
+        logger.info('Admin/NewsController::catList::called');
+
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
-                return res.json({
-                    status: HttpCode.BAD_REQUEST,
-                    data: {},
-                    message: 'Permission denied'
-                });
+                return next(new Error('Permission denied'));
             }
 
             const cats = await UrlParamModel.find({postType: global.POST_TYPE_NEWS});
             const results = cats.map(cat => {
-                return {text: cat.text, id: cat.type, url: cat.param, extra: cat.extra};
+                return {
+                    text: cat.text,
+                    id: cat.type,
+                    url: cat.param,
+                    extra: cat.extra
+                };
             });
 
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: results,
-                message: 'success !'
+                message: 'Success'
             });
         } catch (e) {
-            return res.json({
-                status: HttpCode.ERROR,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
+            logger.error('Admin/NewsController::catList::error', e);
+            return next(e);
         }
     },
 
-    update: async function (req, res, next) {
+    update: async (req, res, next) => {
         logger.info('Admin/NewsController::update is called');
+
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
@@ -48,27 +49,31 @@ const NewsController = {
             }
 
             let id = req.params.id;
+
             if (!id || id.length === 0) {
-                return next(new Error('Invalid id'));
+                logger.error('Admin/NewsController::update::error. Invalid post id: ', id);
+                return next(new Error('Invalid post id'));
             }
 
             let post = await PostModel.findOne({_id: id});
             if (!post) {
-                logger.error('Admin/NewsController::update::error. Post not found');
                 return next(new Error('Post not found'));
             }
 
-            let news = await NewsModel.findOne({
+            const queryNews = {
                 _id: post.contentId,
-                status: {$in: [global.STATUS.ACTIVE, global.STATUS.BLOCKED]}
-            });
+                status: {
+                    $in: [
+                        global.STATUS.ACTIVE,
+                        global.STATUS.BLOCKED
+                    ]
+                }
+            };
+            let news = await NewsModel.findOne(queryNews);
 
             if (!news) {
-                return res.json({
-                    status: HttpCode.BAD_REQUEST,
-                    data: {},
-                    message: 'news not exist '
-                });
+                logger.error('Admin/NewsController::update::error. News not found: ' + JSON.stringify(queryNews));
+                return next(new Error('News not found'));
             }
 
             const {
@@ -77,8 +82,8 @@ const NewsController = {
                 metaType, metaUrl, metaImage, canonical,
                 textEndPage, url
             } = req.body;
-            ImageService.putUpdateImage([news.image], [image]);
 
+            ImageService.putUpdateImage([news.image], [image]);
             news.title = title || news.title;
             news.content = content || news.content;
             news.type = cate || news.type;
@@ -97,35 +102,14 @@ const NewsController = {
             post.metaImage = metaImage || post.metaImage;
             post.canonical = canonical || post.canonical;
 
-            if (title) {
-                let param = await UrlParamModel.findOne({
-                    postType: global.POST_TYPE_NEWS,
-                    formality: undefined,
-                    type: cate,
-                    city: undefined,
-                    district: undefined,
-                    ward: undefined,
-                    street: undefined,
-                    project: undefined,
-                    balconyDirection: undefined,
-                    bedroomCount: undefined,
-                    area: undefined,
-                    price: undefined
-                });
-
-                if (!param) {
-                    param = await param.save();
-                }
-
+            if (title && news.title !== title) {
                 let _url = urlSlug(title);
-                const count = await PostModel.find({url: new RegExp("^" + _url)});
-
+                const count = await PostModel.find({url: new RegExp('^' + _url)});
                 if (count > 0) {
-                    _url += ('-' + count);
+                    _url = `${_url}-${count}`;
                 }
 
                 post.url = _url;
-                post.params = param._id;
             }
 
             const customUrl = url;
@@ -143,32 +127,30 @@ const NewsController = {
                     return next(new Error('Duplicate url or customUrl. Url: ' + customUrl))
                 }
 
-                // post.url = url; // url property should not be changed, it is original
+                // post.url = url; // url property should NOT be changed, it is original
                 post.customUrl = customUrl;
             }
 
             await post.save();
 
+            logger.info('Admin/NewsController::update::success. Update news successfully.');
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: news,
                 message: 'Success'
             });
         } catch (e) {
-            return res.json({
-                status: HttpCode.ERROR,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
+            logger.error('Admin/NewsController::update::error', e);
+            return next(e);
         }
     },
 
-    add: async function (req, res, next) {
+    add: async (req, res, next) => {
         logger.info('Admin/NewsController::add is called');
+
         try {
             const admin = req.user;
             if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
-                logger.error('Admin/NewsController::add::error. Permission denied');
                 return next(new Error('Permission denied'));
             }
 
@@ -178,15 +160,15 @@ const NewsController = {
                 metaImage, canonical, textEndPage, createdByType
             } = req.body;
             let news = new NewsModel();
-    
+
             if (createdByType) {
                 const duplicateTitle = await NewsModel.findOne({title: req.body.title});
                 if (duplicateTitle) {
-                    logger.warn('Admin/NewsController::add::error. Crawling duplicated title');
-                    return next(new Error('Crawler duplicate title'));
+                    logger.warn('Admin/NewsController::add::error. Crawling duplicate title');
+                    return next('Crawling duplicate title');
                 }
             }
-            
+
             news.title = title;
             news.content = content;
             news.type = cate;
@@ -204,35 +186,13 @@ const NewsController = {
             post.status = global.STATUS.ACTIVE;
             post.paymentStatus = global.STATUS.PAYMENT_FREE;
             post.contentId = news._id;
-
-            let param = await UrlParamModel.findOne({
-                postType: global.POST_TYPE_NEWS,
-                formality: undefined,
-                type: cate,
-                city: undefined,
-                district: undefined,
-                ward: undefined,
-                street: undefined,
-                project: undefined,
-                balconyDirection: undefined,
-                bedroomCount: undefined,
-                area: undefined,
-                price: undefined
-            });
-
-            if (!param) {
-                param = await param.save();
-            }
-
             let url = urlSlug(title);
-            const count = await PostModel.find({url: new RegExp("^" + url)});
-
+            const count = await PostModel.find({url: new RegExp('^' + url)});
             if (count > 0) {
                 url += ('-' + count);
             }
 
             post.url = url;
-            post.params = param._id;
             post.metaTitle = metaTitle;
             post.metaDescription = metaDescription;
             post.metaType = metaType;
@@ -242,13 +202,14 @@ const NewsController = {
             post.textEndPage = textEndPage;
             await post.save();
 
+            logger.info('Admin/NewsController::add::success. Add news successfully.');
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: post,
                 message: 'Success'
             });
         } catch (e) {
-            logger.error('Admin/NewsController::add:error', e);
+            logger.error('Admin/NewsController::add::error', e);
             return next(e);
         }
     }

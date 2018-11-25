@@ -143,16 +143,9 @@ const query = async (req, res, next) => {
             }
         }));
 
-        if (results.length > 0) {
-            let i = 0;
-            let theFirstPost = results[i];
-            while (!await UrlParamModel.findOne({_id: theFirstPost.params}) && i < results.length - 1) {
-                i++;
-                theFirstPost = results[i];
-            }
-
-            relatedCates = await UrlParamService.getRelatedUrlParams(theFirstPost.params);
-        }
+        // Note: Get query object from sale or buy. First item in results array.
+        const rootQueryRelated = UrlParamService.getQueryObject(results[0]);
+        relatedCates = await UrlParamService.getRelatedUrlParams(rootQueryRelated);
 
         const redirectUrl = tag.customSlug !== tag.slug ? tag.customSlug : null;
         return res.json({

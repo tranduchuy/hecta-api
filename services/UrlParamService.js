@@ -37,16 +37,16 @@ const detectMinTarget = (query) => {
 };
 
 /**
- * Generate query object of urlParam
+ * Generate query object of urlParam | sale | buy
  * @param urlParam
  * @return Object query{formality, type, city, district, ward}
  */
-const getQueryObjOfUrlParam = (urlParam) => {
+const getQueryObject = (targetObj) => {
     const query = {};
 
     ['formality', 'type', 'city', 'district', 'ward'].forEach(field => {
-        if (urlParam[field] !== null && urlParam[field] !== undefined) {
-            query[field] = urlParam[field];
+        if (targetObj[field] !== null && targetObj[field] !== undefined) {
+            query[field] = targetObj[field];
         }
     });
 
@@ -280,6 +280,6 @@ const getRelatedUrlParams = async (rootQuery, options) => {
 };
 
 module.exports = {
-    getQueryObjOfUrlParam,
+    getQueryObject,
     getRelatedUrlParams
 };
