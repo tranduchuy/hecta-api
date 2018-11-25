@@ -14,7 +14,26 @@ function getQueryStringFromPath(pathWithQuery) {
     return pathWithQuery.split('?')[1];
 }
 
+/**
+ * @description Determind a value is null or undefined
+ * @param value
+ * @return {boolean}
+ */
+const isUndefinedOrNull = (value) => {
+    return value === undefined || value === null;
+};
+
+/**
+ * @description Check if has type number
+ * @param value
+ */
+const isNaN = (value) => {
+    return isNaN(parseFloat(value));
+};
+
 module.exports = {
     removeQueryStringFromPath,
-    getQueryStringFromPath
+    getQueryStringFromPath,
+    isUndefinedOrNull,
+    isNaN
 };

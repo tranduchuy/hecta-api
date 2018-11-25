@@ -1,5 +1,6 @@
 const selector = require('../config/selector.js');
 const CityList = require('../config/cities.json');
+const StringService = require('./StringService');
 
 const getPostType = (data) => {
     let postType = POST_TYPE_SALE;
@@ -115,7 +116,7 @@ const getOrderTitle = (data) => {
 };
 
 const getDirectionsByValue = (value) => {
-    if (isUndefinedOrNull(value)) {
+    if (StringService.isUndefinedOrNull(value)) {
         return null;
     }
     
@@ -125,7 +126,7 @@ const getDirectionsByValue = (value) => {
 };
 
 const getPriceByValue = (value, priceLevelValue) => {
-    if (isUndefinedOrNull(value) || (value < 0)) {
+    if (StringService.isUndefinedOrNull(value) || (value < 0)) {
         return null;
     }
     
@@ -134,10 +135,10 @@ const getPriceByValue = (value, priceLevelValue) => {
     return priceLevelValue.find(d => {
         return d.value === value;
     });
-}
+};
 
 const getAreaByValue = (value) => {
-    if (isUndefinedOrNull(value)) {
+    if (StringService.isUndefinedOrNull(value)) {
         return null;
     }
     
@@ -146,10 +147,6 @@ const getAreaByValue = (value) => {
     return selector.areaListValue.find(d => {
         return d.value === value;
     });
-}
-
-const isUndefinedOrNull = (value) => {
-    return value === undefined || value === null;
 };
 
 const getFormalitySaleByValue = (value) => {
@@ -165,7 +162,7 @@ const getFormalityBuyByValue = (value) => {
 };
 
 const getTypeByValue = (formality, value) => {
-    if (isUndefinedOrNull(value)) {
+    if (StringService.isUndefinedOrNull(value)) {
         return null;
     }
     
