@@ -180,7 +180,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
         }
 
         Object.assign(data, news.toObject(), post.toObject(), {id: post._id});
-        relatedPosts = NewsModel
+        relatedPosts = await NewsModel
             .find({
                 type: news.type,
                 _id: {
@@ -212,7 +212,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             createdByType: post.createdByType || null
         });
 
-        relatedPosts = SaleModel
+        relatedPosts = await SaleModel
             .find({
                 project: project._id
             })
