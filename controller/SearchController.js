@@ -187,7 +187,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
                     $ne: news._id
                 }
             })
-            .limit(20)
+            .limit(10)
             .sort({title: 1})
             .lean();
     }
@@ -216,7 +216,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             .find({
                 project: project._id
             })
-            .limit(20)
+            .limit(10)
             .sort({title: 1})
             .lean();
     }
