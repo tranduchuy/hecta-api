@@ -43,7 +43,7 @@ const getModelByCatPostType = (cat) => {
 const isValidSlugDetail = (slug) => {
     return slug === global.SLUG_NEWS ||
         slug === global.SLUG_PROJECT ||
-        slug === global.SLUG_SELL_OR_BUY;
+        slug === global.SLUG_SALE_OR_BUY;
 };
 
 /**
@@ -64,6 +64,60 @@ const isValidSlugCategorySearch = (slug) => {
  */
 const isValidSlugTag = (slug) => {
     return slug === global.SLUG_TAG;
+};
+
+/**
+ * @description _ Get related posts of buy or sale model. Default get 10 related items
+ * @param buyOrSaleObj object detail info of buyModel or saleModel
+ * @param buyOrSale global.POST_TYPE_BUY | global.POST_TYPE_SALE
+ * @param limit Limit related items want to get
+ * @return {Promise<*>}
+ */
+const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
+    limit = limit || 10;
+    const model = buyOrSale === global.POST_TYPE_BUY ?
+        BuyModel :
+        SaleModel;
+
+    try {
+        const project = await ProjectModel.findOne({_id: buyOrSaleObj.project});
+        if (project) {
+            return await model
+                .find({
+                    project: buyOrSaleObj.project,
+                    _id: {$ne: buyOrSaleObj._id}
+                })
+                .limit(limit)
+                .lean();
+        } else {
+            const queryObject = UrlParamService.getQueryObject(buyOrSale);
+
+            if (queryObject['street']) {
+                delete queryObject.street; // to get related with same ward
+            } else if (queryObject['ward']) {
+                delete queryObject.ward; // to get related with same district
+            } else if (queryObject['district']) {
+                delete queryObject.district; // to get related with same city
+            } else if (queryObject['city']) {
+                delete queryObject.city; // to get related with same type
+            } else if (queryObject['type']) {
+                delete queryObject.type; // to get related with same formality
+            } else {
+                delete queryObject.formality; // to get related with no condition
+            }
+
+            return await model
+                .find({
+                    ...queryObject,
+                    _id: {$ne: buyOrSaleObj._id}
+                })
+                .limit(limit)
+                .lean();
+        }
+    } catch (e) {
+        logger.warn('SearchController::getRelatedPostsOfSaleOrBuy. Cannot get related posts', e);
+        return [];
+    }
 };
 
 /**
@@ -106,20 +160,10 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
         return next(new Error('Post not found'));
     }
 
-    let cat = await UrlParamModel.findOne({_id: post.params});
-    let query = {
-        status: global.STATUS.ACTIVE,
-        _id: {
-            $ne: post._id
-        }
-    };
-
-    // output is query
-    mapCategoryToQuery(cat, query, ['postType']);
-
-    let related = await PostModel.find(query).limit(10);
+    let relatedPosts = [];
     let relatedCates = [];
     let relatedTags = [];
+    let query = {}; // only update by sale or buy type
 
     if (slug === global.SLUG_NEWS) {
         if (post.postType !== global.POST_TYPE_NEWS) {
@@ -136,6 +180,16 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
         }
 
         Object.assign(data, news.toObject(), post.toObject(), {id: post._id});
+        relatedPosts = NewsModel
+            .find({
+                type: news.type,
+                _id: {
+                    $ne: news._id
+                }
+            })
+            .limit(20)
+            .sort({title: 1})
+            .lean();
     }
 
     if (slug === global.SLUG_PROJECT) {
@@ -157,9 +211,17 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             id: post._id,
             createdByType: post.createdByType || null
         });
+
+        relatedPosts = SaleModel
+            .find({
+                project: project._id
+            })
+            .limit(20)
+            .sort({title: 1})
+            .lean();
     }
 
-    if (slug === global.SLUG_SELL_OR_BUY) {
+    if (slug === global.SLUG_SALE_OR_BUY) {
         if (post.postType !== global.POST_TYPE_BUY && post.postType !== global.POST_TYPE_SALE) {
             logger.error('SearchController::handleSearchCaseNotCategory::error. Slug and post.postType not match case SLUG_SELL_OR_BUY');
             return next(new Error('Slug and post.postType not match case SLUG_SELL_OR_BUY'));
@@ -178,8 +240,10 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
 
             data = mapBuyOrSaleItemToResultCaseCategory(post, buy);
 
-            const rootQuery = UrlParamService.getQueryObjOfUrlParam(buy);
+            const rootQuery = UrlParamService.getQueryObject(buy);
             relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
+            relatedPosts = await getRelatedPostsOfSaleOrBuy(buy, global.POST_TYPE_BUY, 10);
+            query = rootQuery;
         }
 
         if (post.postType === global.POST_TYPE_SALE) {
@@ -194,8 +258,10 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
 
             data = mapBuyOrSaleItemToResultCaseCategory(post, sale);
 
-            const rootQuery = UrlParamService.getQueryObjOfUrlParam(sale);
+            const rootQuery = UrlParamService.getQueryObject(sale);
             relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
+            relatedPosts = await getRelatedPostsOfSaleOrBuy(sale, global.POST_TYPE_SALE, 10);
+            query = rootQuery;
         }
     }
 
@@ -213,7 +279,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
             textEndPage: post.textEndPage
         },
         isList: false,
-        related,
+        related: relatedPosts,
         relatedCates,
         relatedTags,
         params: query,
@@ -278,7 +344,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
         }));
 
         // get related urlParams (cats)
-        const rootQuery = UrlParamService.getQueryObjOfUrlParam(cat);
+        const rootQuery = UrlParamService.getQueryObject(cat);
         relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
     } else {
         logger.error('SearchController::handleSearchCaseCategory. Url not found with url: ' + param);
@@ -379,17 +445,19 @@ const filter = async (req, res, next) => {
                 message: 'Success'
             });
         }
-    
+
         // Insert new param to UrlParams
         let url = TitleService.getTitle(query) + ' ' +
             TitleService.getLocationTitle(query);
-    
+
         let orderSlug = TitleService.getOrderTitle(query);
         orderSlug = urlSlug(orderSlug.trim());
-        if (orderSlug != '')
+        if (orderSlug !== '') {
             url = urlSlug(url.trim()) + "/" + orderSlug;
-        else url = urlSlug(url.trim());
-        
+        } else {
+            url = urlSlug(url.trim());
+        }
+
         let countDuplicate = await UrlParamModel.countDocuments({param: url});
         if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
