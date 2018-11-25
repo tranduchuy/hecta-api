@@ -15,6 +15,7 @@
     "debug": "~2.6.9",
     "email-validator": "^2.0.4",
     "eslint": "^5.4.0",
+    "excel4node": "^1.7.0",
     "express": "~4.16.0",
     "gmail-send": "^1.2.14",
     "http-errors": "~1.6.2",
