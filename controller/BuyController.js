@@ -176,7 +176,7 @@ const BuyController = {
     },
 
     update: async function (req, res, next) {
-
+        // TODO:LAST to be continue refactoring this function
 
         try {
 
