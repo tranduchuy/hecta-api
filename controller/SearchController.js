@@ -67,6 +67,30 @@ const isValidSlugTag = (slug) => {
 };
 
 /**
+ *
+ * @param saleOrBuyList
+ * @param postList
+ */
+const mapListPostAndListSaleOrBuy = (saleOrBuyList, postList) => {
+    const postContentIds = postList.map(p => p.contentId.toString());
+    const targetPostHaveData = saleOrBuyList.filter(t => {
+        return postContentIds.indexOf(t._id.toString()) !== -1;
+    });
+
+    targetPostHaveData.forEach((sb, index) => {
+        const post = postList.find(p => p.contentId.toString() === sb._id.toString());
+
+        if (post) {
+            targetPostHaveData[index].url = post.url;
+            targetPostHaveData[index].customUrl = post.customUrl;
+        }
+    });
+
+    console.log(JSON.stringify(targetPostHaveData));
+    return targetPostHaveData;
+};
+
+/**
  * @description _ Get related posts of buy or sale model. Default get 10 related items
  * @param buyOrSaleObj object detail info of buyModel or saleModel
  * @param buyOrSale global.POST_TYPE_BUY | global.POST_TYPE_SALE
@@ -81,8 +105,10 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
 
     try {
         const project = await ProjectModel.findOne({_id: buyOrSaleObj.project});
+        let buyOrSales = [];
+
         if (project) {
-            return await model
+            buyOrSales = await model
                 .find({
                     project: buyOrSaleObj.project,
                     _id: {$ne: buyOrSaleObj._id}
@@ -106,7 +132,7 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
                 delete queryObject.formality; // to get related with no condition
             }
 
-            return await model
+            buyOrSales = await model
                 .find({
                     ...queryObject,
                     _id: {$ne: buyOrSaleObj._id}
@@ -114,6 +140,17 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
                 .limit(limit)
                 .lean();
         }
+
+        const buyOrSalesIds = buyOrSales.map(t => t._id);
+        const posts = await PostModel
+            .find({
+                contentId: {
+                    $in: buyOrSalesIds
+                }
+            })
+            .lean();
+
+        return mapListPostAndListSaleOrBuy(buyOrSales, posts);
     } catch (e) {
         logger.warn('SearchController::getRelatedPostsOfSaleOrBuy. Cannot get related posts', e);
         return [];
