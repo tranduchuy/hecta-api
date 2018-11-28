@@ -176,180 +176,72 @@ const BuyController = {
     },
 
     update: async function (req, res, next) {
-        // TODO:LAST to be continue refactoring this function
+        logger.info('BuyController::update::called');
 
         try {
-
-            var token = req.headers.accesstoken;
-
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
             let id = req.params.id;
-
-            if (!id || id.length == 0) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'id invalid '
-                });
+            if (!id) {
+                return next(new Error('Invalid Id'));
             }
-
 
             let post = await PostModel.findOne({_id: id});
-
-            if (!post || post.postType != global.POST_TYPE_BUY) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'post not exist '
-                });
+            if (!post || post.postType !== global.POST_TYPE_BUY) {
+                return next(new Error('Post not found'));
             }
 
-            if (post.user != accessToken.user) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user does not have permission !'
-                });
+            if (post.user.toString() !== req.user._id.toString()) {
+                return next(new Error('Permission denied'));
             }
 
-
-            var buy = await BuyModel.findOne({_id: post.contentId});
-
-
+            let buy = await BuyModel.findOne({_id: post.contentId});
             if (!buy) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'buy not exist '
-                });
+                return next(new Error('Buy not found'));
             }
 
+            let {
+                title, description, keywordList, formality, type, city,
+                district, ward, street, project, area, price, unit,
+                address, images, contactName, contactAddress, contactPhone,
+                contactMobile, contactEmail, receiveMail, status, from, to
+            } = req.body;
 
-            var title = req.body.title;
-            var description = req.body.description;
-            var keywordList = req.body.keywordList;
-
-            var formality = req.body.formality;
-            var type = req.body.type;
-            var city = req.body.city;
-            var district = req.body.district;
-            var ward = req.body.ward;
-            var street = req.body.street;
-            var project = req.body.project;
-            var area = req.body.area;
-            var price = req.body.price;
-            var unit = req.body.unit;
-
-            var address = req.body.address;
-
-            var images = req.body.images;
-
-            var contactName = req.body.contactName;
-            var contactAddress = req.body.contactAddress;
-            var contactPhone = req.body.contactPhone;
-            var contactMobile = req.body.contactMobile;
-            var contactEmail = req.body.contactEmail;
-            var receiveMail = req.body.receiveMail;
-
-            var status = req.body.status;
-            var from = req.body.from;
-            var to = req.body.to;
-
-            if (title && (buy.title != title)) {
-                buy.title = title;
-
-                var url = urlSlug(title);
-
+            if (title && (buy.title !== title.toString().trim())) {
+                const trimmedTitle = title.toString().trim();
+                buy.title = trimmedTitle;
+                let url = urlSlug(trimmedTitle);
                 let countDuplicate = await PostModel.countDocuments({url: url});
-                if (countDuplicate > 0) url = url + "-" + countDuplicate;
+                if (countDuplicate > 0) {
+                    url = url + "-" + countDuplicate;
+                }
 
                 post.url = url;
             }
 
-            if (description) {
-                buy.description = description;
-            }
-            if (keywordList) {
-                buy.keywordList = keywordList;
-            }
+            buy.description = description || buy.description;
+            buy.keywordList = keywordList || buy.keywordList;
+            buy.formality = formality || buy.formality;
+            buy.type = type || buy.type;
+            buy.city = city || buy.city;
+            buy.district = district || buy.district;
+            buy.ward = ward || buy.ward;
+            buy.street = street || buy.street;
+            buy.project = project || buy.project;
+            buy.area = area ? (area > 0 ? area : null) : buy.area;
+            buy.price = price ? (price > 0 ? price : null) : buy.price;
+            buy.unit = unit || buy.unit;
+            buy.address = address || buy.address;
+            buy.contactName = contactName || buy.contactName;
+            buy.contactAddress = contactAddress || buy.contactAddress;
+            buy.contactPhone = contactPhone || buy.contactPhone;
+            buy.contactMobile = contactMobile || buy.contactMobile;
+            buy.contactEmail = contactEmail || buy.contactEmail;
+            buy.receiveMail = receiveMail || buy.receiveMail;
+            buy.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
 
-
-            if (formality) {
-                buy.formality = formality;
-            }
-            if (type) {
-                buy.type = type;
-            }
-            if (city) {
-                buy.city = city;
-            }
-            if (district) {
-                buy.district = district;
-            }
-            if (ward) {
-                buy.ward = ward;
-            }
-            if (street) {
-                buy.street = street;
-            }
-            if (project) {
-                buy.project = project;
-            }
-            if (area) {
-
-                buy.area = (area > 0) ? area : null;
-            }
-            if (price) {
-                buy.price = (price > 0) ? price : null;
-            }
-            if (unit) {
-                buy.unit = unit;
-            }
-
-            if (address) {
-                buy.address = address;
-            }
             if (images) {
                 ImageService.putUpdateImage(buy.images, images);
                 buy.images = images;
             }
-
-
-            if (contactName) {
-                buy.contactName = contactName;
-            }
-            if (contactAddress) {
-                buy.contactAddress = contactAddress;
-            }
-            if (contactPhone) {
-                buy.contactPhone = contactPhone;
-            }
-            if (contactMobile) {
-                buy.contactMobile = contactMobile;
-            }
-            if (contactEmail) {
-                buy.contactEmail = contactEmail;
-            }
-            if (receiveMail) {
-                buy.receiveMail = receiveMail;
-            }
-
-            if (status == global.STATUS.DELETE) {
-                buy.status = status;
-            }
-
-            buy.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-            buy = await buy.save();
 
             post.formality = buy.formality;
             post.type = buy.type;
@@ -367,56 +259,49 @@ const BuyController = {
                 post.status = global.STATUS.PAYMENT_UNPAID;
             }
 
-            if (status == global.STATUS.DELETE) {
+            if (status === global.STATUS.DELETE) {
                 post.status = status;
+                buy.status = status;
             }
 
             post.tags = [];
 
             if (keywordList && keywordList.length > 0) {
-                for (var i = 0; i < keywordList.length; i++) {
-                    var key = keywordList[i];
-
-                    var slug = urlSlug(key);
-
+                for (let i = 0; i < keywordList.length; i++) {
+                    const keyword = keywordList[i];
+                    const slug = urlSlug(keyword);
                     if (!slug) {
-                        return;
+                        continue;
                     }
 
-                    var tag = await TagModel.findOne({slug: slug});
-
+                    let tag = await TagModel.findOne({slug});
                     if (!tag) {
                         tag = new TagModel({
                             slug: slug,
-                            keyword: key,
+                            keyword,
                         });
-                        tag = await tag.save();
 
+                        await tag.save();
                     }
-                    post.tags.push(tag._id);
 
+                    post.tags.push(tag._id);
                 }
             }
+
+            await buy.save();
             await post.save();
-
+            logger.info('BuyController::update::success');
 
             return res.json({
-                status: 1,
+                status: HttpCode.SUCCESS,
                 data: {},
-                message: 'update success'
+                message: 'Success'
             });
+        } catch (e) {
+            logger.error('BuyController::update::error', e);
+            return next(e);
         }
-
-
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-
     }
+};
 
-}
-module.exports = BuyController
+module.exports = BuyController;
