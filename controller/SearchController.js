@@ -15,6 +15,7 @@ const HttpCode = require('../config/http-code');
 const TitleService = require("../services/TitleService");
 const StringService = require('../services/StringService');
 const UrlParamService = require('../services/UrlParamService');
+const RequestUtils = require('../utils/RequestUtil');
 
 /**
  * Get model type by cat.postType
@@ -334,12 +335,55 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
     });
 
     return Object.assign({},
-        buyOrSale.toObject(),
-        post.toObject(),
+        buyOrSale,
+        post,
         {id: post._id, keywordList});
 };
 
-const handleSearchCaseCategory = async (res, param, page) => {
+const generateStageQuerySaleCaseCategory = (req, paginationCond) => {
+    const stages = [
+        {
+            $lookup: {
+                from: "Posts",
+                localField: "_id",
+                foreignField: "contentId",
+                as: "postInfo"
+            }
+        },
+        {
+            $unwind: "$postInfo"
+        }
+    ];
+
+    let sortObj = {};
+    if (req.query.sortBy && ['priority', 'price', 'area', 'date'].indexOf(req.query.sortBy) !== -1) {
+        sortObj[`postInfo.${req.query.sortBy}`] = req.query['sortDirection'] === 'ASC' ? 1 : -1;
+    } else {
+        sortObj = {
+            'postInfo.priority': -1,
+            date: -1
+        };
+    }
+
+    stages.push({$sort: sortObj});
+
+    stages.push({
+        $facet: {
+            entries: [
+                {$skip: (paginationCond.page - 1) * paginationCond.limit},
+                {$limit: paginationCond.limit},
+            ],
+            meta: [
+                {$group: {_id: null, totalItems: {$sum: 1}}},
+            ],
+        }
+    });
+
+    return stages;
+};
+
+const handleSearchCaseCategory = async (req, res, param) => {
+    let page = req.query.page || 0;
     const query = {status: global.STATUS.ACTIVE};
     let results = [];
     let relatedCates = [];
@@ -352,18 +396,50 @@ const handleSearchCaseCategory = async (res, param, page) => {
         ]
     });
 
+    const paginationCond = RequestUtils.extractPaginationCondition(req);
+
     if (cat) {
         mapCategoryToQuery(cat, query);
 
         // model maybe: SaleModel, BuyModel, ProjectModel, NewsModel
         const model = getModelByCatPostType(cat);
+        let data = [];
+        let sortObj = {};
 
-        let data = await model.find(query)
-            .sort({date: -1})
-            .skip((page - 1) * global.PAGE_SIZE)
-            .limit(global.PAGE_SIZE);
+        switch (cat.postType) {
+            case global.POST_TYPE_SALE:
+                const stages = generateStageQuerySaleCaseCategory(req, paginationCond);
+                logger.info('SearchController::handleSearchCaseCategory stages: ', JSON.stringify(stages));
+                const tmpResults = await SaleModel.aggregate(stages);
+                data = tmpResults[0].entries;
+                count = tmpResults[0].entries.length > 0 ? tmpResults[0].meta[0].totalItems : 0;
+                break;
+            case global.POST_TYPE_BUY:
+                sortObj = {};
+                if (req.query.sortBy && ['price', 'area', 'date'].indexOf(req.query.sortBy) !== -1) {
+                    sortObj[req.query.sortBy] = req.query['sortDirection'] === 'ASC' ? 1 : -1;
+                } else {
+                    sortObj = {date: -1};
+                }
 
-        count = await model.countDocuments(query);
+                data = await model.find(query)
+                    .sort(sortObj)
+                    .skip((paginationCond.page - 1) * paginationCond.limit)
+                    .limit(paginationCond.limit)
+                    .lean();
+
+                count = await model.countDocuments(query);
+                break;
+            case global.POST_TYPE_PROJECT:
+            case global.POST_TYPE_NEWS:
+                count = await model.countDocuments(query);
+
+                data = await model.find(query)
+                    .sort({date: -1})
+                    .skip((paginationCond.page - 1) * paginationCond.limit)
+                    .limit(paginationCond.limit);
+                break;
+        }
         results = await Promise.all(data.map(async (item) => {
             const post = await PostModel.findOne({contentId: item._id});
             if (!post) {
@@ -373,7 +449,7 @@ const handleSearchCaseCategory = async (res, param, page) => {
             switch (cat.postType) {
                 case global.POST_TYPE_SALE:
                 case global.POST_TYPE_BUY:
-                    return mapBuyOrSaleItemToResultCaseCategory(post, item);
+                    return mapBuyOrSaleItemToResultCaseCategory(post.toObject(), item);
                 case global.POST_TYPE_PROJECT:
                 case global.POST_TYPE_NEWS:
                     return Object.assign({}, post.toObject(), item.toObject(), {id: post._id});
@@ -565,7 +641,7 @@ const search = async (req, res, next) => {
         }
 
         if (isValidSlugCategorySearch(slug)) {
-            return await handleSearchCaseCategory(res, param, page, next);
+            return await handleSearchCaseCategory(req, res, param, next);
         }
 
         logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
