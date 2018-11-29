@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router({});
 const SearchController = require('../controller/SearchController');
 
-router.get('', SearchController.search);
+router.get('', SearchController.searchCache, SearchController.search);
 router.get('/url-redirect', SearchController.getUrlToRedirect);
 router.post('/box', SearchController.filter);
 

@@ -17,6 +17,13 @@ const StringService = require('../services/StringService');
 const UrlParamService = require('../services/UrlParamService');
 const RequestUtils = require('../utils/RequestUtil');
 
+// cache
+const LRU = require("lru-cache");
+const cache = new LRU({
+    max: 2000,
+    maxAge: 1000 * 60 * 60
+});
+
 /**
  * Get model type by cat.postType
  * @param cat UrlParamModel
@@ -183,7 +190,7 @@ const mapCategoryToQuery = (catObj, query, additionalProperties = []) => {
     });
 };
 
-const handleSearchCaseNotCategory = async (res, param, slug, next) => {
+const handleSearchCaseNotCategory = async (param, slug, next) => {
     let data = {};
     let post = await PostModel.findOne({
         status: global.STATUS.ACTIVE,
@@ -303,7 +310,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
         }
     }
 
-    return res.json({
+    return {
         status: HttpCode.SUCCESS,
         type: post.postType,
         seo: {
@@ -323,7 +330,7 @@ const handleSearchCaseNotCategory = async (res, param, slug, next) => {
         params: query,
         data: data,
         message: 'Success'
-    });
+    }
 };
 
 const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
@@ -382,7 +389,7 @@ const generateStageQuerySaleCaseCategory = (req, paginationCond) => {
     return stages;
 };
 
-const handleSearchCaseCategory = async (req, res, param) => {
+const handleSearchCaseCategory = async (req, param) => {
     let page = req.query.page || 0;
     const query = {status: global.STATUS.ACTIVE};
     let results = [];
@@ -461,11 +468,11 @@ const handleSearchCaseCategory = async (req, res, param) => {
         relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
     } else {
         logger.error('SearchController::handleSearchCaseCategory. Url not found with url: ' + param);
-        return res.json({
+        return {
             status: HttpCode.BAD_REQUEST,
             message: 'Url not found',
             data: {}
-        });
+        }
     }
 
     results = results.filter(function (el) {
@@ -483,7 +490,7 @@ const handleSearchCaseCategory = async (req, res, param) => {
             .slice(0, 20);
     }
 
-    return res.json({
+    return {
         status: HttpCode.SUCCESS,
         type: cat.postType,
         seo: {
@@ -508,7 +515,7 @@ const handleSearchCaseCategory = async (req, res, param) => {
         message: 'Success',
         relatedCates,
         relatedTags
-    });
+    };
 };
 
 const filter = async (req, res, next) => {
@@ -636,12 +643,21 @@ const search = async (req, res, next) => {
             return next(new Error('Invalid url params'));
         }
 
+        let result = {};
         if (isValidSlugDetail(slug)) {
-            return await handleSearchCaseNotCategory(res, param, slug, next);
+            result = await handleSearchCaseNotCategory(res, param, slug, next);
+            if (result.status === HttpCode.SUCCESS) {
+                cache.set(req.originalUrl, JSON.stringify(result));
+                return res.json(result);
+            }
         }
 
         if (isValidSlugCategorySearch(slug)) {
-            return await handleSearchCaseCategory(req, res, param, next);
+            result = await handleSearchCaseCategory(req, param, next);
+            if (result.status === HttpCode.SUCCESS) {
+                cache.set(req.originalUrl, JSON.stringify(result));
+                return res.json(result);
+            }
         }
 
         logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
@@ -784,8 +800,23 @@ const getUrlToRedirect = async (req, res, next) => {
     }
 };
 
+const searchCache = (req, res, next) => {
+    const cachedData = cache.get(req.originalUrl);
+
+    if (cachedData) {
+        try {
+            return res.json(JSON.parse(cachedData));
+        } catch (e) {
+            logger.error('SearchController::searchCache::error. Cannot parse string.');
+        }
+    }
+
+    next();
+};
+
 module.exports = {
     filter,
     search,
+    searchCache,
     getUrlToRedirect
 };

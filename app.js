@@ -1,19 +1,20 @@
 require('./config/def');
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var cors = require('cors');
-var rootRouter = require('./routes/root');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const cors = require('cors');
+const rootRouter = require('./routes/root');
 require('./models');
+
 const HTTP_CODE = require('./config/http-code');
 
 // config log4js
-var log4js = require('log4js');
+const log4js = require('log4js');
 log4js.configure('./config/log4js.json');
 
-var app = express();
+const app = express();
 
 app.use(cors());
 // init socket
