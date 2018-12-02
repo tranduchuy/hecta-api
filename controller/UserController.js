@@ -277,6 +277,8 @@ const registerChild = async (req, res, next) => {
         user.ward = ward;
         user.type = type;
         user.hash_password = bcrypt.hashSync(password, 10);
+        user.confirmToken = randomstring.generate(30) + new Date().getTime();
+        Mailer.sendConfirmEmail(email, user.confirmToken);
         await user.save();
 
         let child = new ChildModel({
