@@ -806,7 +806,6 @@ const getUrlToRedirect = async (req, res, next) => {
 };
 
 const searchCache = (req, res, next) => {
-    return next();
     const cachedData = cache.get(req.originalUrl);
 
     if (cachedData) {
