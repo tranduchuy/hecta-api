@@ -73,7 +73,6 @@ const isValidSlugCategorySearch = (slug) => {
 const isValidSlugTag = (slug) => {
     return slug === global.SLUG_TAG;
 };
-
 /**
  *
  * @param saleOrBuyList
@@ -645,7 +644,7 @@ const search = async (req, res, next) => {
 
         let result = {};
         if (isValidSlugDetail(slug)) {
-            result = await handleSearchCaseNotCategory(res, param, slug, next);
+            result = await handleSearchCaseNotCategory(param, slug, next);
             if (result.status === HttpCode.SUCCESS) {
                 cache.set(req.originalUrl, JSON.stringify(result));
                 return res.json(result);
