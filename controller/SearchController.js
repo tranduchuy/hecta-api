@@ -197,7 +197,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
             {url: param},
             {customUrl: param}
         ]
-    });
+    }).lean();
 
     if (!post) {
         logger.error('SearchController::handleSearchCaseNotCategory::error Post not found');
@@ -275,7 +275,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
         if (post.postType === global.POST_TYPE_BUY) {
             let buy = await BuyModel.findOne({
                 _id: post.contentId
-            });
+            }).lean();
 
             if (!buy) {
                 logger.error('SearchController::handleSearchCaseNotCategory::error. Buy not found');
@@ -293,7 +293,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
         if (post.postType === global.POST_TYPE_SALE) {
             let sale = await SaleModel.findOne({
                 _id: post.contentId
-            });
+            }).lean();
 
             if (!sale) {
                 logger.error('SearchController::handleSearchCaseNotCategory::error. Sale not found');
