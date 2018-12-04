@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const postSchema = new Schema({
-    contentId: Schema.Types.ObjectId,
+    contentId: {
+        type: Schema.Types.ObjectId,
+        index: true
+    },
     postType: {
         type: Number,
         index: true

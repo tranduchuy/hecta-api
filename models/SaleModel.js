@@ -35,7 +35,7 @@ const saleSchema = new Schema({
     contactMobile: String,
     contactEmail: String,
     admin: {type: Array, default: []},
-    status : {type : Number, default:global.STATUS.PENDING_OR_WAIT_COMFIRM},
+    status: {type: Number, default: global.STATUS.PENDING_OR_WAIT_COMFIRM},
     date: {type: Number, default: Date.now},
     createdByType: {type: Number, default: global.CREATED_BY.HAND}
 });

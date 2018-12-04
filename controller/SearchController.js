@@ -446,6 +446,7 @@ const handleSearchCaseCategory = async (req, param) => {
                     .limit(paginationCond.limit);
                 break;
         }
+
         results = await Promise.all(data.map(async (item) => {
             const post = await PostModel.findOne({contentId: item._id});
             if (!post) {
@@ -643,10 +644,12 @@ const search = async (req, res, next) => {
         }
 
         let result = {};
+        const a = new Date().getTime();
         if (isValidSlugDetail(slug)) {
             result = await handleSearchCaseNotCategory(param, slug, next);
             if (result.status === HttpCode.SUCCESS) {
                 cache.set(req.originalUrl, JSON.stringify(result));
+                console.log('==>', new Date().getTime() - a);
                 return res.json(result);
             }
         }
@@ -655,9 +658,12 @@ const search = async (req, res, next) => {
             result = await handleSearchCaseCategory(req, param, next);
             if (result.status === HttpCode.SUCCESS) {
                 cache.set(req.originalUrl, JSON.stringify(result));
+                console.log('==>', new Date().getTime() - a);
                 return res.json(result);
             }
         }
+
+
 
         logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
         return next(new Error('Invalid url. Not match case slug: ' + url));
@@ -800,6 +806,7 @@ const getUrlToRedirect = async (req, res, next) => {
 };
 
 const searchCache = (req, res, next) => {
+    return next();
     const cachedData = cache.get(req.originalUrl);
 
     if (cachedData) {
