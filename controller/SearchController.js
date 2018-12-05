@@ -197,7 +197,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
             {url: param},
             {customUrl: param}
         ]
-    }).lean();
+    });
 
     if (!post) {
         logger.error('SearchController::handleSearchCaseNotCategory::error Post not found');
@@ -282,7 +282,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
                 return next(new Error('Buy not found'));
             }
 
-            data = mapBuyOrSaleItemToResultCaseCategory(post, buy);
+            data = mapBuyOrSaleItemToResultCaseCategory(post.toObject(), buy);
 
             const rootQuery = UrlParamService.getQueryObject(buy);
             relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
@@ -300,7 +300,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
                 return next(new Error('Sale not found'));
             }
 
-            data = mapBuyOrSaleItemToResultCaseCategory(post, sale);
+            data = mapBuyOrSaleItemToResultCaseCategory(post.toObject(), sale);
 
             const rootQuery = UrlParamService.getQueryObject(sale);
             relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
