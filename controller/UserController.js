@@ -879,6 +879,93 @@ const resendConfirm = async (req, res, next) => {
     }
 };
 
+const update = async (req, res, next) => {
+    logger.info('UserController::update::called');
+
+    try {
+        const user = req.user;
+        const {
+            email,
+            password,
+            name,
+            phone,
+            birthday,
+            gender,
+            city,
+            district,
+            ward,
+            type,
+            avatar,
+            oldPassword
+        } = req.body;
+        ImageService.putUpdateImage([user.avatar], [avatar]);
+
+        if (email) {
+            if (!EmailValidator.validate(email)) {
+                return next(new Error('Email không đúng'));
+            }
+
+            user.email = email;
+        }
+
+        if (password) {
+            if (!password || password.length < 6) {
+                return next(new Error('Mật khẩu mới không đúng cú pháp'));
+            }
+
+            if (!oldPassword || !await bcrypt.compareSync(oldPassword, user.hash_password)) {
+                return next(new Error('Mật khẩu cũ không khớp'));
+            }
+
+            user.password = bcrypt.hashSync(password, 10);
+        }
+
+        if (phone) {
+            if (phone.length < 6) {
+                return next(new Error('Số điện thoại không đúng. Ít nhất 6 ký tự'));
+            }
+
+            user.phone = phone;
+        }
+
+        if (name) {
+            if (name.length < 3) {
+                return next(new Error('Tên không đúng. Ít nhất 3 ký tự'));
+            }
+
+            user.name = name;
+        }
+
+        user.birthday = birthday || user.birthday;
+        user.avatar = avatar || user.avatar;
+        user.gender = gender || user.gender;
+        user.city = city || user.city;
+        user.district = district || user.district;
+        user.ward = ward || user.ward;
+
+        if (type) {
+            if (type !== global.USER_TYPE_PERSONAL && type !== global.USER_TYPE_COMPANY) {
+                return next(new Error('Invalid type'));
+            }
+
+            user.type = type;
+        }
+
+        await user.save();
+
+        logger.info('UserController::update::success');
+        return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: user,
+            message: 'Success'
+        });
+    }
+    catch (e) {
+        logger.error('UserController::update::error', e);
+        return next(e);
+    }
+};
+
 const UserController = {
     login,
     balance,
@@ -1387,164 +1474,7 @@ const UserController = {
     },
 
     resendConfirm,
-
-    update: async (req, res, next) => {
-
-        try {
-
-            var token = req.headers.accesstoken;
-            if (!token) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token empty !'
-                });
-            }
-
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-            }
-
-
-            var user = await UserModel.findOne({_id: accessToken.user});
-
-            if (!user) {
-
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user is not exist'
-                });
-            }
-
-
-            var email = req.body.email;
-            var password = req.body.password;
-            var name = req.body.name;
-            var phone = req.body.phone;
-            var birthday = req.body.birthday;
-            var gender = req.body.gender;
-            var city = req.body.city;
-            var district = req.body.district;
-            var ward = req.body.ward;
-            var type = req.body.type;
-            var avatar = req.body.avatar;
-            ImageService.putUpdateImage([user.avatar], [avatar]);
-
-            var oldPassword = req.body.oldPassword;
-
-
-            if (email) {
-                if (!EmailValidator.validate(email)) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'email : "' + email + '" is invalid'
-                    });
-                }
-                user.email = email;
-            }
-
-            if (password) {
-                if (!password || password.length < 6) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'password : "' + password + '" is invalid'
-                    });
-                }
-                if (!oldPassword || await bcrypt.compareSync(oldPassword, user.hash_password)) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'oldPassword : "' + oldPassword + '" is incorrect'
-                    });
-                }
-
-
-                user.password = bcrypt.hashSync(password, 10);
-            }
-
-            if (phone) {
-                if (phone.length < 6) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'phone : "' + phone + '" is invalid'
-                    });
-
-                }
-                user.phone = phone;
-            }
-
-            if (name) {
-                if (name.length < 3) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'name : "' + name + '" is invalid'
-                    });
-
-                }
-                user.name = name;
-            }
-            if (birthday) {
-                user.birthday = birthday;
-            }
-
-            if (avatar) {
-                user.avatar = avatar;
-            }
-
-            if (gender != undefined) {
-
-                user.gender = gender;
-            }
-            if (city) {
-                user.city = city;
-            }
-            if (district) {
-                user.district = district;
-            }
-            if (ward) {
-                user.ward = ward;
-            }
-            if (type) {
-                if (type != global.USER_TYPE_PERSONAL && type != global.USER_TYPE_COMPANY) {
-                    return res.json({
-                        status: 0,
-                        data: {},
-                        message: 'type : "' + type + '" is invalid'
-                    });
-
-                }
-                user.type = type;
-            }
-
-            user = await user.save();
-
-            user.hash_password = undefined;
-
-            return res.json({
-                status: 1,
-                data: user,
-                message: 'request success ! '
-            });
-        }
-        catch (e) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'unknown error : ' + e.message
-            });
-        }
-    }
+    update
 };
 
 module.exports = UserController;
