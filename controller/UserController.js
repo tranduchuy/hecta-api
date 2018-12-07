@@ -223,8 +223,10 @@ const childDetail = async (req, res, next) => {
 const registerChild = async (req, res, next) => {
     logger.info('UserController::registerChild is called');
     try {
-        const {username, email, password, phone, name,
-            birthday, gender, city, district, ward, type} = req.body;
+        const {
+            username, email, password, phone, name,
+            birthday, gender, city, district, ward, type
+        } = req.body;
         const parent = req.user;
 
         if (parent.type !== global.USER_TYPE_COMPANY) {
@@ -358,8 +360,10 @@ const confirm = async (req, res, next) => {
 
 const register = async (req, res, next) => {
     logger.info('UserController::register is called');
-    const {username, email, password, phone, name,
-        birthday, gender, city, district, ward, type} = req.body;
+    const {
+        username, email, password, phone, name,
+        birthday, gender, city, district, ward, type
+    } = req.body;
 
     try {
         if (!EmailValidator.validate(email)) {
@@ -751,8 +755,7 @@ const childResponse = async (req, res, next) => {
             data: child,
             message: 'request success !'
         });
-    }
-    catch (e) {
+    } catch (e) {
         logger.error('UserController::childResponse::error', e);
         return next(e);
     }
@@ -762,9 +765,10 @@ const login = async (req, res, next) => {
     logger.info('UserController::login is called');
     try {
         const {username, password} = req.body;
-        const user = await UserModel.findOne({
-            $or: [{username: username}, {email: username}]
-        });
+        const user = await UserModel
+            .findOne({
+                $or: [{username: username}, {email: username}]
+            }).lean();
 
         if (!user) {
             const msg = 'UserController::login::error. Username is not exists';
@@ -959,8 +963,7 @@ const update = async (req, res, next) => {
             data: user,
             message: 'Success'
         });
-    }
-    catch (e) {
+    } catch (e) {
         logger.error('UserController::update::error', e);
         return next(e);
     }
@@ -1087,8 +1090,7 @@ const UserController = {
                 message: 'request success !'
             });
 
-        }
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -1167,8 +1169,7 @@ const UserController = {
                 message: 'request success !'
             });
 
-        }
-        catch
+        } catch
             (e) {
             return res.json({
                 status: 0,
@@ -1264,8 +1265,7 @@ const UserController = {
                 message: 'request success !'
             });
 
-        }
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -1348,8 +1348,7 @@ const UserController = {
             });
 
 
-        }
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -1399,8 +1398,7 @@ const UserController = {
                 data: results,
                 message: 'request success '
             });
-        }
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -1452,8 +1450,7 @@ const UserController = {
                     data: false,
                     message: (username ? 'username' : 'email') + ' duplicated'
                 });
-            }
-            else {
+            } else {
                 return res.json({
                     status: 1,
                     data: true,
@@ -1462,8 +1459,7 @@ const UserController = {
             }
 
 
-        }
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
