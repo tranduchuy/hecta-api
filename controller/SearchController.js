@@ -224,16 +224,45 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
         }
 
         Object.assign(data, news.toObject(), post.toObject(), {id: post._id});
-        relatedPosts = await NewsModel
-            .find({
-                type: news.type,
-                _id: {
-                    $ne: news._id
+
+        const stages = [
+            {
+                $match: {
+                    type: news.type,
+                    _id: {
+                        $ne: news._id
+                    }
                 }
-            })
-            .limit(10)
-            .sort({title: 1})
-            .lean();
+            },
+            {
+                $sort: {
+                    title: 1
+                }
+            },
+            {
+                $limit: 10
+            },
+            {
+                $lookup: {
+                    from: "Posts",
+                    localField: "_id",
+                    foreignField: "contentId",
+                    as: "postInfo"
+                }
+            },
+            {
+                $unwind: "$postInfo"
+            }
+        ];
+
+        const listNews = await NewsModel.aggregate(stages);
+
+        relatedPosts = listNews.map(n => {
+            n.url = n.postInfo.url;
+            n.customUrl = n.postInfo.customUrl;
+            delete n.postInfo;
+            return n;
+        });
     }
 
     if (slug === global.SLUG_PROJECT) {
@@ -662,7 +691,6 @@ const search = async (req, res, next) => {
                 return res.json(result);
             }
         }
-
 
 
         logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
