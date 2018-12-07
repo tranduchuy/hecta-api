@@ -175,7 +175,7 @@ const BuyController = {
         }
     },
 
-    update: async function (req, res, next) {
+    update: async (req, res, next) => {
         logger.info('BuyController::update::called');
 
         try {

@@ -25,7 +25,7 @@ var PostController = {
                 });
             }
 
-            var accessToken = await  TokenModel.findOne({token: token});
+            var accessToken = await TokenModel.findOne({token: token});
 
             if (!accessToken) {
                 return res.json({
@@ -103,7 +103,7 @@ var PostController = {
                 };
             }
 
-            let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1)  * limit).limit(limit);
+            let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * limit).limit(limit);
 
 
             console.log(query);
@@ -118,48 +118,47 @@ var PostController = {
 
                     return {
 
-                            title: sale.title,
-                            formality: sale.formality,
-                            type: sale.type,
-                            city: sale.city,
-                            district: sale.district,
-                            ward: sale.ward,
-                            street: sale.street,
-                            project: sale.project,
-                            area: sale.area,
-                            price: sale.price,
-                            unit: sale.unit,
-                            address: sale.address,
-                            keywordList: sale.keywordList,
-                            description: sale.description,
-                            streetWidth: sale.streetWidth,
-                            frontSize: sale.frontSize,
-                            direction: sale.direction,
-                            balconyDirection: sale.balconyDirection,
-                            floorCount: sale.floorCount,
-                            bedroomCount: sale.bedroomCount,
-                            toiletCount: sale.toiletCount,
-                            furniture: sale.furniture,
-                            images: sale.images,
-                            contactName: sale.contactName,
-                            contactAddress: sale.contactAddress,
-                            contactPhone: sale.contactPhone,
-                            contactMobile: sale.contactMobile,
-                            contactEmail: sale.contactEmail,
-                            date: sale.date,
+                        title: sale.title,
+                        formality: sale.formality,
+                        type: sale.type,
+                        city: sale.city,
+                        district: sale.district,
+                        ward: sale.ward,
+                        street: sale.street,
+                        project: sale.project,
+                        area: sale.area,
+                        price: sale.price,
+                        unit: sale.unit,
+                        address: sale.address,
+                        keywordList: sale.keywordList,
+                        description: sale.description,
+                        streetWidth: sale.streetWidth,
+                        frontSize: sale.frontSize,
+                        direction: sale.direction,
+                        balconyDirection: sale.balconyDirection,
+                        floorCount: sale.floorCount,
+                        bedroomCount: sale.bedroomCount,
+                        toiletCount: sale.toiletCount,
+                        furniture: sale.furniture,
+                        images: sale.images,
+                        contactName: sale.contactName,
+                        contactAddress: sale.contactAddress,
+                        contactPhone: sale.contactPhone,
+                        contactMobile: sale.contactMobile,
+                        contactEmail: sale.contactEmail,
+                        date: sale.date,
 
-                            id: post._id,
-                            url: post.url,
-                            to: post.to,
-                            from: post.from,
-                            priority: post.priority,
-                            postType: post.postType,
-                            status: post.status,
-                            paymentStatus: post.paymentStatus,
-                            refresh: post.refresh
-                        };
-                }
-                else {
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
+                        refresh: post.refresh
+                    };
+                } else {
 
 
                     let buy = await BuyModel.findOne({_id: post.contentId});
@@ -218,9 +217,7 @@ var PostController = {
                 message: 'request success '
             });
 
-        }
-
-        catch
+        } catch
             (e) {
             return res.json({
                 status: 0,
@@ -284,9 +281,7 @@ var PostController = {
                 data: results,
                 message: 'success'
             });
-        }
-
-        catch
+        } catch
             (e) {
             return res.json({
                 status: 0,
@@ -305,7 +300,7 @@ var PostController = {
 
 
             var query = {
-                status:  global.STATUS.ACTIVE,
+                status: global.STATUS.ACTIVE,
                 postType: {"$in": [global.POST_TYPE_BUY, global.POST_TYPE_SALE]}
             };
 
@@ -326,8 +321,7 @@ var PostController = {
 
                         if (!sale.keywordList) {
                             keys = [];
-                        }
-                        else {
+                        } else {
                             keys = await Promise.all(sale.keywordList.map(async key => {
 
                                     return {
@@ -382,8 +376,7 @@ var PostController = {
                                 paymentStatus: post.paymentStatus,
                                 refresh: post.refresh
                             };
-                    }
-                    else {
+                    } else {
 
 
                         let buy = await BuyModel.findOne({_id: post.contentId});
@@ -392,8 +385,7 @@ var PostController = {
 
                         if (!buy.keywordList) {
                             keys = [];
-                        }
-                        else {
+                        } else {
                             keys = await Promise.all(buy.keywordList.map(async key => {
 
                                     return {
@@ -453,9 +445,7 @@ var PostController = {
                 message: 'request success '
             });
 
-        }
-
-        catch
+        } catch
             (e) {
             return res.json({
                 status: 0,
@@ -512,8 +502,7 @@ var PostController = {
 
                 if (!content.keywordList) {
                     keys = [];
-                }
-                else {
+                } else {
                     keys = await Promise.all(content.keywordList.map(async key => {
 
                             return {
@@ -573,15 +562,13 @@ var PostController = {
                     },
                     message: 'request success'
                 });
-            }
-            else {
+            } else {
 
                 let keys;
 
                 if (!content.keywordList) {
                     keys = [];
-                }
-                else {
+                } else {
                     keys = await Promise.all(content.keywordList.map(async key => {
 
                             return {
@@ -636,9 +623,7 @@ var PostController = {
             }
 
 
-        }
-
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
@@ -649,16 +634,17 @@ var PostController = {
 
     },
 
-    list: async function (req, res, next) {
-
-        var page = req.query.page;
-        var priority = req.query.priority;
-        var formality = req.query.formality;
-        var postType = req.query.postType;
-        var toDate = req.query.toDate;
-        var fromDate = req.query.fromDate;
-        var status = req.query.status;
-        var id = req.query.id;
+    list: async (req, res, next) => {
+        let {
+            page,
+            priority,
+            formality,
+            postType,
+            toDate,
+            fromDate,
+            status,
+            id
+        } = req.query;
 
 
         var token = req.headers.accesstoken;
@@ -671,7 +657,7 @@ var PostController = {
             });
         }
 
-        var accessToken = await  TokenModel.findOne({token: token});
+        var accessToken = await TokenModel.findOne({token: token});
 
         if (!accessToken) {
             return res.json({
@@ -679,12 +665,10 @@ var PostController = {
                 data: {},
                 message: 'access token invalid'
             });
-
         }
 
 
         try {
-
             if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY)) {
                 return res.json({
                     status: 0,
@@ -697,7 +681,10 @@ var PostController = {
                 page = 1;
             }
 
-            var query = {user: accessToken.user, status: {$ne: global.STATUS.DELETE}};
+            const query = {
+                user: accessToken.user,
+                status: {$ne: global.STATUS.DELETE}
+            };
 
             if (toDate && fromDate) {
                 query.date = {
@@ -710,8 +697,7 @@ var PostController = {
                 query._id = id;
             }
 
-
-            if (priority != undefined) {
+            if (priority !== undefined) {
                 query.priority = priority;
             }
 
@@ -723,75 +709,66 @@ var PostController = {
                 query.formality = formality;
             }
 
-            if (status != undefined) {
+            if (status !== undefined) {
                 query.status = status;
             }
 
-            let posts = await PostModel.find(query).sort({date: -1}).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
+            console.log('query: ', JSON.stringify(query));
 
+            let posts = await PostModel.find(query)
+                .sort({date: -1})
+                .skip((page - 1) * global.PAGE_SIZE)
+                .limit(global.PAGE_SIZE)
+                .lean();
 
             let results = await Promise.all(posts.map(async post => {
-
-
-                if (post.postType == global.POST_TYPE_SALE) {
-
+                if (post.postType === global.POST_TYPE_SALE) {
                     let sale = await SaleModel.findOne({_id: post.contentId});
+                    return {
+                        title: sale.title,
+                        formality: sale.formality,
+                        type: sale.type,
+                        city: sale.city,
+                        district: sale.district,
+                        ward: sale.ward,
+                        street: sale.street,
+                        project: sale.project,
+                        area: sale.area,
+                        price: sale.price,
+                        unit: sale.unit,
+                        address: sale.address,
+                        keywordList: sale.keywordList,
+                        description: sale.description,
+                        streetWidth: sale.streetWidth,
+                        frontSize: sale.frontSize,
+                        direction: sale.direction,
+                        balconyDirection: sale.balconyDirection,
+                        floorCount: sale.floorCount,
+                        bedroomCount: sale.bedroomCount,
+                        toiletCount: sale.toiletCount,
+                        furniture: sale.furniture,
+                        images: sale.images,
+                        contactName: sale.contactName,
+                        contactAddress: sale.contactAddress,
+                        contactPhone: sale.contactPhone,
+                        contactMobile: sale.contactMobile,
+                        contactEmail: sale.contactEmail,
+                        date: sale.date,
 
+                        id: post._id,
+                        url: post.url,
+                        to: post.to,
+                        from: post.from,
+                        priority: post.priority,
+                        postType: post.postType,
+                        status: post.status,
+                        paymentStatus: post.paymentStatus,
 
-                    return await
-                        // {sale, post};
-                        {
-
-                            title: sale.title,
-                            formality: sale.formality,
-                            type: sale.type,
-                            city: sale.city,
-                            district: sale.district,
-                            ward: sale.ward,
-                            street: sale.street,
-                            project: sale.project,
-                            area: sale.area,
-                            price: sale.price,
-                            unit: sale.unit,
-                            address: sale.address,
-                            keywordList: sale.keywordList,
-                            description: sale.description,
-                            streetWidth: sale.streetWidth,
-                            frontSize: sale.frontSize,
-                            direction: sale.direction,
-                            balconyDirection: sale.balconyDirection,
-                            floorCount: sale.floorCount,
-                            bedroomCount: sale.bedroomCount,
-                            toiletCount: sale.toiletCount,
-                            furniture: sale.furniture,
-                            images: sale.images,
-                            contactName: sale.contactName,
-                            contactAddress: sale.contactAddress,
-                            contactPhone: sale.contactPhone,
-                            contactMobile: sale.contactMobile,
-                            contactEmail: sale.contactEmail,
-                            date: sale.date,
-
-                            id: post._id,
-                            url: post.url,
-                            to: post.to,
-                            from: post.from,
-                            priority: post.priority,
-                            postType: post.postType,
-                            status: post.status,
-                            paymentStatus: post.paymentStatus,
-
-                            refresh: post.refresh
-                        };
-                }
-                else {
-
-
+                        refresh: post.refresh
+                    };
+                } else {
                     let buy = await BuyModel.findOne({_id: post.contentId});
-
-
-                    return await {
-
+                    return {
                         title: buy.title,
                         description: buy.description,
                         keywordList: buy.keywordList,
@@ -826,12 +803,9 @@ var PostController = {
                         refresh: post.refresh
                     };
                 }
-
-
             }));
 
-
-            let count = await PostModel.count(query);
+            let count = await PostModel.countDocuments(query);
 
             return res.json({
                 status: 1,
@@ -843,19 +817,14 @@ var PostController = {
                 message: 'request success '
             });
 
-        }
-
-        catch (e) {
+        } catch (e) {
             return res.json({
                 status: 0,
                 data: {},
                 message: 'unknown error : ' + e.message
             });
         }
-
-
     }
+};
 
-
-}
 module.exports = PostController

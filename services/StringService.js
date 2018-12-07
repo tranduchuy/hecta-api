@@ -27,7 +27,7 @@ const isUndefinedOrNull = (value) => {
  * @description Check if has type number
  * @param value
  */
-const isNaN = (value) => {
+const _isNaN = (value) => {
     return isNaN(parseFloat(value));
 };
 
@@ -35,5 +35,5 @@ module.exports = {
     removeQueryStringFromPath,
     getQueryStringFromPath,
     isUndefinedOrNull,
-    isNaN
+    isNaN: _isNaN
 };

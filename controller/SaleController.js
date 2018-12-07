@@ -574,7 +574,7 @@ const SaleController = {
             if (contactEmail) {
                 sale.contactEmail = contactEmail;
             }
-            if (status == global.STATUS.DELETE) {
+            if (status === global.STATUS.DELETE) {
                 sale.status = status;
             }
 
@@ -616,7 +616,7 @@ const SaleController = {
                     var slug = urlSlug(key);
 
                     if (!slug) {
-                        return;
+                        continue;
                     }
 
                     var tag = await TagModel.findOne({status: global.STATUS.ACTIVE, slug: slug});
@@ -629,6 +629,7 @@ const SaleController = {
                         tag = await tag.save();
 
                     }
+
                     post.tags.push(tag._id);
                 }
             }
