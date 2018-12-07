@@ -140,7 +140,7 @@ const BuyController = {
                     const slug = urlSlug(key);
 
                     if (!slug) {
-                        break;
+                        continue;
                     }
 
                     let tag = await TagModel.findOne({

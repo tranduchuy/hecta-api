@@ -247,7 +247,7 @@ const SaleController = {
                     var slug = urlSlug(key);
 
                     if (!slug) {
-                        return;
+                        continue;
                     }
 
                     var tag = await TagModel.findOne({status: global.STATUS.ACTIVE, slug: slug});
