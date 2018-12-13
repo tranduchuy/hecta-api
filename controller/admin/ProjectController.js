@@ -133,13 +133,6 @@ const add = async (req, res, next) => {
         }
 
         let project = new ProjectModel();
-        if (createdByType) {
-            const duplicateTitle = await ProjectModel.findOne({title: req.body.title});
-            if (duplicateTitle) {
-                logger.error('Admin/ProjectController::add::error. Crawling duplicate title');
-                return next(new Error('Crawling duplicate title'));
-            }
-        }
 
         const {
             isShowOverview, type, introImages, title, address, area, projectScale,
@@ -152,6 +145,14 @@ const add = async (req, res, next) => {
             district, city, metaTitle, metaDescription, metaType, metaUrl, metaImage,
             canonical, textEndPage, createdByType
         } = req.body;
+    
+        if (createdByType) {
+            const duplicateTitle = await ProjectModel.findOne({title: req.body.title});
+            if (duplicateTitle) {
+                logger.error('Admin/ProjectController::add::error. Crawling duplicate title');
+                return next(new Error('Crawling duplicate title'));
+            }
+        }
 
         ['introImages', 'overallSchema', 'groundImages', 'imageAlbums', 'projectProgressImages'].forEach(fieldImg => {
             ImageService.postConfirmImage((req.body[fieldImg] || []).map(intro => {
