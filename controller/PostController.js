@@ -646,28 +646,6 @@ var PostController = {
             id
         } = req.query;
 
-
-        var token = req.headers.accesstoken;
-
-        if (!token) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'access token empty !'
-            });
-        }
-
-        var accessToken = await TokenModel.findOne({token: token});
-
-        if (!accessToken) {
-            return res.json({
-                status: 0,
-                data: {},
-                message: 'access token invalid'
-            });
-        }
-
-
         try {
             if (!postType || (postType != global.POST_TYPE_SALE && postType != global.POST_TYPE_BUY)) {
                 return res.json({
@@ -682,7 +660,7 @@ var PostController = {
             }
 
             const query = {
-                user: accessToken.user,
+                user: req.user.id.toString(),
                 status: {$ne: global.STATUS.DELETE}
             };
 

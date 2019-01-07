@@ -2,12 +2,18 @@
 const request = require('request');
 const HttpCode = require('../config/http-code');
 
-const _handleResponse = (resolve, reject, body) => {
-  if (body.status === HttpCode.ERROR) {
-    return reject(new Error(body.messages[0]));
-  } else {
-    return resolve(body);
+const _handleResponse = (resolve, reject, bodyStr) => {
+  try {
+    const body = JSON.parse(bodyStr);
+    if (body.status === HttpCode.ERROR) {
+      return reject(new Error(body.messages[0]));
+    } else {
+      return resolve(body);
+    }
+  } catch (e) {
+    return reject(e);
   }
+
 };
 
 const get = (uri, token) => {
