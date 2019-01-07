@@ -771,8 +771,15 @@ const childResponse = async (req, res, next) => {
 const login = async (req, res, next) => {
   logger.info('UserController::login is called');
   try {
-    const {email, username, password} = req.body;
-    post(CDP_APIS.USER.LOGIN, {email, username, password})
+    const {username, password} = req.body;
+    const data = {password};
+    if (username.indexOf('@') !== -1) {
+      data.email = username;
+    } else {
+      data.username = username;
+    }
+
+    post(CDP_APIS.USER.LOGIN, data)
       .then((r) => {
         const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
         return res.json({
