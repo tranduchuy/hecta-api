@@ -1,5 +1,7 @@
 const TokenModel = require('../models/TokenModel');
 const UserModel = require('../models/UserModel');
+const {get} = require('../utils/Request');
+const CDP_APIS = require('../config/cdp-url-api.constant');
 
 const urlToPassCheckingToken = [
     '/selector',
@@ -71,23 +73,32 @@ module.exports = async function (req, res, next) {
         return;
     }
 
-    const accessToken = await TokenModel.findOne({token: token});
-
-    if (!accessToken) {
-        returnInvalidToken(req, res, next);
-        return;
-    }
-
-    const user = await UserModel.findOne({
-        _id: accessToken.user,
-        status: global.STATUS.ACTIVE
-    });
-
-    if (!user) {
-        returnInvalidToken(req, res, next);
-        return;
-    }
-
-    req.user = user;
-    return next();
+    // TODO: should improve performance
+    get(CDP_APIS.USER.INFO, token)
+      .then((body) => {
+        req.user = body.data.entries[0];
+        return next();
+      })
+      .catch((err) => {
+        return returnInvalidToken(req, res, next);
+      });
+    // const accessToken = await TokenModel.findOne({token: token});
+    //
+    // if (!accessToken) {
+    //     returnInvalidToken(req, res, next);
+    //     return;
+    // }
+    //
+    // const user = await UserModel.findOne({
+    //     _id: accessToken.user,
+    //     status: global.STATUS.ACTIVE
+    // });
+    //
+    // if (!user) {
+    //     returnInvalidToken(req, res, next);
+    //     return;
+    // }
+    //
+    // req.user = user;
+    // return next();
 };
