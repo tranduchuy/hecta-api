@@ -19,6 +19,9 @@ const Socket = require('../utils/Socket');
 const SocketEvents = require('../config/socket-event');
 const NotifyTypes = require('../config/notify-type');
 const ImageService = require('../services/ImageService');
+const {get, post} = require('../utils/Request');
+const CDP_APIS = require('../config/cdp-url-api.constant');
+
 
 const forgetPassword = async (req, res, next) => {
   logger.info('UserController::forgetPassword is called');
@@ -768,27 +771,28 @@ const childResponse = async (req, res, next) => {
 const login = async (req, res, next) => {
   logger.info('UserController::login is called');
   try {
+
     const {username, password} = req.body;
     console.log(username);
     const user = await UserModel
       .findOne({
         $or: [{username: username}, {email: username.toLowerCase()}]
       }).lean();
-    
+
     if (!user) {
       const msg = 'UserController::login::error. Username is not exists';
       logger.error(msg);
       return next(new Error(msg));
     }
-    
+
     if (user.status !== global.STATUS.ACTIVE || user.role !== global.USER_ROLE_ENDUSER) {
       const msg = 'Account is blocked';
       logger.error(msg);
       return next(new Error(msg));
     }
-    
+
     const isValidPassword = await bcrypt.compareSync(password, user.hash_password);
-    
+
     if (!isValidPassword) {
       return res.json({
         status: HTTP_CODE.ERROR,
@@ -796,50 +800,50 @@ const login = async (req, res, next) => {
         message: 'Wrong password'
       });
     }
-    
+
     let result = {};
     const requestCount = await ChildModel.count({personalId: user._id, status: global.STATUS.CHILD_WAITING});
     let account = await AccountModel.findOne({owner: user._id});
-    
+
     if (!account) {
       account = new AccountModel({owner: user._id});
       account = await account.save();
     }
-    
+
     const accountInfo = {
       main: account.main,
       promo: account.promo
     };
-    
+
     if (user.type === global.USER_TYPE_COMPANY) {
       let creditTransferred = 0;
       const children = await ChildModel.find({companyId: user._id, status: global.STATUS.CHILD_ACCEPTED});
-      
+
       if (children && children.length > 0) {
         children.forEach(child => {
           creditTransferred += (child.credit - child.creditUsed);
         });
       }
-      
+
       accountInfo.creditTransferred = creditTransferred;
     }
-    
+
     if (user.type === global.USER_TYPE_PERSONAL) {
       const child = await ChildModel.findOne({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
       if (child) {
         accountInfo.credit = child.credit;
         accountInfo.creditUsed = child.creditUsed;
       }
-      
+
     }
-    
+
     Object.assign(result, user, {
       id: user._id,
       balance: accountInfo,
       requestCount,
       token: AccessToken.generate(user._id)
     });
-    
+
     return res.json({
       status: HTTP_CODE.SUCCESS,
       data: result,
