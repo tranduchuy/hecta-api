@@ -771,84 +771,17 @@ const childResponse = async (req, res, next) => {
 const login = async (req, res, next) => {
   logger.info('UserController::login is called');
   try {
-
-    const {username, password} = req.body;
-    console.log(username);
-    const user = await UserModel
-      .findOne({
-        $or: [{username: username}, {email: username.toLowerCase()}]
-      }).lean();
-
-    if (!user) {
-      const msg = 'UserController::login::error. Username is not exists';
-      logger.error(msg);
-      return next(new Error(msg));
-    }
-
-    if (user.status !== global.STATUS.ACTIVE || user.role !== global.USER_ROLE_ENDUSER) {
-      const msg = 'Account is blocked';
-      logger.error(msg);
-      return next(new Error(msg));
-    }
-
-    const isValidPassword = await bcrypt.compareSync(password, user.hash_password);
-
-    if (!isValidPassword) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        data: {},
-        message: 'Wrong password'
-      });
-    }
-
-    let result = {};
-    const requestCount = await ChildModel.count({personalId: user._id, status: global.STATUS.CHILD_WAITING});
-    let account = await AccountModel.findOne({owner: user._id});
-
-    if (!account) {
-      account = new AccountModel({owner: user._id});
-      account = await account.save();
-    }
-
-    const accountInfo = {
-      main: account.main,
-      promo: account.promo
-    };
-
-    if (user.type === global.USER_TYPE_COMPANY) {
-      let creditTransferred = 0;
-      const children = await ChildModel.find({companyId: user._id, status: global.STATUS.CHILD_ACCEPTED});
-
-      if (children && children.length > 0) {
-        children.forEach(child => {
-          creditTransferred += (child.credit - child.creditUsed);
+    const {email, username, password} = req.body;
+    post(CDP_APIS.USER.LOGIN, {email, username, password})
+      .then((r) => {
+        const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: 'Success',
+          data: user
         });
-      }
-
-      accountInfo.creditTransferred = creditTransferred;
-    }
-
-    if (user.type === global.USER_TYPE_PERSONAL) {
-      const child = await ChildModel.findOne({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
-      if (child) {
-        accountInfo.credit = child.credit;
-        accountInfo.creditUsed = child.creditUsed;
-      }
-
-    }
-
-    Object.assign(result, user, {
-      id: user._id,
-      balance: accountInfo,
-      requestCount,
-      token: AccessToken.generate(user._id)
-    });
-
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: result,
-      message: 'Login successfully'
-    });
+      })
+      .catch((err) => {return next(err)});
   } catch (e) {
     logger.error('UserController::login::error', e);
     return next(e);
