@@ -52,7 +52,7 @@ const put = (uri, data, token) => {
   return new Promise((resolve, reject) => {
     const options = {
       uri,
-      method: 'POST',
+      method: 'PUT',
       json: data
     };
 
@@ -76,7 +76,7 @@ const del = (uri, token) => {
   return new Promise((resolve, reject) => {
     const options = {
       uri,
-      method: 'GET',
+      method: 'DELETE',
     };
 
     if (token && token.toString().trim() !== '') {
