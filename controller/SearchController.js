@@ -375,7 +375,7 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
         {id: post._id, keywordList});
 };
 
-const generateStageQuerySaleCaseCategory = (req, paginationCond) => {
+const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
     const stages = [
         {
             $lookup: {
@@ -387,6 +387,9 @@ const generateStageQuerySaleCaseCategory = (req, paginationCond) => {
         },
         {
             $unwind: "$postInfo"
+        },
+        {
+            $match: query
         }
     ];
 
@@ -443,7 +446,7 @@ const handleSearchCaseCategory = async (req, param) => {
 
         switch (cat.postType) {
             case global.POST_TYPE_SALE:
-                const stages = generateStageQuerySaleCaseCategory(req, paginationCond);
+                const stages = generateStageQuerySaleCaseCategory(req, query, paginationCond);
                 logger.info('SearchController::handleSearchCaseCategory stages: ', JSON.stringify(stages));
                 const tmpResults = await SaleModel.aggregate(stages);
                 data = tmpResults[0].entries;
