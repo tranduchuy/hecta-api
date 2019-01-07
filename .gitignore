@@ -5,3 +5,4 @@ logs
 .idea
 public/files/selectors/
 .idea/
+package-lock.json
