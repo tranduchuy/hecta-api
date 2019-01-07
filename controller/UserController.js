@@ -772,6 +772,10 @@ const login = async (req, res, next) => {
   logger.info('UserController::login is called');
   try {
     const {username, password} = req.body;
+    if (!username || !password) {
+      return next(new Error('Username and password are required'));
+    }
+
     const data = {password};
     if (username.indexOf('@') !== -1) {
       data.email = username;
