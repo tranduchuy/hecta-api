@@ -74,7 +74,7 @@ module.exports = async function (req, res, next) {
     }
 
     // TODO: should improve performance
-    get(CDP_APIS.USER.INFO, token)
+    get(CDP_APIS.USER.INFO, {token})
       .then((body) => {
         req.user = body.data.entries[0];
         return next();

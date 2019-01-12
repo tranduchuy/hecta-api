@@ -18,6 +18,8 @@ const SocketEvents = require('../config/socket-event');
 const NotifyTypes = require('../config/notify-type');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
+const {get, post} = require('../utils/Request');
+const CDP_APIS = require('../config/cdp-url-api.constant');
 
 const extractSearchCondition = function (req, childId) {
     const cond = {
@@ -217,61 +219,21 @@ const TransactionController = {
     },
 
     list: async function (req, res) {
+      logger.info('TransactionController::list is called');
         try {
-            if (req.user.role != global.USER_ROLE_ENDUSER) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'user is not exist'
-                });
-            }
-
-            var paginationCond = RequestUtil.extractPaginationCondition(req);
-            var searchCondition = extractSearchCondition(req);
-
-            console.log("searchCondition ", searchCondition);
-            console.log("paginationCond ", paginationCond);
-
-            let transactions = await TransactionHistoryModel
-                .find(searchCondition)
-                .sort({date: -1})
-                .skip((paginationCond.page - 1) * paginationCond.limit)
-                .limit(paginationCond.limit)
-                .populate('userId');
-
-            let count = await TransactionHistoryModel.count(searchCondition);
-
+  
+          get(CDP_APIS.TRANSACTION_HISTORY.LIST_MY, req.user.token)
+            .then((r) => {
+              const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
+              return res.json({
+                status: HTTP_CODE.SUCCESS,
+                message: 'Success',
+                data: user
+              });
+            })
+            .catch((err) => {return next(err)});
+          
             let results = await Promise.all(transactions.map(async transaction => {
-
-
-                    if (!transaction.before) {
-                        transaction.before = {
-                            credit: 0,
-                            main: 0,
-                            promo: 0
-                        };
-                    }
-                    if (!transaction.after) {
-                        transaction.after = {
-                            credit: 0,
-                            main: 0,
-                            promo: 0
-                        };
-                    }
-                    let result = {
-
-                        date: transaction.date,
-                        main: transaction.after.main - transaction.before.main,
-                        credit: transaction.after.credit - transaction.before.credit,
-                        promo: transaction.after.promo - transaction.before.promo,
-                        after: transaction.after,
-                        before: transaction.before,
-                        note: transaction.note,
-                        type: transaction.type,
-                        amount: transaction.amount
-                    };
-
-
                     if (ObjectId.isValid(transaction.info)) {
                         if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT || transaction.type == global.TRANSACTION_TYPE_GIVE_MONEY_BACK || transaction.type == global.TRANSACTION_TYPE_TAKE_BACK_MONEY) {
                             var user = await UserModel.findOne({_id: transaction.info});
