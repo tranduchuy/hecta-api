@@ -80,6 +80,7 @@ module.exports = async function (req, res, next) {
       try {
         const _body = JSON.parse(body);
         req.user = _body.data.entries[0];
+        req.user.token = token;
         return next();
       } catch (e) {
         return returnInvalidToken(req, res, next);
