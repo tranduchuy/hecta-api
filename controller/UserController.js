@@ -37,41 +37,6 @@ const forgetPassword = async (req, res, next) => {
       .catch(err => {
         return res.json(err);
       });
-
-    // const user = await UserModel.findOne({email: email});
-    //
-    // if (!user) {
-    //   return res.json({
-    //     status: HTTP_CODE.ERROR,
-    //     message: ['Không tìm thấy người dùng!'],
-    //     data: {}
-    //   });
-    // }
-    //
-    // user.resetPasswordToken = randomstring.generate(30) + new Date().getTime();
-    // // tạo mật khẩu mới bất kì, để tránh trong lúc đang reset mật khẩu, ko có ai xài được nữa
-    // user.hash_password = bcrypt.hashSync(randomstring.generate(10), 10);
-    // user.save();
-    //
-    // // xoá tất cả các token của user này
-    // await TokenModel
-    //   .find({user: user._id})
-    //   .remove();
-    //
-    // logger.info('UserController::forgetPassword Remove all token of user', user.email);
-    //
-    // Mailer.sendEmailResetPassword(user.email, user.resetPasswordToken, function (err) {
-    //   if (err) {
-    //     logger.error('UserController::forgetPassword cannot send mail: ', err);
-    //     return next(err);
-    //   }
-    //
-    //   return res.json({
-    //     status: HTTP_CODE.SUCCESS,
-    //     message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
-    //     data: {}
-    //   });
-    // });
   } catch (e) {
     logger.error('UserController::forgetPassword error: ', e);
     return next(e);
@@ -83,42 +48,41 @@ const resetPassword = async (req, res, next) => {
   const resetToken = (req.body['resetToken'] || '').toString();
   const password = (req.body.password || '').toString();
 
-  if (resetToken === '') {
-    return res.json({
-      status: HTTP_CODE.ERROR,
-      message: ['Token đổi mật khẩu không hợp lệ'],
-      data: {}
-    });
-  }
-
-  if (password.length < 6) {
-    return res.json({
-      status: HTTP_CODE.ERROR,
-      message: ['Mật khẩu quá ngắn'],
-      data: {}
-    });
-  }
-
   try {
-    const user = await UserModel.findOne({resetPasswordToken: resetToken});
-    if (!user) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        message: ['Token đổi mật khẩu không hợp lệ'],
-        data: {}
+    post(CDP_APIS.USER.RESET_PASSWORD, {
+      token: resetToken,
+      password,
+      confirmedPassword: password
+    })
+      .then(r => {
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: ['Đổi mật khẩu thành công. Vui lòng đăng nhập lại!'],
+          data: {}
+        });
+      })
+      .catch(err => {
+        return next(err);
       });
-    }
-
-    user.resetPasswordToken = ''; // xoá reset token
-    user.hash_password = bcrypt.hashSync(password, 10);
-    await user.save();
-
-    logger.info('UserController::resetPassword update password successfully', user.email);
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      message: ['Đổi mật khẩu thành công. Vui lòng đăng nhập lại!'],
-      data: {}
-    });
+    // const user = await UserModel.findOne({resetPasswordToken: resetToken});
+    // if (!user) {
+    //   return res.json({
+    //     status: HTTP_CODE.ERROR,
+    //     message: ['Token đổi mật khẩu không hợp lệ'],
+    //     data: {}
+    //   });
+    // }
+    //
+    // user.resetPasswordToken = ''; // xoá reset token
+    // user.hash_password = bcrypt.hashSync(password, 10);
+    // await user.save();
+    //
+    // logger.info('UserController::resetPassword update password successfully', user.email);
+    // return res.json({
+    //   status: HTTP_CODE.SUCCESS,
+    //   message: ['Đổi mật khẩu thành công. Vui lòng đăng nhập lại!'],
+    //   data: {}
+    // });
   } catch (e) {
     logger.error('UserController::resetPassword error', e);
     return next(e);

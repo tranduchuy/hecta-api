@@ -9,7 +9,8 @@ module.exports = {
     HIGHLIGHT: `${host}/user/highlight`,
     CONFIRM_EMAIL: `${host}/user/confirm-email`,
     RESEND_CONFIRM_EMAIL: `${host}/user/resend-confirm-email`,
-    FORGET_PASSWORD: `${host}/user/forget-password`
+    FORGET_PASSWORD: `${host}/user/forget-password`,
+    RESET_PASSWORD: `${host}/user/reset-password`
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
