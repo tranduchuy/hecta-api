@@ -78,8 +78,7 @@ module.exports = async function (req, res, next) {
   get(CDP_APIS.USER.INFO, token)
     .then((body) => {
       try {
-        const _body = JSON.parse(body);
-        req.user = _body.data.entries[0];
+        req.user = body.data.entries[0];
         req.user.token = token;
         return next();
       } catch (e) {

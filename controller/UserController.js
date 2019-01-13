@@ -1173,86 +1173,26 @@ const UserController = {
   },
 
   findUserByEmail: async (req, res, next) => {
+    logger.info('UserController::findUserByEmail::called');
 
     try {
+      const email = req.params.email;
 
-      var token = req.headers.accesstoken;
-      var email = req.params.email;
-
-      if (!token) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'access token empty !'
+      get(`${CDP_APIS.USER.FIND_USER_BY_EMAIL}?email=${email}`, req.user.token)
+        .then(r => {
+          return res.json({
+            status: 1,
+            data: r.data.entries[0],
+            message: 'request success'
+          });
+        })
+        .catch(err => {
+          return next(err);
         });
-      }
-
-      var accessToken = await TokenModel.findOne({token: token});
-
-      if (!accessToken) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'access token invalid'
-        });
-      }
-
-
-      var user = await UserModel.findOne({_id: accessToken.user});
-
-      if (!user) {
-
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'user is not exist'
-        });
-      }
-
-      if (user.type != global.USER_TYPE_COMPANY) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'user does not have permission !'
-        });
-      }
-
-      var personal = await UserModel.findOne({email: email});
-      if (!personal || personal.type != global.USER_TYPE_PERSONAL) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'email not found !'
-        });
-      }
-
-      var child = await ChildModel.findOne({companyId: user._id, personalId: personal._id});
-
-      var transfer = undefined;
-
-
-      return res.json({
-        status: 1,
-        data: {
-          id: personal._id,
-          username: personal.username,
-          email: personal.email,
-          name: personal.name,
-          status: !child ? global.STATUS.CHILD_NONE : child.status,
-          transfer: transfer && transfer.sum ? transfer.sum : 0
-        },
-        message: 'request success'
-      });
-
-
     } catch (e) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'unknown error : ' + e.message
-      });
+      logger.error('UserController::findUserByEmail::error', e);
+      return next(e);
     }
-
   },
 
   highlight: async (req, res, next) => {
