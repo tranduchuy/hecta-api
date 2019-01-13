@@ -221,68 +221,74 @@ const TransactionController = {
   list: async function (req, res, next) {
     logger.info('TransactionController::list is called');
     try {
-
       get(CDP_APIS.TRANSACTION_HISTORY.LIST_MY, req.user.token)
         .then((r) => {
-          const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
-          return res.json({
-            status: HTTP_CODE.SUCCESS,
-            message: 'Success',
-            data: user
-          });
-        })
-        .catch((err) => {
-          return next(err)
-        });
-
-      let results = await Promise.all(transactions.map(async transaction => {
-          if (ObjectId.isValid(transaction.info)) {
-            if (transaction.type === global.TRANSACTION_TYPE_SHARE_CREDIT ||
-              transaction.type === global.TRANSACTION_TYPE_RECEIVE_CREDIT ||
-              transaction.type === global.TRANSACTION_TYPE_GIVE_MONEY_BACK ||
-              transaction.type === global.TRANSACTION_TYPE_TAKE_BACK_MONEY) {
-              var user = await UserModel.findOne({_id: transaction.info});
-
-              if (user) {
-                result.info = {
-                  username: user.username,
-                  email: user.email,
-                  phone: user.phone,
-                  name: user.name
-                };
-              }
-            }
-
-            if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
-              transaction.type === global.TRANSACTION_TYPE_UP_NEW) {
-              let post = await PostModel.findOne({_id: transaction.info});
-              if (post) {
-                let sale = await SaleModel.findOne({_id: post.contentId});
-                if (sale) {
+          const _r = JSON.parse(r);
+          let transactions = Promise.all(_r.data.entries.map(async transaction => {
+            if (ObjectId.isValid(transaction.info)) {
+              if (transaction.type === global.TRANSACTION_TYPE_SHARE_CREDIT ||
+                transaction.type === global.TRANSACTION_TYPE_RECEIVE_CREDIT ||
+                transaction.type === global.TRANSACTION_TYPE_GIVE_MONEY_BACK ||
+                transaction.type === global.TRANSACTION_TYPE_TAKE_BACK_MONEY) {
+                var user = await UserModel.findOne({_id: transaction.info});
+    
+                if (user) {
                   result.info = {
-                    id: post._id,
-                    title: sale.title
+                    username: user.username,
+                    email: user.email,
+                    phone: user.phone,
+                    name: user.name
                   };
                 }
               }
+  
+              if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
+                transaction.type === global.TRANSACTION_TYPE_UP_NEW) {
+                let post = await PostModel.findOne({_id: transaction.info});
+                if (post) {
+                  let sale = await SaleModel.findOne({_id: post.contentId});
+                  if (sale) {
+                    result.info = {
+                      id: post._id,
+                      title: sale.title
+                    };
+                  }
+                }
+              }
             }
-          }
-
-          return result;
-        }
-      ));
-
-      return res.json({
-        status: HTTP_CODE.SUCCESS,
-        data: {
-          itemCount: count,
-          items: results,
-          page: paginationCond.page,
-          limit: paginationCond.limit,
-          total: _.ceil(count / paginationCond.limit)
-        },
-        message: 'Success'
-      });
+          }));
+          
+          
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: 'Success',
+            data: {
+              items: transactions,
+              total: _.ceil(_r.data.meta.totalRecords / 20),
+              itemCount: _r.data.meta.totalRecords
+            }
+          });
+        })
+        .catch((err) => {return next(err)});
+      //
+      // let results = await Promise.all(transactions.map(async transaction => {
+      //
+      //
+      //     return result;
+      //   }
+      // ));
+      //
+      // return res.json({
+      //   status: HTTP_CODE.SUCCESS,
+      //   data: {
+      //     itemCount: count,
+      //     items: results,
+      //     page: paginationCond.page,
+      //     limit: paginationCond.limit,
+      //     total: _.ceil(count / paginationCond.limit)
+      //   },
+      //   message: 'Success'
+      // });
     }
     catch (e) {
       return res.json({
