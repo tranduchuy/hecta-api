@@ -331,32 +331,43 @@ const confirm = async (req, res, next) => {
   const token = req.body.token;
 
   try {
-    if (!token || token.length < 30) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {},
-        message: 'Invalid token'
-      });
-    }
-
-    const user = await UserModel.findOne({confirmToken: token});
-
-    if (!user) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        data: {},
-        message: 'Token not found'
-      });
-    }
-
-    user.status = global.STATUS.ACTIVE;
-
-    await user.save();
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: {},
-      message: 'Success'
-    });
+    get(`${CDP_APIS.USER.CONFIRM_EMAIL}?token=${token}`)
+      .then(r => {
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: {},
+          message: 'Success'
+        });
+      })
+      .catch(err => {
+        return next(err);
+      })
+    // if (!token || token.length < 30) {
+    //   return res.json({
+    //     status: HTTP_CODE.BAD_REQUEST,
+    //     data: {},
+    //     message: 'Invalid token'
+    //   });
+    // }
+    //
+    // const user = await UserModel.findOne({confirmToken: token});
+    //
+    // if (!user) {
+    //   return res.json({
+    //     status: HTTP_CODE.ERROR,
+    //     data: {},
+    //     message: 'Token not found'
+    //   });
+    // }
+    //
+    // user.status = global.STATUS.ACTIVE;
+    //
+    // await user.save();
+    // return res.json({
+    //   status: HTTP_CODE.SUCCESS,
+    //   data: {},
+    //   message: 'Success'
+    // });
   } catch (e) {
     logger.error('UserController::confirm::error', e);
     return next(e);

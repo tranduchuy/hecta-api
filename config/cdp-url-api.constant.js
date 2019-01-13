@@ -6,7 +6,8 @@ module.exports = {
     INFO: `${host}/user/info`,
     VERIFY_TOKEN: `${host}/user/valid-token`,
     REGISTER: `${host}/user/register`,
-    HIGHLIGHT: `${host}/user/highlight`
+    HIGHLIGHT: `${host}/user/highlight`,
+    CONFIRM_EMAIL: `${host}/user/confirm-email`
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
