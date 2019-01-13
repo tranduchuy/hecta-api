@@ -14,7 +14,7 @@ const _handleResponse = (resolve, reject, body) => {
       return resolve(body);
     }
   } catch (e) {
-    return reject(e);
+    return reject(new Error(`Cannot parse json. ${e.message}. Content: ${body}`));
   }
 
 };

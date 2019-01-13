@@ -791,35 +791,21 @@ const login = async (req, res, next) => {
 
 const resendConfirm = async (req, res, next) => {
   logger.info('UserController::resendConfirm is called');
+
   try {
     const email = req.body.email;
-    if (!email) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {},
-        message: 'Email is required'
+
+    get(`${CDP_APIS.USER.RESEND_CONFIRM_EMAIL}?email=${email}`)
+      .then((r) => {
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: {},
+          message: 'request success'
+        });
+      })
+      .catch((err) => {
+        return next(err);
       });
-    }
-
-    const user = await UserModel.findOne({
-      email: email,
-      status: global.STATUS.PENDING_OR_WAIT_COMFIRM
-    });
-
-    if (!user) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        data: {},
-        message: 'user not found or invalid status'
-      });
-    }
-    Mailer.sendConfirmEmail(user.email, user.confirmToken);
-
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: {},
-      message: 'request success'
-    });
   } catch (e) {
     logger.error('UserController::resendConfirm::error', e);
     return next(e);
@@ -1305,6 +1291,7 @@ const UserController = {
 
   highlight: async (req, res, next) => {
     logger.info('UserController::highlight::called');
+
     try {
       get(CDP_APIS.USER.HIGHLIGHT)
         .then((body) => {
