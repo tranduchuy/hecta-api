@@ -223,8 +223,7 @@ const TransactionController = {
     try {
       get(CDP_APIS.TRANSACTION_HISTORY.LIST_MY, req.user.token)
         .then(async (r) => {
-          const _r = JSON.parse(r);
-          let transactions = await Promise.all(_r.data.entries.map(async transaction => {
+          let transactions = await Promise.all(r.data.entries.map(async transaction => {
             
             if (ObjectId.isValid(transaction.note)) {
               if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
@@ -249,8 +248,8 @@ const TransactionController = {
             message: 'Success',
             data: {
               items: transactions,
-              total: _.ceil(_r.data.meta.totalRecords / 20),
-              itemCount: _r.data.meta.totalRecords
+              total: _.ceil(r.data.meta.totalRecords / 20),
+              itemCount: r.data.meta.totalRecords
             }
           });
         })
