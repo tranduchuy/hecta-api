@@ -38,6 +38,8 @@ const AdminController = {
             return next(new Error('Permission denied'));
           }
 
+          user._id = user.id;
+
           return res.json({
             status: HttpCode.SUCCESS,
             message: 'Success',

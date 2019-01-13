@@ -786,6 +786,16 @@ const login = async (req, res, next) => {
     post(CDP_APIS.USER.LOGIN, data)
       .then((r) => {
         const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
+
+        user._id = user.id;
+        user.gender = user.gender || null;
+        user.city = user.city || null;
+        user.district = user.district || null;
+        user.ward = user.ward || null;
+        user.birthday = user.birthday || null;
+        user.balance.main = user.balance.main1;
+        delete user.balance.main1;
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           message: 'Success',
