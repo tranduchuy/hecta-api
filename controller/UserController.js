@@ -1293,45 +1293,23 @@ const UserController = {
   },
 
   highlight: async (req, res, next) => {
-
+    logger.info('UserController::highlight::called');
     try {
-
-
-      let users = await
-        UserModel.find({phone: {$ne: null}, avatar: {$ne: null}}).sort({date: -1}).limit(10);
-
-      let results = await
-        Promise.all(users.map(async user => {
-
-
-          let result = {
-            id: user._id,
-
-            username: user.username,
-            email: user.email,
-            phone: user.phone,
-            name: user.name,
-            birthday: user.birthday,
-            gender: user.gender,
-            city: user.city,
-            avatar: user.avatar,
-            district: user.district,
-            ward: user.ward,
-            type: user.type
-
-          };
-
-
-          return result;
-
-        }));
-
-
-      return res.json({
-        status: 1,
-        data: results,
-        message: 'request success '
-      });
+      get(CDP_APIS.USER.HIGHLIGHT)
+        .then((body) => {
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: 'Success',
+            data: body.data.entries.map(u => {
+              if (u.birthday) {
+                u.birthday = new Date(u.birthday).getTime();
+              }
+            })
+          })
+        })
+        .catch(err => {
+          return next(err);
+        });
     } catch (e) {
       return res.json({
         status: 0,

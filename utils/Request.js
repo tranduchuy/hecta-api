@@ -4,6 +4,10 @@ const HttpCode = require('../config/http-code');
 
 const _handleResponse = (resolve, reject, body) => {
   try {
+    if (typeof body === 'string') {
+      body = JSON.parse(body);
+    }
+
     if (body.status === HttpCode.ERROR) {
       return reject(new Error(body.messages[0]));
     } else {
