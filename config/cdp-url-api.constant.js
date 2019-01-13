@@ -4,7 +4,8 @@ module.exports = {
   USER: {
     LOGIN: `${host}/user/login`,
     INFO: `${host}/user/info`,
-    VERIFY_TOKEN: `${host}/user/valid-token`
+    VERIFY_TOKEN: `${host}/user/valid-token`,
+    REGISTER: `${host}/user/register`
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,

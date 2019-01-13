@@ -107,6 +107,6 @@ const del = (uri, token) => {
       return _handleResponse(resolve, reject, body);
     });
   });
-}
+};
 
 module.exports = {get, post, put, del};
