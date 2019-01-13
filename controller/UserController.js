@@ -1,7 +1,6 @@
 const EmailValidator = require("email-validator");
 const UserModel = require('../models/UserModel');
 const bcrypt = require('bcrypt');
-const AccessToken = require('../utils/AccessToken');
 const TokenModel = require('../models/TokenModel');
 const ChildModel = require('../models/ChildModel');
 const AccountModel = require('../models/AccountModel');
@@ -22,54 +21,57 @@ const ImageService = require('../services/ImageService');
 const {get, post} = require('../utils/Request');
 const CDP_APIS = require('../config/cdp-url-api.constant');
 
-
 const forgetPassword = async (req, res, next) => {
   logger.info('UserController::forgetPassword is called');
-  const email = (req.body.email || '').toString();
-
-  if (email === '') {
-    return res.json({
-      status: HTTP_CODE.ERROR,
-      message: ['Vui lòng nhập email'],
-      data: {}
-    });
-  }
 
   try {
-    const user = await UserModel.findOne({email: email});
 
-    if (!user) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        message: ['Không tìm thấy người dùng!'],
-        data: {}
+    get(`${CDP_APIS.USER.FORGET_PASSWORD}?email=${req.body.email || ''}`)
+      .then((r) => {
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
+            data: {}
+          });
+      })
+      .catch(err => {
+        return res.json(err);
       });
-    }
 
-    user.resetPasswordToken = randomstring.generate(30) + new Date().getTime();
-    // tạo mật khẩu mới bất kì, để tránh trong lúc đang reset mật khẩu, ko có ai xài được nữa
-    user.hash_password = bcrypt.hashSync(randomstring.generate(10), 10);
-    user.save();
-
-    // xoá tất cả các token của user này
-    await TokenModel
-      .find({user: user._id})
-      .remove();
-
-    logger.info('UserController::forgetPassword Remove all token of user', user.email);
-
-    Mailer.sendEmailResetPassword(user.email, user.resetPasswordToken, function (err) {
-      if (err) {
-        logger.error('UserController::forgetPassword cannot send mail: ', err);
-        return next(err);
-      }
-
-      return res.json({
-        status: HTTP_CODE.SUCCESS,
-        message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
-        data: {}
-      });
-    });
+    // const user = await UserModel.findOne({email: email});
+    //
+    // if (!user) {
+    //   return res.json({
+    //     status: HTTP_CODE.ERROR,
+    //     message: ['Không tìm thấy người dùng!'],
+    //     data: {}
+    //   });
+    // }
+    //
+    // user.resetPasswordToken = randomstring.generate(30) + new Date().getTime();
+    // // tạo mật khẩu mới bất kì, để tránh trong lúc đang reset mật khẩu, ko có ai xài được nữa
+    // user.hash_password = bcrypt.hashSync(randomstring.generate(10), 10);
+    // user.save();
+    //
+    // // xoá tất cả các token của user này
+    // await TokenModel
+    //   .find({user: user._id})
+    //   .remove();
+    //
+    // logger.info('UserController::forgetPassword Remove all token of user', user.email);
+    //
+    // Mailer.sendEmailResetPassword(user.email, user.resetPasswordToken, function (err) {
+    //   if (err) {
+    //     logger.error('UserController::forgetPassword cannot send mail: ', err);
+    //     return next(err);
+    //   }
+    //
+    //   return res.json({
+    //     status: HTTP_CODE.SUCCESS,
+    //     message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
+    //     data: {}
+    //   });
+    // });
   } catch (e) {
     logger.error('UserController::forgetPassword error: ', e);
     return next(e);
