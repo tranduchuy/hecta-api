@@ -1,6 +1,5 @@
 const EmailValidator = require("email-validator");
 const BCrypt = require('bcrypt');
-const AccessToken = require('../../utils/AccessToken');
 const TokenModel = require('../../models/TokenModel');
 const UserModel = require('../../models/UserModel');
 const BuyModel = require('../../models/BuyModel');
@@ -11,53 +10,41 @@ const HttpCode = require('../../config/http-code');
 const _ = require('lodash');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
+const {post, get, del, put} = require('../../utils/Request');
+const CDP_APIS = require('../../config/cdp-url-api.constant');
 
 const AdminController = {
   login: async function (req, res, next) {
     logger.info('AdminController::login is called');
     try {
       const {username, password} = req.body;
-      
-      if (!password || password.length < 6) {
-        return res.json({
-          status: HttpCode.BAD_REQUEST,
-          message: 'Password is invalid',
-          data: {}
-        });
+      if (!username || !password) {
+        return next(new Error('Username and password are required'));
       }
-      
-      if (!username || username.length < 6) {
-        return res.json({
-          status: HttpCode.BAD_REQUEST,
-          message: 'Username is invalid',
-          data: {}
-        });
+
+      const data = {password};
+      if (username.indexOf('@') !== -1) {
+        data.email = username;
+      } else {
+        data.username = username;
       }
-      
-      let user = await UserModel.findOne({username: username});
-      
-      if (!user ||
-        user.status !== global.STATUS.ACTIVE ||
-        (user.role !== global.USER_ROLE_MASTER && user.role !== global.USER_ROLE_ADMIN) ||
-        await !BCrypt.compareSync(password, user.hash_password)
-      ) {
-        return res.json({
-          status: HttpCode.ERROR,
-          message: 'Login fail',
-          data: {}
-        });
-      }
-      
-      user = JSON.parse(JSON.stringify(user));
-      user.token = AccessToken.generate(user._id);
-      user.id = user._id;
-      
-      logger.info('AdminController::login::success');
-      return res.json({
-        status: HttpCode.SUCCESS,
-        data: user,
-        message: 'Login success'
-      });
+
+      post(CDP_APIS.USER.LOGIN, data)
+        .then((r) => {
+          const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
+
+          if (![global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].some(r => r === user.role)) {
+            logger.error('Admin/AdminController::login::error. Permission denied');
+            return next(new Error('Permission denied'));
+          }
+
+          return res.json({
+            status: HttpCode.SUCCESS,
+            message: 'Success',
+            data: user
+          });
+        })
+        .catch((err) => {return next(err)});
     } catch (e) {
       logger.info('AdminController::login::error', e);
       return next(e);
@@ -68,7 +55,8 @@ const AdminController = {
     try {
       const user = req.user;
       var {
-        email, password, name, phone, birthday, gender, city, district, ward, avatar, oldPassword
+        email, password, name, phone, birthday, gender,
+        city, district, ward, avatar, oldPassword
       } = req.body;
       
       email = email.toLowerCase();
