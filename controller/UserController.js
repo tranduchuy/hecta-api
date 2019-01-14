@@ -1225,56 +1225,74 @@ const UserController = {
   },
 
   check: async (req, res, next) => {
-    var username = req.body.username;
-    var email = req.body.email;
+    const username = req.body.username || '';
+    const email = req.body.email || '';
 
-    email = email.toLowerCase();
+    get(`${CDP_APIS.USER.CHECK_DUP_USERNAME_EMAIL}?email=${email}&username=${username}`, req.user.token)
+      .then(r => {
+        if (r.data.meta.isDuplicate) {
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            data: false,
+            message: (username ? 'username' : 'email') + ' duplicated'
+          });
+        }
 
-    if (!username && !email) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'put email or username in body of request :)'
-      });
-    }
-
-    if (username && username.length < 6) {
-      return res.json({
-        status: 1,
-        data: false,
-        message: 'user invalid'
-      });
-
-    }
-
-    if (email && !EmailValidator.validate(email)) {
-
-      return res.json({
-        status: 1,
-        data: false,
-        message: 'email invalid'
-      });
-
-    }
-
-    try {
-
-      let user = await UserModel.findOne(username ? {username: username} : {email: email});
-
-
-      if (user) {
         return res.json({
-          status: 1,
-          data: false,
-          message: (username ? 'username' : 'email') + ' duplicated'
-        });
-      } else {
-        return res.json({
-          status: 1,
+          status: HTTP_CODE.SUCCESS,
           data: true,
           message: (username ? 'username' : 'email') + ' available'
         });
-      }
+      })
+      .catch(err => {
+        return next(err);
+      });
+
+    // if (!username && !email) {
+    //   return res.json({
+    //     status: 0,
+    //     data: {},
+    //     message: 'put email or username in body of request :)'
+    //   });
+    // }
+    //
+    // if (username && username.length < 6) {
+    //   return res.json({
+    //     status: 1,
+    //     data: false,
+    //     message: 'user invalid'
+    //   });
+    //
+    // }
+    //
+    // if (email && !EmailValidator.validate(email)) {
+    //
+    //   return res.json({
+    //     status: 1,
+    //     data: false,
+    //     message: 'email invalid'
+    //   });
+    //
+    // }
+    //
+    // try {
+    //
+    //   let user = await UserModel.findOne(username ? {username: username} : {email: email});
+    //
+    //
+    //   if (user) {
+    //     return res.json({
+    //       status: 1,
+    //       data: false,
+    //       message: (username ? 'username' : 'email') + ' duplicated'
+    //     });
+    //   } else {
+    //     return res.json({
+    //       status: 1,
+    //       data: true,
+    //       message: (username ? 'username' : 'email') + ' available'
+    //     });
+    //   }
 
 
     } catch (e) {
