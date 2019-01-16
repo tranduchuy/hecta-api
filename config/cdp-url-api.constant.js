@@ -13,6 +13,8 @@ module.exports = {
     RESET_PASSWORD: `${host}/user/reset-password`,
     FIND_USER_BY_EMAIL: `${host}/user/find-detail`,
     LIST_CHILD: `${host}/user-relationship/children`
+    FIND_USER_BY_EMAIL: `${host}/user/find-detail`,
+    CHECK_DUP_USERNAME_EMAIL: `${host}/user/check-email-username`
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
