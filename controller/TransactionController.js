@@ -267,126 +267,53 @@ const TransactionController = {
   },
   
   childList: async function (req, res) {
+  
+    logger.info('TransactionController::childList is called');
     try {
-      if (req.user.status != global.STATUS.ACTIVE) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'Permission denied'
-        });
-      }
+  
+      const childId =  '?childId=' + req.params.id;
       
-      
-      var childId = req.params.id;
-      
-      
-      var child = await ChildModel.findOne({
-        status: global.STATUS.CHILD_ACCEPTED,
-        companyId: req.user._id,
-        personalId: childId
-      });
-      
-      
-      if (!child) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'Child is not exist'
-        });
-      }
-      
-      var paginationCond = RequestUtil.extractPaginationCondition(req);
-      var searchCondition = extractSearchCondition(req, childId);
-      
-      var transactions = await TransactionHistoryModel
-        .find(searchCondition)
-        .sort({date: -1})
-        .skip((paginationCond.page - 1) * paginationCond.limit)
-        .limit(paginationCond.limit)
-        .populate('userId');
-      
-      let count = await TransactionHistoryModel.count(searchCondition);
-      
-      
-      let results = await Promise.all(transactions.map(async transaction => {
+      get(CDP_APIS.TRANSACTION_HISTORY.LIST_CHILD + childId, req.user.token)
+        .then(async (r) => {
+          let transactions = await Promise.all(r.data.entries.map(async transaction => {
           
-          
-          if (!transaction.before) {
-            transaction.before = {
-              credit: 0,
-              main: 0,
-              promo: 0
-            };
-          }
-          if (!transaction.after) {
-            transaction.after = {
-              credit: 0,
-              main: 0,
-              promo: 0
-            };
-          }
-          let result = {
-            
-            date: transaction.date,
-            main: transaction.after.main - transaction.before.main,
-            credit: transaction.after.credit - transaction.before.credit,
-            promo: transaction.after.promo - transaction.before.promo,
-            after: transaction.after,
-            before: transaction.before,
-            note: transaction.note,
-            type: transaction.type,
-            amount: transaction.amount
-          };
-          
-          
-          if (ObjectId.isValid(transaction.info)) {
-            if (transaction.type == global.TRANSACTION_TYPE_SHARE_CREDIT || transaction.type == global.TRANSACTION_TYPE_RECEIVE_CREDIT) {
-              var user = await UserModel.findOne({_id: transaction.info});
-              
-              if (user) {
-                result.info = {
-                  username: user.username,
-                  email: user.email,
-                  phone: user.phone,
-                  name: user.name
-                };
-              }
-              
-            }
-            
-            if (transaction.type == global.TRANSACTION_TYPE_PAY_POST || transaction.type == global.TRANSACTION_TYPE_UP_NEW) {
-              let post = await PostModel.findOne({_id: transaction.info});
-              if (post) {
-                let sale = await SaleModel.findOne({_id: post.contentId});
-                if (sale) {
-                  result.info = {
-                    id: post._id,
-                    title: sale.title
-                  };
+            if (ObjectId.isValid(transaction.note)) {
+              if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
+                transaction.type === global.TRANSACTION_TYPE_UP_NEW) {
+                const post = await PostModel.findOne({_id: transaction.note});
+                if (post){
+                  const sale = await SaleModel.findOne({_id: post.contentId});
+                  if (sale) {
+                    transaction.info = {
+                      id: post._id,
+                      title: sale.title
+                    };
+                  }
                 }
               }
             }
-          }
-          return result;
-        }
-      ));
-      
-      return res.json({
-        status: 1,
-        data: {
-          items: results,
-          page: paginationCond.page,
-          limit: paginationCond.limit,
-          total: _.ceil(count / paginationCond.limit)
-        },
-        message: 'Success'
-      });
+            return transaction;
+          }));
+        
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: 'Success',
+            data: {
+              items: transactions,
+              total: _.ceil(r.data.meta.totalRecords / 20),
+              itemCount: r.data.meta.totalRecords
+            }
+          });
+        })
+        .catch((err) => {
+          return next(err)
+        });
     }
     catch (e) {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'Unknow error : ' + e.message
+        message: 'Unknown error : ' + e.message
       });
     }
   }
