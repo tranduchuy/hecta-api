@@ -12,7 +12,8 @@ module.exports = {
     FORGET_PASSWORD: `${host}/user/forget-password`,
     RESET_PASSWORD: `${host}/user/reset-password`,
     FIND_USER_BY_EMAIL: `${host}/user/find-detail`,
-    CHECK_DUP_USERNAME_EMAIL: `${host}/user/check-email-username`
+    CHECK_DUP_USERNAME_EMAIL: `${host}/user/check-email-username`,
+    UPDATE_USER_INFO: `${host}/user/:id`
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
