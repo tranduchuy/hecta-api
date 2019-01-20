@@ -783,8 +783,8 @@ const update = async (req, res, next) => {
 
   try {
     const user = req.user;
-    let { email, password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword } = req.body;
-    const postData = { email, password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword };
+    let { password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword } = req.body;
+    const postData = { password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword };
     ImageService.putUpdateImage([user.avatar], [avatar]);
 
     const apiUrl = CDP_APIS.USER.UPDATE_USER_INFO.replace(':id', req.user.id);
