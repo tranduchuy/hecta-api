@@ -28,11 +28,11 @@ const forgetPassword = async (req, res, next) => {
 
     get(`${CDP_APIS.USER.FORGET_PASSWORD}?email=${req.body.email || ''}`)
       .then((r) => {
-          return res.json({
-            status: HTTP_CODE.SUCCESS,
-            message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
-            data: {}
-          });
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: ['Hệ thống đã gửi 1 link đổi mật khẩu đến email'],
+          data: {}
+        });
       })
       .catch(err => {
         return res.json(err);
@@ -141,48 +141,19 @@ const childDetail = async (req, res, next) => {
   logger.info('UserController::childDetail is called with child id', req.params.id);
   try {
     const childId = req.params.id;
-    const person = await UserModel.findOne({_id: childId});
-    if (!person) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {},
-        message: 'User is not exist'
+    const url = `${CDP_APIS.RELATION_SHIP.CHILD_DETAIL}?childId=${childId}`;
+    get(url, req.user.token)
+      .then(r => {
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: r.data.entries[0] || {},
+          message: 'Success'
+        })
+      })
+      .catch(e => {
+        logger.error('UserController::childDetail::error', e);
+        return next(e);
       });
-    }
-
-    if (person.type !== global.USER_TYPE_PERSONAL) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {},
-        message: 'Invalid child account'
-      });
-    }
-
-    const child = await ChildModel.findOne({
-      companyId: req.user._id,
-      personalId: person._id,
-      status: global.STATUS.CHILD_ACCEPTED
-    });
-
-    if (!child) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {},
-        message: 'Invalid relationship'
-      });
-    }
-
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: {
-        username: person.username,
-        id: person._id,
-        name: person.name,
-        phone: person.phone,
-        email: person.email
-      },
-      message: 'Success'
-    });
   } catch (e) {
     logger.error('UserController::childDetail::error', e);
     return next(e);
@@ -783,8 +754,8 @@ const update = async (req, res, next) => {
 
   try {
     const user = req.user;
-    let { password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword } = req.body;
-    const postData = { password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword };
+    let {password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword} = req.body;
+    const postData = {password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword};
     ImageService.putUpdateImage([user.avatar], [avatar]);
 
     const apiUrl = CDP_APIS.USER.UPDATE_USER_INFO.replace(':id', req.user.id);
@@ -925,132 +896,139 @@ const childRequest = async (req, res, next) => {
 };
 
 const requestList = async (req, res, next) => {
+  logger.info('UserController::requestList::called');
+
   try {
+    get(CDP_APIS.RELATION_SHIP.REQUEST_LIST, req.user.token)
+      .then((r) => {
+        const results = r.data.entries.map(r => {
+          r.parent = r.parentInfo;
+          delete r.parentInfo;
+          return r;
+        });
 
-    var token = req.headers.accesstoken;
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: 'Success',
+          data: results
+        })
+      })
+      .catch(err => {
+        logger.error('UserController::requestList::error', err);
 
-    if (!token) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'access token empty !'
+        return next(err);
       });
-    }
 
-    var accessToken = await TokenModel.findOne({token: token});
+    // var token = req.headers.accesstoken;
+    //
+    // if (!token) {
+    //   return res.json({
+    //     status: 0,
+    //     data: {},
+    //     message: 'access token empty !'
+    //   });
+    // }
+    //
+    // var accessToken = await TokenModel.findOne({token: token});
+    //
+    // if (!accessToken) {
+    //   return res.json({
+    //     status: 0,
+    //     data: {},
+    //     message: 'access token invalid'
+    //   });
+    // }
+    //
+    //
+    // var user = await UserModel.findOne({_id: accessToken.user});
+    //
+    // if (!user) {
+    //
+    //   return res.json({
+    //     status: 0,
+    //     data: {},
+    //     message: 'user is not exist'
+    //   });
+    // }
+    //
+    // if (user.type != global.USER_TYPE_PERSONAL) {
+    //   return res.json({
+    //     status: 0,
+    //     data: {},
+    //     message: 'user does not have permission !'
+    //   });
+    // }
+    //
+    // var parrents = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_WAITING});
+    //
+    // let results = await Promise.all(parrents.map(async parrent => {
+    //
+    //   let company = await UserModel.findOne({_id: parrent.companyId});
+    //
+    //
+    //   return {
+    //     id: parrent._id,
+    //     parent: {
+    //       id: company ? company._id : 'unknown',
+    //       username: company ? company.username : 'unknown',
+    //       email: company ? company.email : 'unknown',
+    //       name: company ? company.name : 'unknown'
+    //     },
+    //     status: company.status
+    //   };
+    //
+    //
+    // }));
+    //
+    // return res.json({
+    //   status: 1,
+    //   data: results,
+    //   message: 'request success !'
+    // });
 
-    if (!accessToken) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'access token invalid'
-      });
-    }
+  } catch (e) {
+    logger.error('UserController::requestList::error', err);
 
-
-    var user = await UserModel.findOne({_id: accessToken.user});
-
-    if (!user) {
-
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'user is not exist'
-      });
-    }
-
-    if (user.type != global.USER_TYPE_PERSONAL) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'user does not have permission !'
-      });
-    }
-
-    var parrents = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_WAITING});
-
-    let results = await Promise.all(parrents.map(async parrent => {
-
-      let company = await UserModel.findOne({_id: parrent.companyId});
-
-
-      return {
-        id: parrent._id,
-        parent: {
-          id: company ? company._id : 'unknown',
-          username: company ? company.username : 'unknown',
-          email: company ? company.email : 'unknown',
-          name: company ? company.name : 'unknown'
-        },
-        status: company.status
-      };
-
-
-    }));
-
-    return res.json({
-      status: 1,
-      data: results,
-      message: 'request success !'
-    });
-
-  } catch
-    (e) {
-    return res.json({
-      status: 0,
-      data: {},
-      message: 'unknown error : ' + e.message
-    });
+    return next(e);
   }
 };
 
 const childList = async (req, res, next) => {
+  logger.info('UserController::childList::called');
+
   try {
-    var token = req.headers.accesstoken;
+    get(CDP_APIS.RELATION_SHIP.LIST_CHILD, req.user.token)
+      .then((r) => {
+        const childs = r.data.entries.map(child => {
+          const accountInfo = {
+            credit: child.credit,
+            creditUsed: child.usedCredit
+          };
 
-      if (req.user.type != global.USER_TYPE_COMPANY) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'user does not have permission !'
+          return {
+            id: child.childId,
+            username: child.childInfo.username,
+            email: child.childInfo.email,
+            name: child.childInfo.name,
+            status: child.status,
+            balance: accountInfo
+          };
         });
-      }
 
-      get(CDP_APIS.USER.LIST_CHILD, req.user.token)
-        .then((r) => {
-          childs = r.data.entries.map(child => {
-
-            const accountInfo = {
-              credit: child.credit,
-              creditUsed: child.usedCredit
-            };
-
-            return {
-              id: child.childId,
-              username: child.childInfo.username,
-              email: child.childInfo.email,
-              name: child.childInfo.name,
-              status: child.status,
-              balance: accountInfo
-            };
-          });
-
-          return res.json({
-            status: 1,
-            data: childs,
-            message: 'request success !'
-          });
-        })
-        .catch((err) => {return next(err)});
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: childs,
+          message: 'request success !'
+        });
+      })
+      .catch((err) => {
+        return next(err)
+      });
 
   } catch (e) {
-    return res.json({
-      status: 0,
-      data: {},
-      message: 'unknown error : ' + e.message
-    });
+    logger.error('UserController::childList::error', e);
+    return next(e);
   }
-
 };
 
 const findUserByEmail = async (req, res, next) => {
