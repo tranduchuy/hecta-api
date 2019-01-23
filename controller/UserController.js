@@ -1008,87 +1008,40 @@ const childList = async (req, res, next) => {
   try {
     var token = req.headers.accesstoken;
 
-    if (!token) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'access token empty !'
-      });
-    }
-
-    var accessToken = await TokenModel.findOne({token: token});
-
-    if (!accessToken) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'access token invalid'
-      });
-    }
-
-
-    var user = await UserModel.findOne({_id: accessToken.user});
-
-    if (!user) {
-
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'user is not exist'
-      });
-    }
-
-    if (user.type != global.USER_TYPE_COMPANY) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'user does not have permission !'
-      });
-    }
-
-    var children = await ChildModel.find({
-      companyId: user._id,
-      status: {$in: [global.STATUS.CHILD_WAITING, global.STATUS.CHILD_ACCEPTED, global.STATUS.CHILD_REJECTED]}
-    });
-
-    let results = await Promise.all(children.map(async child => {
-
-      let personal = await UserModel.findOne({_id: child.personalId});
-
-      var account = await AccountModel.findOne({owner: child.personalId});
-
-
-      if (!account) {
-        account = new AccountModel({owner: child.personalId});
-        account = await account.save();
+      if (req.user.type != global.USER_TYPE_COMPANY) {
+        return res.json({
+          status: 0,
+          data: {},
+          message: 'user does not have permission !'
+        });
       }
 
-      var accountInfo = {
-        main: account.main,
-        promo: account.promo,
-        credit: child.credit,
-        creditUsed: child.creditUsed
+      get(CDP_APIS.USER.LIST_CHILD, req.user.token)
+        .then((r) => {
+          childs = r.data.entries.map(child => {
 
-      };
+            const accountInfo = {
+              credit: child.credit,
+              creditUsed: child.usedCredit
+            };
 
+            return {
+              id: child.childId,
+              username: child.childInfo.username,
+              email: child.childInfo.email,
+              name: child.childInfo.name,
+              status: child.status,
+              balance: accountInfo
+            };
+          });
 
-      return {
-        id: personal ? personal._id : 'unknown',
-        username: personal ? personal.username : 'unknown',
-        email: personal ? personal.email : 'unknown',
-        name: personal ? personal.name : 'unknown',
-        status: child.status,
-        balance: accountInfo
-      };
-
-
-    }));
-
-    return res.json({
-      status: 1,
-      data: results,
-      message: 'request success !'
-    });
+          return res.json({
+            status: 1,
+            data: childs,
+            message: 'request success !'
+          });
+        })
+        .catch((err) => {return next(err)});
 
   } catch (e) {
     return res.json({
