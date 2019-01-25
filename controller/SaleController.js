@@ -343,7 +343,7 @@ const SaleController = {
             // notify
             const notifyParams = {
                 fromUserId: null,
-                toUserId: req.user._id,
+                toUserId: req.user.id,
                 title: NotifyContent.UpNew.Title,
                 content: NotifyContent.UpNew.Content,
                 type: NotifyTypes.CHANGE_TRANSACTION,

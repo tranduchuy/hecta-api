@@ -15,6 +15,9 @@ module.exports = {
     CHECK_DUP_USERNAME_EMAIL: `${host}/user/check-email-username`,
     UPDATE_USER_INFO: `${host}/user/:id`
   },
+  ADMIN: {
+    UPDATE_BALANCE: `${host}/user/balance`
+  },
   RELATION_SHIP: {
     REQUEST_LIST: `${host}/user-relationship/request`,
     CHILD_DETAIL: `${host}/user-relationship/child-detail`,

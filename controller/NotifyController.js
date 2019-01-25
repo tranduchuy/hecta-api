@@ -30,8 +30,12 @@ const createNotify = async (_params) => {
     const params = {..._params};
     logger.info('NotifyController::createNotify is called', params);
     const newNotify = await new NotifyModel();
-    newNotify.fromUser = params.fromUserId ? new mongoose.Types.ObjectId(params.fromUserId) : null;
-    newNotify.toUser = new mongoose.Types.ObjectId(params.toUserId);
+    newNotify.fromUser = params.fromUserId || null;
+    newNotify.toUser = params.toUserId || null;
+    // TODO: refactor should check all place use this function
+    // Note: not use _id of mongodb any more
+    // newNotify.fromUser = params.fromUserId ? new mongoose.Types.ObjectId(params.fromUserId) : null;
+    // newNotify.toUser = new mongoose.Types.ObjectId(params.toUserId);
     newNotify.status = global.STATUS.NOTIFY_NONE;
     newNotify.title = params.title.toString().trim();
     newNotify.content = params.content.toString().trim();
