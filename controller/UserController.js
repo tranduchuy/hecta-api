@@ -585,48 +585,45 @@ const childRemove = async (req, res, next) => {
 const childResponse = async (req, res, next) => {
   logger.info('UserController::childResponse is called');
   try {
-    const user = req.user;
-    const id = req.params.id;
-    const status = req.body.status;
-    const child = await ChildModel.findOne({
-      _id: id
-    });
-
-    if (!child) {
-      logger.error('UserController::childResponse::error. Request not exists.');
-      return next(new Error('Request not exists.'));
-    }
-
-    if (status === global.STATUS.CHILD_ACCEPTED || status === global.STATUS.CHILD_REJECTED) {
-      child.status = status;
-    }
-
-    await child.save();
-    const {Title, Content} = status === global.STATUS.CHILD_ACCEPTED ?
-      NotifyContent.ResponseChildStatusAccepted :
-      NotifyContent.ResponseChildStatusRejected;
-
-    const notifyParam = {
-      fromUserId: user._id,
-      toUserId: child.companyId,
-      title: Title,
-      content: Content,
-      type: NotifyTypes.PARENT_CHILD.RESPONSE,
-      params: {
-        status // show status of child's response
-      }
+    const postData = {
+      relationId: parseInt(req.params.id),
+      status: req.body.status
     };
-    await NotifyController.createNotify(notifyParam);
 
-    const socketContents = {...notifyParam, toUserIds: [child.companyId]};
-    delete socketContents.toUserId;
-    Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+    post(CDP_APIS.RELATION_SHIP.CHILD_REPLY_REQUEST, postData, req.user.token)
+      .then(async r => {
+        const relation = r.data.entries[0];
+        const {Title, Content} = req.body.status === global.STATUS.CHILD_ACCEPTED ?
+          NotifyContent.ResponseChildStatusAccepted :
+          NotifyContent.ResponseChildStatusRejected;
 
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: child,
-      message: 'request success !'
-    });
+        const notifyParam = {
+          fromUserId: relation.childId,
+          toUserId: relation.parentId,
+          title: Title,
+          content: Content,
+          type: NotifyTypes.PARENT_CHILD.RESPONSE,
+          params: {
+            status: relation.status// show status of child's response
+          }
+        };
+        await NotifyController.createNotify(notifyParam);
+
+        const socketContents = {...notifyParam, toUserIds: [relation.parentId]};
+        delete socketContents.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+        logger.info(`UserController::childResponse::success. relation id ${relation.id}, status ${relation.status}`);
+
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: relation,
+          message: 'request success !'
+        });
+      })
+      .catch(e => {
+        logger.error('UserController::childResponse::error', e);
+        return next(e);
+      });
   } catch (e) {
     logger.error('UserController::childResponse::error', e);
     return next(e);
