@@ -13,7 +13,8 @@ module.exports = {
     RESET_PASSWORD: `${host}/user/reset-password`,
     FIND_USER_BY_EMAIL: `${host}/user/find-detail`,
     CHECK_DUP_USERNAME_EMAIL: `${host}/user/check-email-username`,
-    UPDATE_USER_INFO: `${host}/user/:id`
+    UPDATE_USER_INFO: `${host}/user/:id`,
+    SALE_COST: `${host}/user/balance/sale-cost`
   },
   ADMIN: {
     UPDATE_BALANCE: `${host}/user/balance`
