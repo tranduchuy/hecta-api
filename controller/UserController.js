@@ -778,120 +778,48 @@ const update = async (req, res, next) => {
 };
 
 const childRequest = async (req, res, next) => {
+  logger.info(`UserController::childRequest::called`);
 
   try {
-    var token = req.headers.accesstoken;
-    var id = req.params.id;
-
-    if (!token) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'access token empty !'
-      });
-    }
-
-    var accessToken = await TokenModel.findOne({token: token});
-
-    if (!accessToken) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'access token invalid'
-      });
-    }
-
-
-    var user = await UserModel.findOne({_id: accessToken.user});
-
-    if (!user) {
-
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'user is not exist'
-      });
-    }
-
-    if (user.type != global.USER_TYPE_COMPANY) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'user does not have permission !'
-      });
-    }
-
-
-    var person = await UserModel.findOne({_id: id});
-    if (!person) {
-
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'person is not exist'
-      });
-    }
-
-    if (person.type != global.USER_TYPE_PERSONAL) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'person invalid !'
-      });
-    }
-
-    var child = await ChildModel.findOne({
-      companyId: user._id,
-      personalId: person._id,
-      // status: {$in: [global.STATUS.CHILD_WAITING, global.STATUS.CHILD_ACCEPTED]}
-    });
-    if (child && (child.status == global.STATUS.CHILD_WAITING || child.status == global.STATUS.CHILD_ACCEPTED)) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'request already sent'
-      });
-    }
-
-    if (!child) {
-      child = new ChildModel({
-        companyId: user._id,
-        personalId: person._id
-      });
-    }
-
-    child.status = global.STATUS.CHILD_WAITING;
-
-    await child.save();
-
-    const notifyParam = {
-      fromUserId: user._id,
-      toUserId: person._id,
-      title: NotifyContent.RequestChild.Title,
-      content: NotifyContent.RequestChild.Content,
-      type: NotifyTypes.PARENT_CHILD.REQUEST,
-      params: {
-        requestId: child._id
-      }
+    let id = req.params.id;
+    const postData = {
+      userId: parseInt(id)
     };
-    await NotifyController.createNotify(notifyParam);
+    logger.info(`UserController::childRequest call CDP api with user id: ${id}`);
 
-    const socketContents = {...notifyParam, toUserIds: [person._id]};
-    delete socketContents.toUserId;
-    Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+    post(CDP_APIS.RELATION_SHIP.ADD_REGISTERED_CHILD, postData, req.user.token)
+      .then(async r => {
 
-    return res.json({
-      status: 1,
-      data: child,
-      message: 'request success !'
-    });
+        const notifyParam = {
+          fromUserId: req.user.id,
+          toUserId: parseInt(id),
+          title: NotifyContent.RequestChild.Title,
+          content: NotifyContent.RequestChild.Content,
+          type: NotifyTypes.PARENT_CHILD.REQUEST,
+          params: {
+            requestId: r.data.entries[0].id
+          }
+        };
+        await NotifyController.createNotify(notifyParam);
 
+        const socketContents = {...notifyParam, toUserIds: [parseInt(id)]};
+        delete socketContents.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+        logger.info('UserController::childRequest::success', JSON.stringify(r.data.entries[0]));
+
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: 'Success',
+          data: r.data.entries[0]
+        })
+      })
+      .catch(e => {
+        logger.error('UserController::childRequest::error', e);
+        return next(e);
+      });
   } catch (e) {
-    return res.json({
-      status: 0,
-      data: {},
-      message: 'unknown error : ' + e.message
-    });
+    logger.error('UserController::childRequest::error', e);
+    return next(e);
   }
 };
 

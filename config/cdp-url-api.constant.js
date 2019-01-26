@@ -21,7 +21,8 @@ module.exports = {
   RELATION_SHIP: {
     REQUEST_LIST: `${host}/user-relationship/request`,
     CHILD_DETAIL: `${host}/user-relationship/child-detail`,
-    LIST_CHILD: `${host}/user-relationship/children`
+    LIST_CHILD: `${host}/user-relationship/children`,
+    ADD_REGISTERED_CHILD: `${host}/user-relationship/add-registered-child`,
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
