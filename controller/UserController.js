@@ -162,101 +162,51 @@ const childDetail = async (req, res, next) => {
 
 const registerChild = async (req, res, next) => {
   logger.info('UserController::registerChild is called');
+
   try {
-    var {
-      username, email, password, phone, name,
+    const {
+      username, email, password, phone, name, confirmedPassword,
       birthday, gender, city, district, ward, type
     } = req.body;
-    const parent = req.user;
 
-    if (parent.type !== global.USER_TYPE_COMPANY) {
-      const msg = 'Permission denied. Parent type: ' + parent.type;
-      logger.error(msg);
-      return next(new Error(msg));
-    }
-
-    email = email.toLowerCase();
-
-    if (!EmailValidator.validate(email)) {
-      return next(new Error('Invalid email'));
-    }
-
-    if (!password || password.length < 6) {
-      return next(new Error('Invalid password'));
-    }
-
-    if (!phone || phone.length < 6) {
-      return next(new Error('Invalid phone'));
-    }
-
-    if (!name || name.length < 3) {
-      return next(new Error('Invalid name'));
-    }
-
-    if (type !== global.USER_TYPE_PERSONAL && type !== global.USER_TYPE_COMPANY) {
-      return next(new Error('Invalid type'));
-    }
-
-    if (!username || username.length < 6) {
-      return next(new Error('Invalid username'));
-    }
-
-    let user = await UserModel.findOne({username});
-
-    if (user) {
-      const msg = 'Duplicated username';
-      logger.error('UserController::registerChild::error. ' + msg);
-      return next(new Error(msg));
-    }
-
-    user = new UserModel();
-    user.username = username;
-    user.email = email;
-    user.phone = phone;
-    user.name = name;
-    user.birthday = birthday;
-    user.gender = gender;
-    user.city = city;
-    user.district = district;
-    user.ward = ward;
-    user.type = type;
-    user.hash_password = bcrypt.hashSync(password, 10);
-    user.confirmToken = randomstring.generate(30) + new Date().getTime();
-    Mailer.sendConfirmEmail(email, user.confirmToken);
-    await user.save();
-
-    let child = new ChildModel({
-      companyId: parent._id,
-      personalId: user._id,
-      status: global.STATUS.CHILD_ACCEPTED
-    });
-
-    await child.save();
-
-    // create notify
-    const notifyParam = {
-      fromUserId: parent._id,
-      toUserId: user._id,
-      title: NotifyContent.RequestChild.Title,
-      content: NotifyContent.RequestChild.Content,
-      type: NotifyTypes.PARENT_CHILD.REQUEST,
-      params: {
-        requestId: child._id
-      }
+    const postData = {
+      username, email, password, phone, name, confirmedPassword,
+      birthday, gender, city, district, ward, type
     };
 
-    await NotifyController.createNotify(notifyParam);
+    post(CDP_APIS.RELATION_SHIP.ADD_NEW_CHILD, postData, req.user.token)
+      .then(async r => {
+        const newRelation = r.data.entries[0];
+        // create notify
+        const notifyParam = {
+          fromUserId: newRelation.parentId,
+          toUserId: newRelation.childId,
+          title: NotifyContent.RequestChild.Title,
+          content: NotifyContent.RequestChild.Content,
+          type: NotifyTypes.PARENT_CHILD.REQUEST,
+          params: {
+            requestId: newRelation.id
+          }
+        };
 
-    // send Socket
-    const socketContents = {...notifyParam, toUserIds: [user._id]};
-    delete socketContents.toUserId;
-    Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+        await NotifyController.createNotify(notifyParam);
 
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: child,
-      message: 'Success'
-    });
+        // send Socket
+        const socketContents = {...notifyParam, toUserIds: [newRelation.childId]};
+        delete socketContents.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, socketContents);
+        logger.info(`UserController::registerChild::success. relation id ${newRelation.id}`);
+
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: newRelation,
+          message: 'Success'
+        });
+      })
+      .catch(e => {
+        logger.error('UserController::registerChild::error', e);
+        return next(e);
+      });
   } catch (e) {
     logger.error('UserController::registerChild::error', e);
     return next(e);
