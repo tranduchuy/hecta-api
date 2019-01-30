@@ -305,79 +305,75 @@ const add = async (req, res, next) => {
   }
 };
 
+const upNew = async (req, res, next) => {
+  logger.info('UserController::upNew::called');
+
+  try {
+    let id = req.params.id;
+    let post = await PostModel.findOne({_id: id});
+
+    if (!post || post.postType !== global.POST_TYPE_SALE) {
+      return next(new Error('post not exist'));
+    }
+
+    if (post.user.toString() !== req.user.id.toString()) {
+      return next(new Error('Permission denied'));
+    }
+
+    const priority = await PostPriorityModel.findOne({priority: post.priority});
+    let price = 0;
+    if (priority) {
+      price = priority.costByDay;
+    }
+
+    const postData = {
+      cost: price,
+      note: post._id.toString()
+    };
+    Request.post(CDP_APIS.USER.UP_NEW, postData, req.user.token)
+      .then(async r => {
+        logger.info('UserController::upNew call CDP up new successfully', postData);
+        post.refresh = Date.now();
+        await post.save();
+        // notify
+        const notifyParams = {
+          fromUserId: null,
+          toUserId: req.user.id,
+          title: NotifyContent.UpNew.Title,
+          content: NotifyContent.UpNew.Content,
+          type: NotifyTypes.CHANGE_TRANSACTION,
+          params: {
+            price
+          }
+        };
+        NotifyController.createNotify(notifyParams);
+
+        // send socket
+        notifyParams.toUserIds = [notifyParams.toUserId];
+        delete notifyParams.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
+        logger.info(`UserController::upNew::success. Purchase up new successfully, post id ${post._id.toString()}, price = ${price}`);
+
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: {},
+          message: 'Success'
+        });
+      })
+      .catch(e => {
+        logger.error('UserController::upNew::error', e);
+        return next(e);
+      });
+  } catch (e) {
+    logger.error('UserController::upNew::error', e);
+    return next(e);
+  }
+};
+
 const SaleController = {
   add,
 
-  upNew: async function (req, res, next) {
-    try {
-      let id = req.params.id;
-      let post = await PostModel.findOne({_id: id});
-
-      if (!post || post.postType != global.POST_TYPE_SALE) {
-        return res.json({
-          status: HTTP_CODE.BAD_REQUEST,
-          data: {},
-          message: 'post not exist '
-        });
-      }
-
-      if (post.user != req.user._id.toString()) {
-        return res.json({
-          status: HTTP_CODE.BAD_REQUEST,
-          data: {},
-          message: 'user does not have permission !'
-        });
-      }
-
-      let priority = await PostPriorityModel.findOne({priority: post.priority});
-      let price = 0;
-      let purchaseStatus = await UserModel.purchase(req.user._id, price);
-
-      if (priority) {
-        price = priority.costByDay;
-      }
-
-      if (!purchaseStatus) {
-        return res.json({
-          status: HTTP_CODE.BAD_REQUEST,
-          data: {},
-          message: 'not enough money'
-        });
-      }
-
-      post.refresh = Date.now();
-      post.save();
-      await TransactionHistoryModel.addTransaction(req.user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_UP_NEW, purchaseStatus.before, purchaseStatus.after);
-
-      // notify
-      const notifyParams = {
-        fromUserId: null,
-        toUserId: req.user.id,
-        title: NotifyContent.UpNew.Title,
-        content: NotifyContent.UpNew.Content,
-        type: NotifyTypes.CHANGE_TRANSACTION,
-        params: {
-          price
-        }
-      };
-      NotifyController.createNotify(notifyParams);
-
-      // send socket
-      notifyParams.toUserIds = [notifyParams.toUserId];
-      delete notifyParams.toUserId;
-      Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
-
-
-      return res.json({
-        status: HTTP_CODE.SUCCESS,
-        data: {},
-        message: 'success !'
-      });
-
-    } catch (e) {
-      return next(e);
-    }
-  },
+  upNew,
 
   update: async function (req, res, next) {
 
