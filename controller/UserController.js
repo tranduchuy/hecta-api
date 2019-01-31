@@ -461,7 +461,41 @@ const childRemove = async (req, res, next) => {
   logger.info('UserController::childRemove is called');
   try {
     const id = req.params.id;
-    const user = req.user;
+    const url = `${CDP_APIS.RELATION_SHIP.REMOVE_CHILD}?childId=${id}`;
+    del(url, req.user.token)
+      .then(response => {
+        const relation = response.data.entries[0];
+        // notify
+        const notifyParams = {
+          fromUserId: req.user.id,
+          toUserId: parseInt(id),
+          title: NotifyContent.ReturnMoneyToCompany.Title,
+          content: NotifyContent.ReturnMoneyToCompany.Content,
+          type: NotifyTypes.PARENT_CHILD.REMOVE,
+          params: {
+            requestId: relation.id
+          }
+        };
+        NotifyController.createNotify(notifyParams);
+
+        // send socket
+        notifyParams.toUserIds = [notifyParams.toUserId];
+        delete notifyParams.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
+        logger.info('UserController::childRemove::success');
+
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          data: relation,
+          message: 'Success'
+        });
+      })
+      .catch(err => {
+        logger.error('UserController::childRemove::error', e);
+        return next(e);
+      });
+
+    /*const user = req.user;
     if (user.type === global.USER_TYPE_COMPANY && !ObjectId.isValid(id)) {
       logger.error('UserController::childRemove::error. Permission denied', user);
       return next(new Error('Permission denied'));
@@ -551,31 +585,7 @@ const childRemove = async (req, res, next) => {
       child.companyId,
       global.TRANSACTION_TYPE_GIVE_MONEY_BACK,
       childBefore,
-      childAfter);
-
-    // notify
-    const notifyParams = {
-      fromUserId: child.companyId,
-      toUserId: child.personalId,
-      title: NotifyContent.ReturnMoneyToCompany.Title,
-      content: NotifyContent.ReturnMoneyToCompany.Content,
-      type: NotifyTypes.PARENT_CHILD.REMOVE,
-      params: {
-        requestId: child._id
-      }
-    };
-    NotifyController.createNotify(notifyParams);
-
-    // send socket
-    notifyParams.toUserIds = [notifyParams.toUserId];
-    delete notifyParams.toUserId;
-    Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
-
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: child,
-      message: 'Success'
-    });
+      childAfter);*/
   } catch (e) {
     logger.error('UserController::childRemove::error', e);
     return next(e);
