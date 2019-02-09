@@ -6,11 +6,11 @@ const BuyModel = require('../../models/BuyModel');
 const SaleModel = require('../../models/SaleModel');
 const NewsModel = require('../../models/NewsModel');
 const ProjectModel = require('../../models/ProjectModel');
-const HttpCode = require('../../config/http-code');
+const HTTP_CODE = require('../../config/http-code');
 const _ = require('lodash');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const {post, get, del, put} = require('../../utils/Request');
+const {post, get, del, put, convertObjectToQueryString} = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 
 const AdminController = {
@@ -41,7 +41,7 @@ const AdminController = {
           user._id = user.id;
 
           return res.json({
-            status: HttpCode.SUCCESS,
+            status: HTTP_CODE.SUCCESS,
             message: 'Success',
             data: user
           });
@@ -66,7 +66,7 @@ const AdminController = {
       if (email) {
         if (!EmailValidator.validate(email)) {
           return res.json({
-            status: HttpCode.BAD_REQUEST,
+            status: HTTP_CODE.BAD_REQUEST,
             data: {},
             message: 'email : "' + email + '" is invalid'
           });
@@ -77,14 +77,14 @@ const AdminController = {
       if (password) {
         if (!password || password.length < 6) {
           return res.json({
-            status: HttpCode.BAD_REQUEST,
+            status: HTTP_CODE.BAD_REQUEST,
             data: {},
             message: 'password : "' + password + '" is invalid'
           });
         }
         if (!oldPassword || await !BCrypt.compareSync(oldPassword, user.hash_password)) {
           return res.json({
-            status: HttpCode.BAD_REQUEST,
+            status: HTTP_CODE.BAD_REQUEST,
             data: {},
             message: 'oldPassword : "' + oldPassword + '" is incorrect'
           });
@@ -95,7 +95,7 @@ const AdminController = {
       if (phone) {
         if (phone.length < 6) {
           return res.json({
-            status: HttpCode.BAD_REQUEST,
+            status: HTTP_CODE.BAD_REQUEST,
             data: {},
             message: 'phone : "' + phone + '" is invalid'
           });
@@ -107,7 +107,7 @@ const AdminController = {
       if (name) {
         if (name.length < 3) {
           return res.json({
-            status: HttpCode.BAD_REQUEST,
+            status: HTTP_CODE.BAD_REQUEST,
             data: {},
             message: 'name : "' + name + '" is invalid'
           });
@@ -126,14 +126,14 @@ const AdminController = {
       await user.save();
       
       return res.json({
-        status: HttpCode.SUCCESS,
+        status: HTTP_CODE.SUCCESS,
         message: 'Update successfully',
         data: {}
       });
     }
     catch (e) {
       return res.json({
-        status: HttpCode.ERROR,
+        status: HTTP_CODE.ERROR,
         message: 'Unknown error : ' + e.message,
         data: {}
       });
@@ -146,7 +146,7 @@ const AdminController = {
       
       if (master.role !== global.USER_ROLE_MASTER) {
         return res.json({
-          status: HttpCode.BAD_REQUEST,
+          status: HTTP_CODE.BAD_REQUEST,
           message: 'Permission denied',
           data: {}
         });
@@ -165,7 +165,7 @@ const AdminController = {
         !username ||
         username.length < 6) {
         return res.json({
-          status: HttpCode.BAD_REQUEST,
+          status: HTTP_CODE.BAD_REQUEST,
           data: {
             email,
             password,
@@ -181,7 +181,7 @@ const AdminController = {
       
       if (user) {
         return res.json({
-          status: HttpCode.BAD_REQUEST,
+          status: HTTP_CODE.BAD_REQUEST,
           data: {},
           message: 'Username is duplicated'
         });
@@ -191,7 +191,7 @@ const AdminController = {
       
       if (user) {
         return res.json({
-          status: HttpCode.BAD_REQUEST,
+          status: HTTP_CODE.BAD_REQUEST,
           data: {},
           message: 'Email is duplicated'
         });
@@ -210,14 +210,14 @@ const AdminController = {
       await user.save();
       
       return res.json({
-        status: HttpCode.SUCCESS,
+        status: HTTP_CODE.SUCCESS,
         data: {},
         message: 'Request success !'
       });
     }
     catch (e) {
       return res.json({
-        status: HttpCode.ERROR,
+        status: HTTP_CODE.ERROR,
         data: {},
         message: 'unknown error : ' + e.message
       });
@@ -294,59 +294,33 @@ const AdminController = {
     }
   },
   
-  list: async function (req, res) {
-    
+  list: async function (req, res, next) {
+    logger.info('AdminController::list::called');
     try {
-      
-      
-      var token = req.headers.accesstoken;
-      
-      
-      var accessToken = await TokenModel.findOne({token: token});
-      
-      if (!accessToken) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'access_token invalid'
+      const queryStr = convertObjectToQueryString(req.query);
+      const url = `${CDP_APIS.USER.LIST_ADMIN}?${queryStr}`;
+      const limit = parseInt(req.query.limit || 10, 0);
+
+      get(url, req.user.token)
+        .then(r => {
+          logger.info('AdminController::list::success');
+          
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: '',
+            data: {
+              items: r.data.entries,
+              page: req.query.page,
+              total: _.ceil(r.data.meta.totalItems / limit),
+              totalItems: r.data.meta.totalItems
+            }
+          });
+        })
+        .catch(err => {
+          logger.error('AdminController::list:error', err);
+          return next(err);
         });
-      }
-      
-      var master = await UserModel.findOne({_id: accessToken.user});
-      
-      
-      if (!master || master.role != global.USER_ROLE_MASTER) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'master invalid'
-        });
-      }
-      
-      var page = req.query.page;
-      
-      if (!page || page < 1) {
-        page = 1;
-      }
-      
-      var admins = await UserModel.find({role: global.USER_ROLE_ADMIN}).select({
-        hash_password: 0,
-        confirmToken: 0
-      }).skip((page - 1) * global.PAGE_SIZE).limit(global.PAGE_SIZE);
-      
-      let count = await UserModel.count({role: global.USER_ROLE_ADMIN});
-      
-      return res.json({
-        status: 1,
-        data: {
-          items: admins,
-          page: page,
-          total: _.ceil(count / global.PAGE_SIZE)
-        },
-        message: 'request success '
-      });
-    }
-    catch (e) {
+    } catch (e) {
       return res.json({
         status: 0,
         data: {},
@@ -377,13 +351,13 @@ const AdminController = {
       }
       
       return res.json({
-        status: HttpCode.SUCCESS,
+        status: HTTP_CODE.SUCCESS,
         message: 'Success',
         data: {}
       });
     } catch (e) {
       return res.json({
-        status: HttpCode.ERROR,
+        status: HTTP_CODE.ERROR,
         message: 'Delete error: ' + e.message,
         data: {}
       });
