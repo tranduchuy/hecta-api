@@ -113,4 +113,15 @@ const del = (uri, token) => {
   });
 };
 
-module.exports = {get, post, put, del};
+const convertObjectToQueryString = (obj) => {
+  const params = [];
+  for(const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      params.push(`${key}=${obj[key]}`);
+    }
+  }
+
+  return params.join('&');
+};
+
+module.exports = {get, post, put, del, convertObjectToQueryString};

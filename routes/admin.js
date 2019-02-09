@@ -11,6 +11,7 @@ const AdminSaleController = require('../controller/admin/SaleController');
 const AdminPostController = require('../controller/admin/PostController');
 const AdminCategoryController = require('../controller/admin/CategoryController');
 const AdminTagController = require('../controller/admin/TagController');
+const CheckAdminMiddleware = require('../middlewares/CheckRoleAdmin');
 
 router.get('/projects/types', AdminProjectController.typeList);
 
@@ -43,9 +44,9 @@ router.post('/admins/update', AdminController.update);
 router.post('/admins/login', AdminController.login);
 router.post('/admins/status/:id', AdminController.status);
 
-router.get('/vips/list', PostPriorityController.listAdmin);
-router.post('/vips/update/:id', PostPriorityController.update);
-router.post('/vips/add', PostPriorityController.add);
+router.get('/vips/list', CheckAdminMiddleware, PostPriorityController.listAdmin);
+router.post('/vips/update/:id', CheckAdminMiddleware, PostPriorityController.update);
+router.post('/vips/add', CheckAdminMiddleware, PostPriorityController.add);
 
 router.get('/categories/list', AdminCategoryController.list);
 router.get('/categories/detail/:id', AdminCategoryController.detail);
