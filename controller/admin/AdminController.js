@@ -57,13 +57,31 @@ const AdminController = {
 
   update: async function (req, res, next) {
     try {
-      const user = req.user;
-      var {
+      const {
         email, password, name, phone, birthday, gender,
-        city, district, ward, avatar, oldPassword
+        city, district, ward, avatar, oldPassword, confirmedPassword
       } = req.body;
 
-      email = email.toLowerCase();
+      const postData = {
+        email, password, name, phone, birthday, gender,
+        city, district, ward, avatar, oldPassword, confirmedPassword
+      };
+      const url = CDP_APIS.USER.UPDATE_USER_INFO.replace(':id', req.user.id);
+
+      put(url, postData, req.user.token)
+        .then(response => {
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: 'Update successfully',
+            data: {}
+          });
+        })
+        .catch(e => {
+          logger.error('AdminController::update::error', e);
+          return next(e);
+        });
+
+      /*email = email.toLowerCase();
 
       if (email) {
         if (!EmailValidator.validate(email)) {
@@ -131,14 +149,10 @@ const AdminController = {
         status: HTTP_CODE.SUCCESS,
         message: 'Update successfully',
         data: {}
-      });
-    }
-    catch (e) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        message: 'Unknown error : ' + e.message,
-        data: {}
-      });
+      });*/
+    } catch (e) {
+      logger.error('AdminController::update::error', e);
+      return next(e);
     }
   },
 
