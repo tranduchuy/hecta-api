@@ -10,86 +10,30 @@ const CDP_URL_APIS = require('../../config/cdp-url-api.constant');
 const {get, post, put, del, convertObjectToQueryString} = require('../../utils/Request');
 
 const changeUserType = async (req, res, next) => {
-  var newType = req.body.type;
+  const newType = req.body.type;
   logger.info('AdminUserController::changeUserType is called');
 
   try {
-    var targetUser = await UserModel.findOne({_id: req.params.id});
-    if (!targetUser) {
-      logger.error('AdminUserController::changeUserType User not found: ' + req.params.id);
-
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        message: ['User not found'],
-        data: {}
-      });
-    }
-
-    if (targetUser.status == global.STATUS.BLOCKED || targetUser.status == global.STATUS.DELETE) {
-      logger.error('AdminUserController::changeUserType method not allow. User status is: ' + req.user.status);
-
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        message: ['Method not allow'],
-        data: {}
-      });
-    }
-
-    if (targetUser.type == parseInt(newType, 0)) {
-      logger.error('AdminUserController::changeUserType method not allow. Type not change: ' + newType);
-
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        message: ['Type not change'],
-        data: {}
-      });
-    }
-
-    if (targetUser.type == global.USER_TYPE_COMPANY) {
-      var children = await ChildModel.find({companyId: targetUser._id});
-
-      if (children.length != 0) {
-        logger.error('AdminUserController::changeUserType have children, can not change type: ' + newType);
-
+    const postData = {
+      type: newType
+    };
+    const url = CDP_URL_APIS.USER.UPDATE_USER_INFO.replace(':id', req.params.id);
+    put(url, postData, req.user.token)
+      .then(response => {
         return res.json({
-          status: HTTP_CODE.BAD_REQUEST,
-          message: ['Have children. Cannot change type'],
+          status: HTTP_CODE.SUCCESS,
+          message: '',
           data: {}
-        });
-      }
-    } else if (targetUser.type == global.USER_TYPE_PERSONAL) {
-      var parent = await ChildModel.find({personalId: targetUser._id});
-
-      if (parent.length != 0) {
-        logger.error('AdminUserController::changeUserType have parents, can not change type: ' + newType);
-
-        return res.json({
-          status: HTTP_CODE.BAD_REQUEST,
-          message: ['Have parents. Cannot change type'],
-          data: {}
-        });
-      }
-    }
-
-
-    targetUser.type = parseInt(newType, 0);
-    await targetUser.save();
+        })
+      })
+      .catch(e => {
+        logger.error('AdminUserController::changeUserType something error: ', e);
+        return next(e);
+      });
+  } catch (e) {
+    logger.error('AdminUserController::changeUserType something error: ', e);
+    return next(e);
   }
-  catch (e) {
-    logger.error("AdminUserController::changeUserType something error: " + JSON.stringify(e));
-
-    return res.json({
-      status: HTTP_CODE.BAD_REQUEST,
-      message: [e],
-      data: {}
-    });
-  }
-
-  return res.json({
-    status: HTTP_CODE.SUCCESS,
-    message: ['Update user type successfully'],
-    data: {}
-  });
 };
 
 const list = async (req, res, next) => {
@@ -258,8 +202,8 @@ const update = async (req, res, next) => {
 
   try {
     const urlApi = CDP_URL_APIS.USER.UPDATE_USER_INFO.replace(':id', req.params.id);
-    let { name, phone, birthday, gender, city, district, ward, type, avatar } = req.body;
-    const postData = { name, phone, birthday, gender, city, district, ward, type, avatar };
+    let {name, phone, birthday, gender, city, district, ward, type, avatar, status} = req.body;
+    const postData = {name, phone, birthday, gender, city, district, ward, type, avatar, status};
 
     put(urlApi, postData, req.user.token)
       .then(r => {
