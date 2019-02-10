@@ -16,7 +16,8 @@ module.exports = {
     UPDATE_USER_INFO: `${host}/user/:id`,
     SALE_COST: `${host}/user/balance/sale-cost`,
     UP_NEW: `${host}/user/balance/up-news-cost`,
-    LIST_USER: `${host}/user`
+    LIST_USER: `${host}/user`,
+    SHARE_CREDIT: `${host}/user/share-credit`
   },
   ADMIN: {
     UPDATE_BALANCE: `${host}/user/balance`,

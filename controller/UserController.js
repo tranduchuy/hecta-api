@@ -303,154 +303,42 @@ const register = async (req, res, next) => {
 const creditShare = async (req, res, next) => {
   logger.info('UserController::creditShare is called');
   try {
-    let {amount, note, id} = req.body;
-    const user = req.user;
-    const person = await UserModel.findOne({_id: id});
-    if (!person) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'person is not exist'
-      });
-    }
+    let {amount, note} = req.body;
+    const id = req.params.id;
 
-    if (person.type !== global.USER_TYPE_PERSONAL) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        data: {},
-        message: 'Person invalid !'
-      });
-    }
+    post(CDP_APIS.USER.SHARE_CREDIT, {amount, childId: parseInt(id)}, req.user.token)
+      .then(response => {
+        const data = response.data.entries[0];
+        // notify
+        const notifyParams = {
+          fromUserId: req.user.id,
+          toUserId: id,
+          title: NotifyContent.CreditShare.Title,
+          content: NotifyContent.CreditShare.Content,
+          type: NotifyTypes.CHANGE_TRANSACTION,
+          params: {
+            before: data.childBalance.before,
+            after: data.childBalance.after
+          }
+        };
+        NotifyController.createNotify(notifyParams);
 
-    let child = await ChildModel.findOne({
-      companyId: user._id,
-      personalId: person._id,
-      status: global.STATUS.CHILD_ACCEPTED
-    });
+        // send Socket
+        notifyParams.toUserIds = [notifyParams.toUserId];
+        delete notifyParams.toUserId;
+        Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
 
-    if (!child) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {},
-        message: 'relation in valid'
-      });
-    }
 
-    if (isNaN(amount)) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {amount: amount},
-        message: 'Amount is invalid'
-      });
-    }
-
-    amount = parseInt(amount, 0);
-
-    if (amount < 0) {
-      return res.json({
-        status: HTTP_CODE.BAD_REQUEST,
-        data: {amount: amount},
-        message: 'Amount is invalid'
-      });
-    }
-
-    let sourceAccount = await AccountModel.findOne({owner: user._id});
-
-    if (!sourceAccount) {
-      sourceAccount = new AccountModel({
-        owner: user._id
-      });
-
-      sourceAccount = await sourceAccount.save();
-    }
-
-    if (amount > 0) {
-      let sharedCredit = 0;
-      const sharedChildren = await ChildModel.find({companyId: user._id});
-
-      if (sharedChildren) {
-        sharedChildren.forEach(sharedChild => {
-          sharedCredit += sharedChild.credit;
-        });
-      }
-
-      if (sourceAccount.main - sharedCredit < amount) {
         return res.json({
-          status: HTTP_CODE.ERROR,
+          status: HTTP_CODE.SUCCESS,
           data: {},
-          message: 'account not enough'
+          message: 'Request success'
         });
-      }
-    } else {
-      if (child.credit - child.creditUsed < amount) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'credit left not enough'
-        });
-      }
-    }
-
-    const accountChild = await AccountModel({owner: child.personalId});
-    const beforeUser = {
-      credit: child.credit,
-      main: accountChild ? accountChild.main : 0,
-      promo: accountChild ? accountChild.promo : 0
-    };
-    const beforeParent = {
-      credit: 0,
-      main: sourceAccount.main,
-      promo: sourceAccount.promo
-    };
-
-    child.credit += amount;
-    child.creditHistory.push({date: Date.now(), amount: amount, note: note});
-
-    sourceAccount.main -= amount;
-
-    await sourceAccount.save();
-
-    const afterUser = {
-      credit: child.credit,
-      main: accountChild ? accountChild.main : 0,
-      promo: accountChild ? accountChild.promo : 0
-    };
-
-    const afterParent = {
-      credit: 0,
-      main: sourceAccount.main,
-      promo: sourceAccount.promo
-    };
-
-    await TransactionHistoryModel.addTransaction(child.personalId, undefined, amount, note, child.companyId, global.TRANSACTION_TYPE_RECEIVE_CREDIT, beforeUser, afterUser);
-    await TransactionHistoryModel.addTransaction(child.companyId, undefined, amount, note, child.personalId, global.TRANSACTION_TYPE_SHARE_CREDIT, beforeParent, afterParent);
-    await child.save();
-
-    // notify
-    const notifyParams = {
-      fromUserId: child.companyId,
-      toUserId: child.personalId,
-      title: NotifyContent.CreditShare.Title,
-      content: NotifyContent.CreditShare.Content,
-      type: NotifyTypes.CHANGE_TRANSACTION,
-      params: {
-        before: beforeUser,
-        after: afterUser
-      }
-    };
-    NotifyController.createNotify(notifyParams);
-
-    // send Socket
-    notifyParams.toUserIds = [notifyParams.toUserId];
-    delete notifyParams.toUserId;
-    Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
-
-
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      data: child,
-      message: 'Request success'
-    });
+      })
+      .catch(e => {
+        logger.error('UserController::creditShare::error', e);
+        return next(e);
+      });
   } catch (e) {
     logger.error('UserController::creditShare::error', e);
     return next(e);
