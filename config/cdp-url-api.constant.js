@@ -16,12 +16,13 @@ module.exports = {
     UPDATE_USER_INFO: `${host}/user/:id`,
     SALE_COST: `${host}/user/balance/sale-cost`,
     UP_NEW: `${host}/user/balance/up-news-cost`,
-    LIST_USER: `${host}/user`,
-    LIST_ADMIN: `${host}/user/admin`,
-    REGISTER_ADMIN: `${host}/user/register-admin`
+    LIST_USER: `${host}/user`
   },
   ADMIN: {
-    UPDATE_BALANCE: `${host}/user/balance`
+    UPDATE_BALANCE: `${host}/user/balance`,
+    LIST_ADMIN: `${host}/user/admin`,
+    REGISTER_ADMIN: `${host}/user/register-admin`,
+    UPDATE_STATUS_ADMIN: `${host}/user/admin-status/:adminId`
   },
   RELATION_SHIP: {
     REQUEST_LIST: `${host}/user-relationship/request`,

@@ -151,7 +151,7 @@ const AdminController = {
       } = req.body;
       const postData = {username, email, password, confirmedPassword, phone, name};
 
-      post(CDP_APIS.USER.REGISTER_ADMIN, postData, req.user.token)
+      post(CDP_APIS.ADMIN.REGISTER_ADMIN, postData, req.user.token)
         .then((response) => {
           return res.json({
             status: HTTP_CODE.SUCCESS,
@@ -169,73 +169,27 @@ const AdminController = {
     }
   },
 
-  status: async function (req, res) {
+  status: async function (req, res, next) {
+    logger.info('AdminController::status::called');
+
     try {
-      var token = req.headers.accesstoken;
-
-      var accessToken = await TokenModel.findOne({token: token});
-
-      if (!accessToken) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'access_token invalid'
+      const id = req.params.id;
+      const url = CDP_APIS.ADMIN.UPDATE_STATUS_ADMIN.replace(':adminId', id);
+      put(url, {status: req.body.status}, req.user.token)
+        .then(response => {
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: '',
+            data: {}
+          })
+        })
+        .catch(e => {
+          logger.error('AdminController::status::error', e);
+          return next(e);
         });
-      }
-
-      var master = await UserModel.findOne({_id: accessToken.user});
-
-
-      if (!master || master.role != global.USER_ROLE_MASTER) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'master invalid'
-        });
-      }
-
-
-      var id = req.params.id;
-      var admin = await UserModel.findOne({_id: id});
-
-      if (!admin) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'admin not found'
-        });
-      }
-
-      var status = req.body.status;
-
-      if (status != global.STATUS.ACTIVE && status != global.STATUS.BLOCKED) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'status invalid'
-        });
-      }
-
-      if (status == global.STATUS.BLOCKED) {
-        await TokenModel.remove({user: id});
-      }
-
-      admin.status = status;
-      await admin.save();
-
-      return res.json({
-        status: 1,
-        data: {},
-        message: 'request success !'
-      });
-
-    }
-    catch (e) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'unknown error : ' + e.message
-      });
+    } catch (e) {
+      logger.error('AdminController::status::error', e);
+      return next(e);
     }
   },
 
@@ -243,7 +197,7 @@ const AdminController = {
     logger.info('AdminController::list::called');
     try {
       const queryStr = convertObjectToQueryString(req.query);
-      const url = `${CDP_APIS.USER.LIST_ADMIN}?${queryStr}`;
+      const url = `${CDP_APIS.ADMIN.LIST_ADMIN}?${queryStr}`;
       const limit = parseInt(req.query.limit || 10, 0);
 
       get(url, req.user.token)
