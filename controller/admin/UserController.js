@@ -49,14 +49,13 @@ const list = async (req, res, next) => {
         const users = r.data.entries;
         users.forEach(user => {
           user.balance.main = user.balance.main1;
+          user.expirationDate = user.balance.expiredAt;
           if (user.type === global.USER_TYPE_COMPANY) {
             user.balance.creditTransferred = user.sharedCredit;
           } else if (user.type === global.USER_TYPE_PERSONAL) {
             user.balance.creditUsed = user.balance.usedCredit;
           }
         });
-
-        // TODO: CDP chưa có thông tin cột này expirationDate trong bảng user
 
         return res.json({
           status: HTTP_CODE.SUCCESS,
@@ -202,8 +201,8 @@ const update = async (req, res, next) => {
 
   try {
     const urlApi = CDP_URL_APIS.USER.UPDATE_USER_INFO.replace(':id', req.params.id);
-    let {name, phone, birthday, gender, city, district, ward, type, avatar, status} = req.body;
-    const postData = {name, phone, birthday, gender, city, district, ward, type, avatar, status};
+    let {name, phone, birthday, gender, city, district, ward, type, avatar, status, expirationDate} = req.body;
+    const postData = {name, phone, birthday, gender, city, district, ward, type, avatar, status, expirationDate};
 
     put(urlApi, postData, req.user.token)
       .then(r => {
