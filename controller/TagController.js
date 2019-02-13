@@ -142,6 +142,8 @@ const query = async (req, res, next) => {
                 });
             }
         }));
+    
+        relatedTags = relatedTags.slice(0, 10);
 
         // Note: Get query object from sale or buy. First item in results array.
         const rootQueryRelated = UrlParamService.getQueryObject(results[0]);
