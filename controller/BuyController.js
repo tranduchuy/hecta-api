@@ -23,8 +23,6 @@ const BuyController = {
             receiveMail, from, to, createdByType
         } = req.body;
 
-        const token = req.headers['accesstoken'];
-
         ImageService.postConfirmImage(images);
         try {
             if (StringService.isUndefinedOrNull(title) || title.length < 30 || title.length > 99) {
@@ -65,15 +63,8 @@ const BuyController = {
 
             let buy = new BuyModel();
             let post = new PostModel();
-
-            if (token) {
-                const accessToken = await TokenModel.findOne({token: token});
-                if (!accessToken) {
-                    return next(new Error('Invalid access token'));
-                }
-
-                post.user = accessToken.user;
-            }
+            
+            post.user = req.user.id;
 
             if (createdByType) {
                 const duplicateTitle = await BuyModel.findOne({title: req.body.title.trim()}).lean();

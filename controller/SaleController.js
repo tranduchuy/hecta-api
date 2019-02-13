@@ -148,6 +148,8 @@ const add = async (req, res, next) => {
 
     var sale = new SaleModel();
     var post = new PostModel();
+    
+    post.user = req.user.id;
 
     // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
 
