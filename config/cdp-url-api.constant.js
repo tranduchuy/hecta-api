@@ -17,6 +17,7 @@ module.exports = {
     SALE_COST: `${host}/user/balance/sale-cost`,
     UP_NEW: `${host}/user/balance/up-news-cost`,
     LIST_USER: `${host}/user`,
+    LIST_USER_FOR_NOTIFY: `${host}/user/for-notifies`,
     SHARE_CREDIT: `${host}/user/share-credit`
   },
   ADMIN: {
@@ -32,7 +33,8 @@ module.exports = {
     ADD_REGISTERED_CHILD: `${host}/user-relationship/add-registered-child`,
     ADD_NEW_CHILD: `${host}/user-relationship/add-child`,
     CHILD_REPLY_REQUEST: `${host}/user-relationship/child-reply-request`,
-    REMOVE_CHILD: `${host}/user-relationship/remove-child`
+    REMOVE_CHILD: `${host}/user-relationship/remove-child`,
+    DETAIL_BY_IDS: `${host}/user-relationship/detail-for-notifies`
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
