@@ -519,7 +519,7 @@ const handleSearchCaseCategory = async (req, param) => {
             .reduce((keywords, keywordList) => {
                 return keywords.concat(keywordList)
             })
-            .slice(0, 20);
+            .slice(0, 10);
     }
 
     return {
