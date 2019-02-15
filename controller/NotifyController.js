@@ -1,11 +1,8 @@
-const mongoose = require('mongoose');
 const NotifyModel = require('../models/Notify');
-const ChildModel = require('../models/ChildModel');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const httpCode = require('../config/http-code');
 const requestUtil = require('../utils/RequestUtil');
-const async = require('async');
 const NotifyType = require('../config/notify-type');
 const {post, del, put, get, convertObjectToQueryString} = require('../utils/Request');
 const CDP_APIS = require('../config/cdp-url-api.constant');
