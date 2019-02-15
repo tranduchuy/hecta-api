@@ -170,9 +170,9 @@ const getListNotifies = async (req, res, next) => {
             notifies.forEach((n) => {
               if (requestTypes.indexOf(n.type) !== -1) {
                 n.params.request = relationDetailObj[n.params.requestId];
-              } else {
-                results.push(n);
               }
+
+              results.push(n);
             });
 
             return res.json({
