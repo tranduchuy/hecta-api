@@ -1,4 +1,5 @@
-const host = 'http://localhost:2902';
+// const host = 'http://localhost:2902';
+const host = 'https://cdp.hecta.vn';
 
 module.exports = {
   USER: {
