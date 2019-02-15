@@ -1,14 +1,5 @@
-const EmailValidator = require("email-validator");
-const UserModel = require('../models/UserModel');
-const bcrypt = require('bcrypt');
-const TokenModel = require('../models/TokenModel');
 const ChildModel = require('../models/ChildModel');
 const AccountModel = require('../models/AccountModel');
-const TransactionHistoryModel = require('../models/TransactionHistoryModel');
-const Mailer = require('../utils/Mailer');
-const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
-const randomstring = require("randomstring");
 const HTTP_CODE = require('../config/http-code');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
@@ -64,25 +55,6 @@ const resetPassword = async (req, res, next) => {
       .catch(err => {
         return next(err);
       });
-    // const user = await UserModel.findOne({resetPasswordToken: resetToken});
-    // if (!user) {
-    //   return res.json({
-    //     status: HTTP_CODE.ERROR,
-    //     message: ['Token đổi mật khẩu không hợp lệ'],
-    //     data: {}
-    //   });
-    // }
-    //
-    // user.resetPasswordToken = ''; // xoá reset token
-    // user.hash_password = bcrypt.hashSync(password, 10);
-    // await user.save();
-    //
-    // logger.info('UserController::resetPassword update password successfully', user.email);
-    // return res.json({
-    //   status: HTTP_CODE.SUCCESS,
-    //   message: ['Đổi mật khẩu thành công. Vui lòng đăng nhập lại!'],
-    //   data: {}
-    // });
   } catch (e) {
     logger.error('UserController::resetPassword error', e);
     return next(e);
@@ -228,33 +200,7 @@ const confirm = async (req, res, next) => {
       })
       .catch(err => {
         return next(err);
-      })
-    // if (!token || token.length < 30) {
-    //   return res.json({
-    //     status: HTTP_CODE.BAD_REQUEST,
-    //     data: {},
-    //     message: 'Invalid token'
-    //   });
-    // }
-    //
-    // const user = await UserModel.findOne({confirmToken: token});
-    //
-    // if (!user) {
-    //   return res.json({
-    //     status: HTTP_CODE.ERROR,
-    //     data: {},
-    //     message: 'Token not found'
-    //   });
-    // }
-    //
-    // user.status = global.STATUS.ACTIVE;
-    //
-    // await user.save();
-    // return res.json({
-    //   status: HTTP_CODE.SUCCESS,
-    //   data: {},
-    //   message: 'Success'
-    // });
+      });
   } catch (e) {
     logger.error('UserController::confirm::error', e);
     return next(e);
@@ -382,98 +328,6 @@ const childRemove = async (req, res, next) => {
         logger.error('UserController::childRemove::error', e);
         return next(e);
       });
-
-    /*const user = req.user;
-    if (user.type === global.USER_TYPE_COMPANY && !ObjectId.isValid(id)) {
-      logger.error('UserController::childRemove::error. Permission denied', user);
-      return next(new Error('Permission denied'));
-    }
-
-    let child = undefined;
-    if (user.type === global.USER_TYPE_COMPANY) {
-      child = await ChildModel.findOne({
-        companyId: user._id,
-        personalId: id,
-        status: global.STATUS.CHILD_ACCEPTED
-      });
-    }
-
-    if (user.type === global.USER_TYPE_PERSONAL) {
-      child = await ChildModel.findOne({
-        personalId: user._id,
-        status: global.STATUS.CHILD_ACCEPTED
-      });
-    }
-
-    if (!child) {
-      return next(new Error('Relation not found'));
-    }
-
-    let parentAccount = await AccountModel.findOne({owner: child.companyId});
-    if (!parentAccount) {
-      parentAccount = new AccountModel({
-        owner: child.companyId,
-        main: 0
-      });
-    }
-
-    let parentBefore = {
-      main: parentAccount.main,
-      promo: parentAccount.promo,
-      credit: 0
-    };
-
-    let childAccount = await AccountModel.findOne({owner: child.personalId});
-    if (!childAccount) {
-      childAccount = new AccountModel({
-        owner: child.personalId,
-        main: 0
-      });
-      await childAccount.save();
-    }
-
-    const childBefore = {
-      main: childAccount.main,
-      promo: childAccount.promo,
-      credit: child.credit
-    };
-
-    parentAccount.main += child.credit;
-    child.status = global.STATUS.CHILD_NONE;
-    child.credit = 0;
-
-    const parentAfter = {
-      main: parentAccount.main,
-      promo: parentAccount.promo,
-      credit: 0
-    };
-    const childAfter = {
-      main: childAccount.main,
-      promo: childAccount.promo,
-      credit: 0
-    };
-    await parentAccount.save();
-    await child.save();
-
-    await TransactionHistoryModel.addTransaction(
-      child.companyId,
-      undefined,
-      childBefore.credit,
-      '',
-      child.personalId,
-      global.TRANSACTION_TYPE_TAKE_BACK_MONEY,
-      parentBefore,
-      parentAfter);
-
-    await TransactionHistoryModel.addTransaction(
-      child.personalId,
-      undefined,
-      childBefore.credit,
-      '',
-      child.companyId,
-      global.TRANSACTION_TYPE_GIVE_MONEY_BACK,
-      childBefore,
-      childAfter);*/
   } catch (e) {
     logger.error('UserController::childRemove::error', e);
     return next(e);
@@ -691,74 +545,6 @@ const requestList = async (req, res, next) => {
 
         return next(err);
       });
-
-    // var token = req.headers.accesstoken;
-    //
-    // if (!token) {
-    //   return res.json({
-    //     status: 0,
-    //     data: {},
-    //     message: 'access token empty !'
-    //   });
-    // }
-    //
-    // var accessToken = await TokenModel.findOne({token: token});
-    //
-    // if (!accessToken) {
-    //   return res.json({
-    //     status: 0,
-    //     data: {},
-    //     message: 'access token invalid'
-    //   });
-    // }
-    //
-    //
-    // var user = await UserModel.findOne({_id: accessToken.user});
-    //
-    // if (!user) {
-    //
-    //   return res.json({
-    //     status: 0,
-    //     data: {},
-    //     message: 'user is not exist'
-    //   });
-    // }
-    //
-    // if (user.type != global.USER_TYPE_PERSONAL) {
-    //   return res.json({
-    //     status: 0,
-    //     data: {},
-    //     message: 'user does not have permission !'
-    //   });
-    // }
-    //
-    // var parrents = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_WAITING});
-    //
-    // let results = await Promise.all(parrents.map(async parrent => {
-    //
-    //   let company = await UserModel.findOne({_id: parrent.companyId});
-    //
-    //
-    //   return {
-    //     id: parrent._id,
-    //     parent: {
-    //       id: company ? company._id : 'unknown',
-    //       username: company ? company.username : 'unknown',
-    //       email: company ? company.email : 'unknown',
-    //       name: company ? company.name : 'unknown'
-    //     },
-    //     status: company.status
-    //   };
-    //
-    //
-    // }));
-    //
-    // return res.json({
-    //   status: 1,
-    //   data: results,
-    //   message: 'request success !'
-    // });
-
   } catch (e) {
     logger.error('UserController::requestList::error', err);
 
