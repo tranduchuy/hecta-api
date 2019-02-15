@@ -1,0 +1,10 @@
+mongo:
+  host: 159.89.202.248
+  username: admin
+  password: admin123456
+  port: 27017
+  databaseName: refactor_api
+
+
+app:
+  port: 3000

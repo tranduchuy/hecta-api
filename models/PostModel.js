@@ -66,7 +66,7 @@ const postSchema = new Schema({
     metaImage: String,
     canonical: String,
     textEndPage: String,
-    user: String,
+    user: Number,
     tags: {type: Array, default: []}
 });
 
