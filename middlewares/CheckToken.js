@@ -55,7 +55,7 @@ const returnInvalidToken = function (req, res, next) {
     }
 
     return res.json({
-        status: 0,
+        status: 401,
         message: 'Invalid token',
         data: {}
     });
