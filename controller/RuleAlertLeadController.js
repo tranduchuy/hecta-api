@@ -70,8 +70,7 @@ const list = async (req, res, next) => {
         totalItems: result[0].meta[0].totalItems,
         entries: result[0].entries
       }
-    })
-
+    });
   } catch (e) {
     logger.error('RuleAlertLeadController::list::error', e);
     return next(e);

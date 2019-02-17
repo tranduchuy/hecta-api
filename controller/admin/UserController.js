@@ -3,11 +3,13 @@ const _ = require('lodash');
 const TokenModel = require('../../models/TokenModel');
 const ChildModel = require('../../models/ChildModel');
 const AccountModel = require('../../models/AccountModel');
+const RuleAlertLeadModel = require('../../models/RuleAlertLeadModel');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const HTTP_CODE = require('../../config/http-code');
 const CDP_URL_APIS = require('../../config/cdp-url-api.constant');
 const {get, post, put, del, convertObjectToQueryString} = require('../../utils/Request');
+const {extractPaginationCondition} = require('../../utils/RequestUtil');
 
 const changeUserType = async (req, res, next) => {
   const newType = req.body.type;
@@ -225,10 +227,55 @@ const update = async (req, res, next) => {
   }
 };
 
+const ruleGetInfoLead = async (req, res, next) => {
+  logger.info('Admin/UserController::ruleGetInfoLead::called');
+
+  try {
+    const paginationCond = extractPaginationCondition(req);
+    const stages = [
+      {
+        $match: {
+          userId: req.query.userId
+        }
+      },
+      {
+        $sort: {
+          updatedAt: 1
+        }
+      },
+      {
+        $facet: {
+          entries: [
+            {$skip: (paginationCond.page - 1) * paginationCond.limit},
+            {$limit: paginationCond.limit}
+          ],
+          meta: [
+            {$group: {_id: null, totalItems: {$sum: 1}}},
+          ],
+        }
+      }
+    ];
+
+    const result = await RuleAlertLeadModel.aggregate(stages);
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {
+        totalItems: result[0].meta[0].totalItems,
+        entries: result[0].entries
+      }
+    });
+  } catch (e) {
+    logger.error('Admin/UserController::ruleGetInfoLead::error', e);
+    return next(e);
+  }
+};
+
 const UserController = {
   list,
   update,
-  changeUserType
+  changeUserType,
+  ruleGetInfoLead
 };
 
 module.exports = UserController;
