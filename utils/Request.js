@@ -2,6 +2,8 @@
 const request = require('request');
 const HttpCode = require('../config/http-code');
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+
 const _handleResponse = (resolve, reject, body) => {
   try {
     if (typeof body === 'string') {
