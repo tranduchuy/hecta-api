@@ -862,7 +862,7 @@ const check = async (req, res, next) => {
   const email = req.body.email || '';
 
   try {
-    get(`${CDP_APIS.USER.CHECK_DUP_USERNAME_EMAIL}?email=${email}&username=${username}`, req.user.token)
+    get(`${CDP_APIS.USER.CHECK_DUP_USERNAME_EMAIL}?email=${email}&username=${username}`)
       .then(r => {
         if (r.data.meta.isDuplicate) {
           return res.json({
