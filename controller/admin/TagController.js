@@ -74,38 +74,7 @@ const TagController = {
     },
 
     list: async function (req, res, next) {
-
-
         try {
-
-            var token = req.headers.accesstoken;
-            var accessToken = await TokenModel.findOne({token: token});
-
-            if (!accessToken) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'access token invalid'
-                });
-
-            }
-
-            var admin = await UserModel.findOne({
-                _id: accessToken.user,
-                status: global.STATUS.ACTIVE,
-                role: {$in: [global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN]}
-            });
-
-            if (!admin) {
-                return res.json({
-                    status: 0,
-                    data: {},
-                    message: 'admin not found or blocked'
-                });
-
-            }
-
-
             var page = req.query.page;
             var slug = req.query.slug;
             var keyword = req.query.keyword;

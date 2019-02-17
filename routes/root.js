@@ -29,6 +29,7 @@ router.use('/api/v1/notifies', notify);
 router.use('/api/v1/systems', system);
 router.use('/api/v1/posts', postRouter);
 router.use('/api/v1/search', searchRouter);
+router.use('/api/v1/rule-alert-lead', require('./rule-alert-lead.route'));
 router.use('/admin/v1/', admin);
 
 module.exports = router;
