@@ -235,7 +235,7 @@ const ruleGetInfoLead = async (req, res, next) => {
     const stages = [
       {
         $match: {
-          userId: req.query.userId
+          userId: parseInt(req.query.userId, 0)
         }
       },
       {
@@ -261,7 +261,7 @@ const ruleGetInfoLead = async (req, res, next) => {
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
       data: {
-        totalItems: result[0].meta[0].totalItems,
+        totalItems: result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0,
         entries: result[0].entries
       }
     });
