@@ -45,6 +45,15 @@ const list = async (req, res, next) => {
         }
       },
       {
+        '$lookup': {
+          'from': 'Projects',
+          'localField': 'project',
+          'foreignField': '_id',
+          'as': 'projectInfo'
+        }
+      },
+      {'$unwind': {'path': '$projectInfo'}},
+      {
         $sort: {
           updatedAt: 1
         }
@@ -63,12 +72,29 @@ const list = async (req, res, next) => {
     ];
 
     const result = await RuleAlertLeadModel.aggregate(stages);
+    const entries = result[0].entries.map(item => {
+      return {
+        _id: item._id,
+        updatedAt: item.updatedAt,
+        createdAt: item.createdAt,
+        userId: item.userId,
+        city: item.city | null,
+        formality: item.formality || null,
+        type: item.type || null,
+        district: item.district || null,
+        project: {
+          _id: item.projectInfo._id,
+          title: item.projectInfo.title
+        }
+      }
+    });
+
     return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
       data: {
         totalItems: result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0,
-        entries: result[0].entries
+        entries: entries
       }
     });
   } catch (e) {
