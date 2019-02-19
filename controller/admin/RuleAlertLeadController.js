@@ -5,14 +5,14 @@ const logger = log4js.getLogger('Controllers');
 const HTTP_CODE = require('../../config/http-code');
 const {extractPaginationCondition} = require('../../utils/RequestUtil');
 
-const list =  async (req, res, next) => {
+const list = async (req, res, next) => {
   logger.info('Admin/RuleAlertLeadController::list is called');
   
   try {
     if (!RoleService.isAdmin(req.user)) {
       return next(new Error('Permission denied'));
     }
-  
+    
     let stages = generateStageQueryRule(req);
     
     logger.info('Admin/RuleAlertLeadController::list. Aggregate stages: ', JSON.stringify(stages));
@@ -38,7 +38,24 @@ const generateStageQueryRule = (req) => {
   const {userId, formality, type, city, project, status, dateFrom, dateTo} = req.query;
   const pageCond = extractPaginationCondition(req);
   
-  const stages = [];
+  const stages = [
+    {
+      '$lookup': {
+        'from': 'Projects',
+        'localField': 'project',
+        'foreignField': '_id',
+        'as': 'projectInfo'
+      }
+    },
+    {
+      '$unwind': {'path': '$projectInfo'}
+    },
+    {
+      $sort: {
+        updatedAt: -1
+      }
+    },
+  ];
   
   // filter
   const stageFilter = {};
@@ -59,11 +76,11 @@ const generateStageQueryRule = (req) => {
     stageFilter["city"] = city;
   }
   
-  if (project){
+  if (project) {
     stageFilter["project"] = project;
   }
   
-  if (status && !isNaN(status)){
+  if (status && !isNaN(status)) {
     stageFilter["status"] = status;
   }
   
@@ -83,7 +100,7 @@ const generateStageQueryRule = (req) => {
     }
     
     if (Object.keys(dateFilterObj).length !== 0) {
-      stageFilter['date'] = dateFilterObj;
+      stageFilter['updatedAt'] = dateFilterObj;
     }
   }
   
@@ -92,19 +109,6 @@ const generateStageQueryRule = (req) => {
       $match: stageFilter
     });
   }
-  
-  // stage sort
-  let stageSort = {
-    $sort: {}
-  };
-  
-  if (sortBy) {
-    stageSort.$sort[sortBy] = sortDirection === 'ASC' ? 1 : -1
-  } else {
-    stageSort.$sort['date'] = -1; // default sort by date descending
-  }
-  
-  stages.push(stageSort);
   
   // pagination
   stages.push({
