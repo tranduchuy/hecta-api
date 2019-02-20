@@ -11,6 +11,7 @@ const AdminSaleController = require('../controller/admin/SaleController');
 const AdminPostController = require('../controller/admin/PostController');
 const AdminCategoryController = require('../controller/admin/CategoryController');
 const AdminTagController = require('../controller/admin/TagController');
+const AdminCampaignController = require('../controller/admin/CampaignController');
 const CheckAdminMiddleware = require('../middlewares/CheckRoleAdmin');
 
 router.get('/projects/types', AdminProjectController.typeList);
@@ -56,5 +57,7 @@ router.post('/categories/update/:id', AdminCategoryController.update);
 router.get('/tags/list', AdminTagController.list);
 router.get('/tags/detail/:id', AdminTagController.detail);
 router.post('/tags/update/:id', AdminTagController.update);
+
+router.get('/campaigns', AdminCampaignController.create);
 
 module.exports = router;
