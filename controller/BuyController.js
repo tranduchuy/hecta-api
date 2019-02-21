@@ -63,7 +63,9 @@ const BuyController = {
       let buy = new BuyModel();
       let post = new PostModel();
 
-      post.user = req.user.id;
+      if (req.user) {
+        post.user = req.user.id;
+      }
 
       if (createdByType) {
         const duplicateTitle = await BuyModel.findOne({title: req.body.title.trim()}).lean();
