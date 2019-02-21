@@ -142,6 +142,51 @@ const list = async (req, res, next) => {
   }
 };
 
+const update = async (req, res, next) => {};
+
+const remove = async (req, res, next) => {
+  logger.info('AdminCampaignController::remove::called');
+
+  try {
+    const campaign = await CampaignModel.findOne({_id: req.params.id});
+    if (!campaign) {
+      return next(new Error('Campaign not found'));
+    }
+
+    campaign.deleteFlag = 1;
+    await campaign.save();
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {}
+    });
+  } catch (e) {
+    logger.error('AdminCampaignController::remove::error', e);
+    return next(e);
+  }
+};
+
+const detail = async (req, res, next) => {
+  logger.info('AdminCampaignController::detail::called');
+
+  try {
+    const campaign = await CampaignModel.findOne({_id: req.params.id});
+    if (!campaign) {
+      return next(new Error('Campaign not found'));
+    }
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: campaign
+    });
+  } catch (e) {
+    logger.error('AdminCampaignController::detail::error');
+    return next(e);
+  }
+};
+
 function _buildStageGetListCampaigns(req) {
   const stages = [];
   const paginationCond = extractPaginationCondition(req);
@@ -205,5 +250,8 @@ function _buildStageGetListCampaigns(req) {
 
 module.exports = {
   create,
-  list
+  list,
+  update,
+  remove,
+  detail
 };
