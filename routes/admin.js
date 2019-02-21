@@ -59,5 +59,6 @@ router.get('/tags/detail/:id', AdminTagController.detail);
 router.post('/tags/update/:id', AdminTagController.update);
 
 router.post('/campaigns', AdminCampaignController.create);
+router.get('/campaigns', AdminCampaignController.list);
 
 module.exports = router;
