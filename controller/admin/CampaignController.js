@@ -104,7 +104,7 @@ const list = async (req, res, next) => {
             return {
               _id: project._id,
               title: item.title
-            }()
+            }
           });
           delete item.projectInfo;
 
