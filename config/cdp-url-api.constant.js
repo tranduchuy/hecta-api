@@ -1,4 +1,4 @@
-// const host = 'http://localhost:2902';
+// const host = 'http://localhost:2901';
 const host = 'https://cdp.hecta.vn';
 
 module.exports = {
@@ -18,6 +18,7 @@ module.exports = {
     SALE_COST: `${host}/user/balance/sale-cost`,
     UP_NEW: `${host}/user/balance/up-news-cost`,
     LIST_USER: `${host}/user`,
+    LIST_USER_INFO: `${host}/user/info`,
     LIST_USER_FOR_NOTIFY: `${host}/user/for-notifies`,
     SHARE_CREDIT: `${host}/user/share-credit`
   },

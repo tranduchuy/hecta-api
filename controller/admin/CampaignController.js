@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const async = require('async');
 const ObjectId = mongoose.Types.ObjectId;
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
@@ -8,6 +9,8 @@ const CampaignModel = require('../../models/CampaignModel');
 const CAMPAIGN_SCHEMAS = require('../validation-schemas/admin-campaign.schema');
 const CampaignTypeConstant = require('../../constants/campaign-type');
 const {extractPaginationCondition} = require('../../utils/RequestUtil');
+const CDP_APIS = require('../../config/cdp-url-api.constant');
+const {convertObjectToQueryString, get, post, put, del} = require('../../utils/Request');
 
 const create = async (req, res, next) => {
   logger.info('AdminCampaignController::create::called');
@@ -81,34 +84,58 @@ const list = async (req, res, next) => {
 
   try {
     const stages = _buildStageGetListCampaigns(req);
-    console.log(JSON.stringify(stages));
     const result = await CampaignModel.aggregate(stages);
-    const entries = result[0].entries.map(item => {
-      item.project = item.projectInfo.map(project => {
-        return {
-          _id: project._id,
-          title: item.title
-        }
+    logger.info('AdminCampaignController::list stage', JSON.stringify(stages));
+    const userIds = result[0].entries
+      .filter(item => item.user)
+      .map(item => item.user);
+
+    // get users info from CDP
+    const urlGetUserInfo = `${CDP_APIS.USER.LIST_USER_INFO}?ids=${userIds.join(',')}`;
+    get(urlGetUserInfo, req.user.token)
+      .then((response) => {
+        const usersObj = {};
+        response.data.entries.forEach(user => {
+          usersObj[user.id] = user;
+        });
+
+        const entries = result[0].entries.map(item => {
+          item.project = item.projectInfo.map(project => {
+            return {
+              _id: project._id,
+              title: item.title
+            }()
+          });
+          delete item.projectInfo;
+
+          if (item.project.length === 0) {
+            item.project = null;
+          } else {
+            item.project = item.project[0];
+          }
+
+          if (item.user && usersObj[item.user]) {
+            item.user = usersObj[item.user];
+          } else {
+            item.user = null;
+          }
+
+          return item;
+        });
+
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: 'Success',
+          data: {
+            totalItems: result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0,
+            entries
+          }
+        });
+      })
+      .catch((e) => {
+        logger.error('AdminCampaignController::list::error', e);
+        return next(e);
       });
-      delete item.projectInfo;
-
-      if (item.project.length === 0) {
-        item.project = null;
-      } else {
-        item.project = item.project[0];
-      }
-
-      return item;
-    });
-
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      message: 'Success',
-      data: {
-        totalItems: result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0,
-        entries
-      }
-    });
   } catch (e) {
     logger.error('AdminCampaignController::list::error', e);
     return next(e);
