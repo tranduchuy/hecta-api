@@ -95,7 +95,7 @@ const list = async (req, res, next) => {
       if (item.project.length === 0) {
         item.project = null;
       } else {
-        item.project = item.project[0];status
+        item.project = item.project[0];
       }
 
       return item;
