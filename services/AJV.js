@@ -1,5 +1,5 @@
 const Ajv = require('ajv');
-const ajv = Ajv({allErrors: true, jsonPointers: true});
+const ajv = Ajv({allErrors: true, jsonPointers: true, v5: true});
 require('ajv-errors')(ajv);
 
 /**

@@ -24,7 +24,7 @@ const createSchema = {
       minimum: 100000
     },
     campaignType: {
-      enum: [campaignTypeConstant.PROJECT, campaignTypeConstant.LOCATION]
+      enum: [campaignTypeConstant.PROJECT, campaignTypeConstant.LOCATION],
     },
     formality: {
       type: 'number'
@@ -55,34 +55,20 @@ const createSchema = {
     }
   },
   required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downTime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city', 'domains', 'isPrivate'],
-  oneOf: [
-    {
-      if: {
-        properties: {
-          campaignType: {
-            constant: campaignTypeConstant.PROJECT
-          }
-        }
-      },
-      then: {
-        required: ['district', 'projectId']
-      },
-      continue: false
-    },
-    /*{
-      if: {
-        properties: {
-          isPrivate: {
-            constant: true
-          }
-        }
-      },
-      then: {
-        required: ['userId']
-      },
-      continue: false
-    }*/
-  ]
+  // switch: [
+  //   {
+  //     if: {
+  //       properties: {
+  //         isPrivate: {
+  //           constant: true
+  //         }
+  //       }
+  //     },
+  //     then: {
+  //       required: ['userId']
+  //     }
+  //   }
+  // ]
 };
 
 module.exports = {

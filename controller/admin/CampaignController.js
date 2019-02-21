@@ -4,6 +4,7 @@ const AJV = require('../../services/AJV');
 const HTTP_CODE = require('../../config/http-code');
 const CampaignModel = require('../../models/CampaignModel');
 const CAMPAIGN_SCHEMAS = require('../validation-schemas/admin-campaign.schema');
+const CampaignTypeConstant = require('../../constants/campaign-type');
 
 const create = async (req, res, next) => {
   logger.info('AdminCampaignController::create::called');
@@ -26,14 +27,35 @@ const create = async (req, res, next) => {
     newCampaign.formality = formality;
     newCampaign.type = type;
     newCampaign.city = city;
-    newCampaign.district = district;
-    newCampaign.project = projectId;
+    newCampaign.district = null;
+    newCampaign.project = null;
+    newCampaign.isPrivate = isPrivate;
     newCampaign.domains = domains;
+    newCampaign.user = null;
     newCampaign.updatedAt = new Date();
     newCampaign.createdAt = new Date();
     newCampaign.admin = req.user.id;
-    newCampaign.isPrivate = isPrivate;
-    newCampaign.user = userId || null;
+
+    if (isPrivate === true) {
+      if (userId === null || userId === undefined) {
+        return next(new Error('UserId is required'));
+      }
+
+      newCampaign.user = userId;
+    }
+
+    if (campaignType === CampaignTypeConstant.PROJECT) {
+      if (district === null || district === undefined) {
+        return next(new Error('District is required'));
+      }
+
+      if (project === null || project === undefined) {
+        return next(new Error('Project is required'));
+      }
+
+      newCampaign.district = district;
+      newCampaign.project = projectId;
+    }
 
     await newCampaign.save();
     logger.info('AdminCampaignController::create::success');
