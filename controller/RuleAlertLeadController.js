@@ -41,7 +41,10 @@ const list = async (req, res, next) => {
     const stages = [
       {
         $match: {
-          userId: req.user.id
+          userId: req.user.id,
+          status: {
+            $ne: global.STATUS.DELETE
+          }
         }
       },
       {

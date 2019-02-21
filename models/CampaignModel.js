@@ -11,7 +11,7 @@ const campaignSchema = new Schema({
     type: Number,
     default: 0
   },
-  downtime: {
+  downTime: {
     type: Number,
     default: 0
   },
@@ -54,7 +54,7 @@ const campaignSchema = new Schema({
     type: Boolean,
     default: false
   },
-  userId: {
+  user: {
     type: Number,
     default: 0
   },
@@ -64,7 +64,7 @@ const campaignSchema = new Schema({
   },
   deleteFlag: {
     type: Number,
-    default: 0, // 1: mean deleted
+    default: 0, // 1: means deleted
   },
   updatedAt: Date,
   createdAt: Date

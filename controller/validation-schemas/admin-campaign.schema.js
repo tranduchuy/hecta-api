@@ -15,7 +15,7 @@ const createSchema = {
     leadMaxPrice: {
       type: 'number'
     },
-    downtime: {
+    downTime: {
       type: 'number',
       minimum: 5
     },
@@ -38,7 +38,7 @@ const createSchema = {
     district: {
       type: 'number'
     },
-    project: {
+    projectId: {
       type: 'string'
     },
     domains: {
@@ -50,17 +50,38 @@ const createSchema = {
     isPrivate: {
       type: 'boolean'
     },
-    user: {
+    userId: {
       type: 'number'
     }
   },
-  required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downtime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city'],
-  switch: [
+  required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downTime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city', 'domains', 'isPrivate'],
+  oneOf: [
     {
-      if: {required: ['password']},
-      then: {required: ['oldPassword', 'confirmedPassword']},
-      continue: true
-    }
+      if: {
+        properties: {
+          campaignType: {
+            constant: campaignTypeConstant.PROJECT
+          }
+        }
+      },
+      then: {
+        required: ['district', 'projectId']
+      },
+      continue: false
+    },
+    /*{
+      if: {
+        properties: {
+          isPrivate: {
+            constant: true
+          }
+        }
+      },
+      then: {
+        required: ['userId']
+      },
+      continue: false
+    }*/
   ]
 };
 
