@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const AJV = require('../../services/AJV');
@@ -81,7 +83,17 @@ const list = async (req, res, next) => {
     const stages = _buildStageGetListCampaigns(req);
     console.log(JSON.stringify(stages));
     const result = await CampaignModel.aggregate(stages);
-    const entries = result[0].entries;
+    const entries = result[0].entries.map(item => {
+      item.project = item.projectInfo.map(project => {
+        return {
+          _id: project._id,
+          title: item.title
+        }
+      });
+      delete item.projectInfo;
+
+      return item;
+    });
 
     return res.json({
       status: HTTP_CODE.SUCCESS,
@@ -124,6 +136,10 @@ function _buildStageGetListCampaigns(req) {
       }
     }
   });
+
+  if (req.query.projectId) {
+    $match.project = new ObjectId(req.query.projectId);
+  }
 
   stages.push({
     $match
