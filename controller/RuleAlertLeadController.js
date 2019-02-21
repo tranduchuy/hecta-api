@@ -81,7 +81,7 @@ const list = async (req, res, next) => {
         updatedAt: item.updatedAt,
         createdAt: item.createdAt,
         userId: item.userId,
-        city: item.city | null,
+        city: item.city || null,
         formality: item.formality || null,
         type: item.type || null,
         district: item.district || null,
