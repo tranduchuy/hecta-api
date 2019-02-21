@@ -92,6 +92,12 @@ const list = async (req, res, next) => {
       });
       delete item.projectInfo;
 
+      if (item.project.length === 0) {
+        item.project = null;
+      } else {
+        item.project = item.project[0];status
+      }
+
       return item;
     });
 
