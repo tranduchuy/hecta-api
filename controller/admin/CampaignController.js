@@ -142,7 +142,16 @@ const list = async (req, res, next) => {
   }
 };
 
-const update = async (req, res, next) => {};
+const update = async (req, res, next) => {
+  logger.info('AdminCampaignController::remove::called');
+
+  try {
+
+  } catch (e) {
+    logger.error('AdminCampaignController::detail::error');
+    return next(e);
+  }
+};
 
 const remove = async (req, res, next) => {
   logger.info('AdminCampaignController::remove::called');
@@ -176,13 +185,37 @@ const detail = async (req, res, next) => {
       return next(new Error('Campaign not found'));
     }
 
+    if (campaign.user) {
+      const urlGetUserInfo = `${CDP_APIS.USER.LIST_USER_INFO}?ids=${campaign.user}`;
+      get(urlGetUserInfo, req.user.token)
+        .then((response) => {
+          if (response.data.entries.length === 1) {
+            campaign.user = response.data.entries[0];
+          } else {
+            campaign.user = null;
+          }
+
+          return res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: 'Success',
+            data: campaign
+          });
+        })
+        .catch(e => {
+          logger.error('AdminCampaignController::detail::error', e);
+          return next(e);
+        });
+
+      return;
+    }
+
     return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
       data: campaign
     });
   } catch (e) {
-    logger.error('AdminCampaignController::detail::error');
+    logger.error('AdminCampaignController::detail::error', e);
     return next(e);
   }
 };
