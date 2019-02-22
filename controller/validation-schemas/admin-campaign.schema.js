@@ -44,7 +44,8 @@ const createSchema = {
     domains: {
       type: 'array',
       items: {
-        type: 'string'
+        type: 'string',
+        pattern: '//^((?:(?:(?:\\w[\\.\\-\\+]?)*)\\w)+)((?:(?:(?:\\w[\\.\\-\\+]?){0,62})\\w)+)\\.(\\w{2,6})$//'
       }
     },
     isPrivate: {
@@ -71,6 +72,21 @@ const createSchema = {
   // ]
 };
 
+const updateDomains = {
+  type: 'object',
+  properties: {
+    domains: {
+      type: 'array',
+      items: {
+        type: 'string',
+        pattern: '//^((?:(?:(?:\\w[\\.\\-\\+]?)*)\\w)+)((?:(?:(?:\\w[\\.\\-\\+]?){0,62})\\w)+)\\.(\\w{2,6})$//'
+      }
+    }
+  },
+  required: ['domains']
+};
+
 module.exports = {
-  CREATE: createSchema
+  CREATE: createSchema,
+  UPDATE_DOMAINS: updateDomains
 };

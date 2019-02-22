@@ -187,6 +187,34 @@ const detail = async (req, res, next) => {
   }
 };
 
+const updateDomains = async (req, res, next) => {
+  logger.info('AdminCampaignController::updateDomains::called');
+
+  try {
+    const errors = AJV(CAMPAIGN_SCHEMAS.UPDATE_DOMAINS, req.body);
+    if (errors.length > 0) {
+      return next(new Error(errors.join('\n')));
+    }
+
+    const campaign = await CampaignModel.findOne({_id: req.params.id});
+    if (!campaign) {
+      return next(new Error('Campaign not found'));
+    }
+
+    campaign.domains = req.body.domains;
+    await campaign.save();
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: campaign
+    });
+  } catch (e) {
+    logger.error('AdminCampaignController::updateDomains::error', e);
+    return next(e);
+  }
+};
+
 function _buildStageGetListCampaigns(req) {
   const stages = [];
   const paginationCond = extractPaginationCondition(req);
@@ -253,5 +281,6 @@ module.exports = {
   list,
   update,
   remove,
-  detail
+  detail,
+  updateDomains
 };
