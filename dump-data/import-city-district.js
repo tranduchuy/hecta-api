@@ -4,7 +4,7 @@
 
 require('../config/def');
 const urlSlug = require('url-slug');
-const dbConnect = require('../config/db');
+const dbConnect = require('../database/db');
 const CityModel = require('../models/CityModel');
 const DistrictModel = require('../models/DistrictModel');
 const ProjectModel = require('../models/ProjectModel');
