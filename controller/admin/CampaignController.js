@@ -219,7 +219,7 @@ const detail = async (req, res, next) => {
   logger.info('AdminCampaignController::detail::called');
 
   try {
-    const campaign = await CampaignModel.findOne({_id: req.params.id});
+    const campaign = await CampaignModel.findOne({_id: req.params.id}).lean();
     if (!campaign) {
       return next(new Error('Campaign not found'));
     }
