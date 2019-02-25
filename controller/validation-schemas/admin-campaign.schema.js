@@ -56,21 +56,7 @@ const createSchema = {
       type: 'number'
     }
   },
-  required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downTime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city', 'domains', 'isPrivate'],
-  // switch: [
-  //   {
-  //     if: {
-  //       properties: {
-  //         isPrivate: {
-  //           constant: true
-  //         }
-  //       }
-  //     },
-  //     then: {
-  //       required: ['userId']
-  //     }
-  //   }
-  // ]
+  required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downTime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city', 'domains', 'isPrivate']
 };
 
 const updateDomains = {
@@ -87,7 +73,56 @@ const updateDomains = {
   required: ['domains']
 };
 
+const updateInfoSchema = {
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      minLength: 3
+    },
+    leadMinPrice: {
+      type: 'number',
+      minimum: 0
+    },
+    leadMaxPrice: {
+      type: 'number'
+    },
+    downTime: {
+      type: 'number',
+      minimum: 5
+    },
+    downPriceStep: {
+      type: 'number',
+      minimum: 100000
+    },
+    formality: {
+      type: 'number'
+    },
+    type: {
+      type: 'number'
+    },
+    city: {
+      type: 'string'
+    },
+    district: {
+      type: 'number'
+    },
+    projectId: {
+      type: 'string'
+    },
+    domains: {
+      type: 'array',
+      items: {
+        type: 'string',
+        pattern: urlPattern
+      }
+    }
+  },
+  required: []
+};
+
 module.exports = {
   CREATE: createSchema,
-  UPDATE_DOMAINS: updateDomains
+  UPDATE_DOMAINS: updateDomains,
+  UPDATE_INFO: updateInfoSchema
 };

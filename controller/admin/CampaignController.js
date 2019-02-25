@@ -143,12 +143,51 @@ const list = async (req, res, next) => {
 };
 
 const update = async (req, res, next) => {
-  logger.info('AdminCampaignController::remove::called');
+  logger.info('AdminCampaignController::update::called');
 
+  // TODO: should update worker down price because of updating downTime and downPriceStep
   try {
+    const errors = AJV(CAMPAIGN_SCHEMAS.UPDATE_INFO);
+    if (errors.length > 0) {
+      return next(new Error(errors.join('\n')));
+    }
 
+    const campaign = await CampaignModel.findOne({
+      where: {
+        id: parseInt(req.params.id, 0)
+      }
+    });
+
+    if (!campaign) {
+      return next(new Error('Campaign not found'));
+    }
+
+    const {
+      name, leadMinPrice, leadMaxPrice, downTime, downPriceStep,
+      formality, type, city, district, domains
+    } = req.body;
+
+    campaign.name = name.toString().trim() || campaign.name;
+    campaign.leadMinPrice = leadMinPrice || campaign.leadMinPrice;
+    campaign.leadMaxPrice = leadMaxPrice || campaign.leadMaxPrice;
+    campaign.downTime = downTime || campaign.downTime;
+    campaign.downPriceStep = downPriceStep || campaign.downPriceStep;
+    campaign.formality = formality || campaign.formality;
+    campaign.type = type || campaign.type;
+    campaign.city = city.toString().trim() || campaign.city;
+    campaign.district = district || campaign.district;
+    campaign.domains = domains || campaign.domains;
+
+    await campaign.save();
+    logger.error('AdminCampaignController::update::success');
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {}
+    });
   } catch (e) {
-    logger.error('AdminCampaignController::detail::error');
+    logger.error('AdminCampaignController::update::error');
     return next(e);
   }
 };
