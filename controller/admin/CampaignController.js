@@ -164,7 +164,7 @@ const update = async (req, res, next) => {
 
     const {
       name, leadMinPrice, leadMaxPrice, downTime, downPriceStep,
-      formality, type, city, district, domains
+      formality, type, city, district, domains, status
     } = req.body;
 
     campaign.name = name.toString().trim() || campaign.name;
@@ -177,7 +177,7 @@ const update = async (req, res, next) => {
     campaign.city = city.toString().trim() || campaign.city;
     campaign.district = district || campaign.district;
     campaign.domains = domains || campaign.domains;
-
+    campaign.status = status || campaign.status;
     await campaign.save();
     logger.error('AdminCampaignController::update::success');
 
