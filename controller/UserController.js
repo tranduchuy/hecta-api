@@ -16,8 +16,7 @@ const forgetPassword = async (req, res, next) => {
   logger.info('UserController::forgetPassword is called');
 
   try {
-
-    get(`${CDP_APIS.USER.FORGET_PASSWORD}?email=${req.body.email || ''}`)
+    get(`${CDP_APIS.USER.FORGET_PASSWORD}?email=${req.body.email || ''}&type=${req.body.type}`)
       .then((r) => {
         return res.json({
           status: HTTP_CODE.SUCCESS,

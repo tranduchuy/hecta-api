@@ -1,0 +1,9 @@
+mongo:
+  host: 159.89.202.248
+  username: admin
+  password: xyz1233VF8YLwUWjegMwyxzLv3bFu2
+  port: 27018
+  databaseName: hecta_v2
+
+app:
+    port: 3000

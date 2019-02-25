@@ -5,6 +5,5 @@ mongo:
   port: 27017
   databaseName: bds_v1
 
-
 app:
   port: 3000
