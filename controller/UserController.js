@@ -36,14 +36,14 @@ const forgetPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   logger.info('UserController::resetPassword is called');
-  const resetToken = (req.body['resetToken'] || '').toString();
-  const password = (req.body.password || '').toString();
+  const {resetToken, password, confirmedPassword, type} = req.body;
 
   try {
     post(CDP_APIS.USER.RESET_PASSWORD, {
       token: resetToken,
       password,
-      confirmedPassword: password
+      confirmedPassword,
+      type
     })
       .then(r => {
         return res.json({
