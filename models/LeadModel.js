@@ -13,24 +13,20 @@ const leadSchema = new Schema({
     type: Number,
     default: global.STATUS.LEAD_NEW
   },
-  isDeleted: {
+  deleteFlag: {
     type: Number,
     default: 0
   },
-  createdAt: {
-    type: Date
-  },
-  updatedAt: {
-    type: Date
-  },
+  phone: String,
+  price: Number,
+  histories: [{type: Schema.Types.ObjectId, ref: 'LeadHistory'}],
+  note: String,
   referenceDomain: String,
   utmSource: String,
   utmCampaign: String,
   utmMedium: String,
-  phone: String,
-  price: Number,
-  histories: [{type: Schema.Types.ObjectId, ref: 'LeadHistory'}],
-  note: String
+  createdAt: Date,
+  updatedAt: Date
 });
 
 const LeadModel = mongoose.model('Lead', leadSchema, 'Leads');

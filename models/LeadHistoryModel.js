@@ -1,9 +1,9 @@
-const mongoose = require * ('mongoose');
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const leadHistorySchema = new Schema({
   lead: {
-    type: Schema.Types.Object,
+    type: Schema.Types.ObjectId,
     ref: 'Lead'
   },
   name: String,

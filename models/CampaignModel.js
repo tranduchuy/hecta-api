@@ -41,14 +41,16 @@ const campaignSchema = new Schema({
   },
   project: {
     type: Schema.Types.ObjectId,
-    ref: 'Project'
+    ref: 'Project',
+    default: null
   },
   domains: {
     type: Array,
+    default: []
   },
-  adminId: {
+  admin: {
     type: Number,
-    default: 0
+    default: null
   },
   isPrivate: {
     type: Boolean,
@@ -56,7 +58,7 @@ const campaignSchema = new Schema({
   },
   user: {
     type: Number,
-    default: 0
+    default: null
   },
   status: {
     type: Number,

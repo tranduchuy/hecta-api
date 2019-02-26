@@ -57,7 +57,7 @@ const create = async (req, res, next) => {
         return next(new Error('District is required'));
       }
 
-      if (project === null || project === undefined) {
+      if (projectId === null || projectId === undefined) {
         return next(new Error('Project is required'));
       }
 
@@ -178,6 +178,7 @@ const update = async (req, res, next) => {
     campaign.district = district || campaign.district;
     campaign.domains = domains || campaign.domains;
     campaign.status = status || campaign.status;
+    campaign.updatedAt = new Date();
     await campaign.save();
     logger.error('AdminCampaignController::update::success');
 
