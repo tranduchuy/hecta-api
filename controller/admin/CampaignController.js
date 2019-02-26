@@ -147,15 +147,13 @@ const update = async (req, res, next) => {
 
   // TODO: should update worker down price because of updating downTime and downPriceStep
   try {
-    const errors = AJV(CAMPAIGN_SCHEMAS.UPDATE_INFO);
+    const errors = AJV(CAMPAIGN_SCHEMAS.UPDATE_INFO, req.body);
     if (errors.length > 0) {
       return next(new Error(errors.join('\n')));
     }
 
     const campaign = await CampaignModel.findOne({
-      where: {
-        id: parseInt(req.params.id, 0)
-      }
+      _id: req.params.id
     });
 
     if (!campaign) {
