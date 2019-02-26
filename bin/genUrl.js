@@ -6,7 +6,7 @@
 
 var app = require('../app');
 var http = require('http');
-var db = require('../config/db');
+var db = require('../database/db');
 var log4js = require('log4js');
 log4js.configure('./config/log4js.json');
 const config = require('config');
