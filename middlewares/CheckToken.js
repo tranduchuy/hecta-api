@@ -35,6 +35,7 @@ const urlToPassCheckingToken = [
   '/api/v1/projects/highlight',
   '/api/v1/vips/list',
   '/api/v1/vips/price',
+  '/api/v1/leads/customer-focus',
 
   '/admin/v1/admins/login',
   '/api/v1/system'

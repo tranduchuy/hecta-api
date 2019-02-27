@@ -18,13 +18,14 @@ const leadSchema = new Schema({
     default: 0
   },
   phone: String,
-  price: Number,
-  histories: [{type: Schema.Types.ObjectId, ref: 'LeadHistory'}],
-  note: String,
-  referenceDomain: String,
-  utmSource: String,
-  utmCampaign: String,
-  utmMedium: String,
+  price: {
+    type: Number,
+    default: null
+  },
+  histories: {
+    type: [{type: Schema.Types.ObjectId, ref: 'LeadHistory'}],
+    default: []
+  },
   createdAt: Date,
   updatedAt: Date
 });
