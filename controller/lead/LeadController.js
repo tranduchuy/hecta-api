@@ -14,6 +14,10 @@ const createLead = async (req, res, next) => {
   try {
     let {name, email, phone, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, campaignId,
     bedrooms, street, note, direction} = req.body;
+    if (!name) {
+      return next(new Error('Tên bắt buộc'));
+    }
+
     if (!phone) {
       return next(new Error('Số điện thoại là bắt buộc'));
     }
