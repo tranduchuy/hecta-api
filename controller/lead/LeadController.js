@@ -48,7 +48,10 @@ const createLead = async (req, res, next) => {
 
     let lead = await LeadModel.findOne({
       phone,
-      campaign: campaignId
+      campaign: campaignId,
+      status: {
+        $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả lead) thì mới tạo lead mới
+      }
     });
 
     if (!lead) {
@@ -94,6 +97,13 @@ const createLead = async (req, res, next) => {
 
 const getListLead = async (req, res, next) => {
   // TODO: getListLead
+  logger.info('LeadController::getListLead::called');
+  try {
+
+  } catch (e) {
+    logger.error('LeadController::getListLead::error', e);
+    return next(e);
+  }
 };
 
 module.exports = {
