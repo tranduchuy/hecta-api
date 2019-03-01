@@ -182,6 +182,16 @@ const detailById = async (req, res, next) => {
       return next(new Error('Permission denied'));
     }
 
+    delete rule.__v;
+    if (rule.project) {
+      rule.project = {
+        _id: rule.project._id,
+        title: rule.project.title
+      };
+    } else {
+      rule.project = null;
+    }
+
     return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
