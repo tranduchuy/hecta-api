@@ -165,9 +165,38 @@ const remove = async (req, res, next) => {
   }
 };
 
+const detailById = async (req, res, next) => {
+  logger.info('RuleAlertLeadController::detailById::called');
+
+  try {
+    const rule = await RuleAlertLeadModel
+      .findOne({_id: req.params.id})
+      .populate('project')
+      .lean();
+
+    if (!rule) {
+      return next(new Error('Rule not found'));
+    }
+
+    if (rule.userId !== req.user.id) {
+      return next(new Error('Permission denied'));
+    }
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: rule
+    });
+  } catch (e) {
+    logger.error('RuleAlertLeadController::list::error', e);
+    return next(e);
+  }
+};
+
 module.exports = {
   register,
   list,
+  detailById,
   update,
   remove
 };
