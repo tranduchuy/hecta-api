@@ -17,12 +17,12 @@ const create = async (req, res, next) => {
   try {
     const errors = AJV(CAMPAIGN_SCHEMAS.CREATE, req.body);
     if (errors.length !== 0) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        message: errors,
-        data: {}
-      });
-      // return next(new Error(errors.join('\n')));
+      // return res.json({
+      //   status: HTTP_CODE.ERROR,
+      //   message: errors,
+      //   data: {}
+      // });
+      return next(new Error(errors.join('\n')));
     }
 
     const {
