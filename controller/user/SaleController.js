@@ -265,7 +265,7 @@ const add = async (req, res, next) => {
       cost: dateCount * priority.costByDay
     };
 
-    Request.post(CDP_APIS.USER.SALE_COST, postData, req.user.token)
+    Request.post(CDP_APIS.USER.SALE_COST, postData, req.user ? req.user.token : '')
       .then(async r => {
         post.paymentStatus = global.STATUS.PAYMENT_PAID;
         await post.save();
