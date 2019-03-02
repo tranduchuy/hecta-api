@@ -1,11 +1,13 @@
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const LeadModel = require('../../models/LeadModel');
-const CampaignModel = require('../../models/CampaignModel');
-const LeadHistoryModel = require('../../models/LeadHistoryModel');
+const LeadModel = require('../../../models/LeadModel');
+const CampaignModel = require('../../../models/CampaignModel');
+const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadService = require('./LeadService');
-const Validator = require('../../utils/Validator');
-const HTTP_CODE = require('../../config/http-code');
+const Validator = require('../../../utils/Validator');
+const HTTP_CODE = require('../../../config/http-code');
+const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
+const AJV = require('../../../services/AJV');
 
 const createLead = async (req, res, next) => {
   // TODO: createLead
@@ -95,11 +97,18 @@ const createLead = async (req, res, next) => {
   }
 };
 
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 const getListLead = async (req, res, next) => {
   // TODO: getListLead
   logger.info('LeadController::getListLead::called');
   try {
-
+    // TODO: cần confirm lại cách hiển thị lead cho user
   } catch (e) {
     logger.error('LeadController::getListLead::error', e);
     return next(e);

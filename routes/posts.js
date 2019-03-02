@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router({});
-const PostController = require('../controller/PostController');
+const PostController = require('../controller/user/PostController');
 
 router.get('/child/:id', PostController.child);
 router.get('/latest', PostController.latest);

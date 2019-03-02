@@ -1,5 +1,5 @@
-var NewsModel = require('../models/NewsModel');
-var PostModel = require('../models/PostModel');
+var NewsModel = require('../../models/NewsModel');
+var PostModel = require('../../models/PostModel');
 var _ = require('lodash');
 
 var NewsController = {

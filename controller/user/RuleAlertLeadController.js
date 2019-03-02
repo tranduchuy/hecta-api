@@ -1,8 +1,8 @@
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const HTTP_CODE = require('../config/http-code');
-const RuleAlertLeadModel = require('../models/RuleAlertLeadModel');
-const {extractPaginationCondition} = require('../utils/RequestUtil');
+const HTTP_CODE = require('../../config/http-code');
+const RuleAlertLeadModel = require('../../models/RuleAlertLeadModel');
+const {extractPaginationCondition} = require('../../utils/RequestUtil');
 
 const register = async (req, res, next) => {
   logger.info('RuleAlertLeadController::register::called');

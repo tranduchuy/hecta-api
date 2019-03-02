@@ -3,14 +3,14 @@ const async = require('async');
 const ObjectId = mongoose.Types.ObjectId;
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const AJV = require('../../services/AJV');
-const HTTP_CODE = require('../../config/http-code');
-const CampaignModel = require('../../models/CampaignModel');
-const CAMPAIGN_SCHEMAS = require('../validation-schemas/admin-campaign.schema');
-const CampaignTypeConstant = require('../../constants/campaign-type');
-const {extractPaginationCondition} = require('../../utils/RequestUtil');
-const CDP_APIS = require('../../config/cdp-url-api.constant');
-const {convertObjectToQueryString, get, post, put, del} = require('../../utils/Request');
+const AJV = require('../../../services/AJV');
+const HTTP_CODE = require('../../../config/http-code');
+const CampaignModel = require('../../../models/CampaignModel');
+const CAMPAIGN_SCHEMAS = require('./validator-schema');
+const CampaignTypeConstant = require('../../../constants/campaign-type');
+const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const CDP_APIS = require('../../../config/cdp-url-api.constant');
+const {convertObjectToQueryString, get, post, put, del} = require('../../../utils/Request');
 
 const create = async (req, res, next) => {
   logger.info('AdminCampaignController::create::called');

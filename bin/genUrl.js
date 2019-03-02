@@ -10,7 +10,7 @@ var db = require('../database/db');
 var log4js = require('log4js');
 log4js.configure('./config/log4js.json');
 const config = require('config');
-var ScriptController = require('../controller/ScriptController');
+var ScriptController = require('../controller/user/ScriptController');
 
 /**
  * Get port from environment and store in Express.

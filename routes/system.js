@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router({});
-const SystemController = require('../controller/SystemController');
+const SystemController = require('../controller/user/SystemController');
 const CheckToken = require('../middlewares/CheckToken');
 const CheckRoleAdmin = require('../middlewares/CheckRoleAdmin');
 

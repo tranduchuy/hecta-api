@@ -3,14 +3,14 @@ const _ = require('lodash');
 const log4js = require('log4js');
 const urlSlug = require('url-slug');
 
-const SaleModel = require('../models/SaleModel');
-const BuyModel = require('../models/BuyModel');
-const PostModel = require('../models/PostModel');
-const TagModel = require('../models/TagModel');
-const UrlParamModel = require('../models/UrlParamModel');
-const HttpCode = require('../config/http-code');
+const SaleModel = require('../../models/SaleModel');
+const BuyModel = require('../../models/BuyModel');
+const PostModel = require('../../models/PostModel');
+const TagModel = require('../../models/TagModel');
+const UrlParamModel = require('../../models/UrlParamModel');
+const HttpCode = require('../../config/http-code');
 const logger = log4js.getLogger('Controllers');
-const UrlParamService = require('../services/UrlParamService');
+const UrlParamService = require('../../services/UrlParamService');
 
 const highlight = async (req, res, next) => {
     logger.info('TagController::highlight is called');

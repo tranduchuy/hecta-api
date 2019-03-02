@@ -1,11 +1,11 @@
-const NotifyModel = require('../models/Notify');
+const NotifyModel = require('../../models/Notify');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const httpCode = require('../config/http-code');
-const requestUtil = require('../utils/RequestUtil');
-const NotifyType = require('../config/notify-type');
-const {post, del, put, get, convertObjectToQueryString} = require('../utils/Request');
-const CDP_APIS = require('../config/cdp-url-api.constant');
+const httpCode = require('../../config/http-code');
+const requestUtil = require('../../utils/RequestUtil');
+const NotifyType = require('../../config/notify-type');
+const {post, del, put, get, convertObjectToQueryString} = require('../../utils/Request');
+const CDP_APIS = require('../../config/cdp-url-api.constant');
 /**
  *
  * @param {*} status

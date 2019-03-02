@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const RALController = require('../controller/RuleAlertLeadController');
+const RALController = require('../controller/user/RuleAlertLeadController');
 
 router.get('/', RALController.list);
 router.get('/:id', RALController.detailById);

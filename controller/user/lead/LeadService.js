@@ -1,5 +1,5 @@
-const CampaignModel = require('../../models/CampaignModel');
-const LeadHistoryModel = require('../../models/LeadHistoryModel');
+const CampaignModel = require('../../../models/CampaignModel');
+const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const mongoose = require('mongoose');
 
 const isValidDomainToCampaign = async (campaignId, domain) => {

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var PaymentController = require('../controller/TransactionController');
+var PaymentController = require('../controller/user/TransactionController');
 
 
 

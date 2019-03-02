@@ -1,8 +1,8 @@
 const fs = require('fs');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const CityModel = require('../models/CityModel');
-const ProjectModel = require('../models/ProjectModel');
+const CityModel = require('../../models/CityModel');
+const ProjectModel = require('../../models/ProjectModel');
 const moment = require('moment');
 
 function compare(a, b) {

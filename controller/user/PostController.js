@@ -1,14 +1,14 @@
-var SaleModel = require('../models/SaleModel');
-var BuyModel = require('../models/BuyModel');
-var PostModel = require('../models/PostModel');
+var SaleModel = require('../../models/SaleModel');
+var BuyModel = require('../../models/BuyModel');
+var PostModel = require('../../models/PostModel');
 var _ = require('lodash');
-var UrlParamModel = require('../models/UrlParamModel');
+var UrlParamModel = require('../../models/UrlParamModel');
 var urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const {get, post, del, put} = require('../utils/Request');
-const CDP_APIS = require('../config/cdp-url-api.constant');
-const HTTP_CODE = require('../config/http-code');
+const {get, post, del, put} = require('../../utils/Request');
+const CDP_APIS = require('../../config/cdp-url-api.constant');
+const HTTP_CODE = require('../../config/http-code');
 
 var PostController = {
   child: async function (req, res, next) {
