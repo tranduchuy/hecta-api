@@ -1,6 +1,6 @@
 const Ajv = require('ajv');
 const ajv = Ajv({allErrors: true, jsonPointers: true, v5: true});
-require('ajv-errors')(ajv);
+require('ajv-errors')(ajv, {singleError: true});
 
 /**
  * @param errors {{message}[]}

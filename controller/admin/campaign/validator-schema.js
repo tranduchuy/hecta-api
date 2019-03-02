@@ -46,7 +46,8 @@ const createSchema = {
       type: 'array',
       items: {
         type: 'string',
-        pattern: urlPattern
+        pattern: urlPattern,
+        additionalProperties: true
       }
     },
     isPrivate: {
@@ -56,7 +57,12 @@ const createSchema = {
       type: 'number'
     }
   },
-  required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downTime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city', 'domains', 'isPrivate']
+  required: ['name', 'leadMinPrice', 'leadMaxPrice', 'downTime', 'downPriceStep', 'campaignType', 'formality', 'type', 'city', 'domains', 'isPrivate'],
+  errorMessage: {
+    properties: {
+      domains: 'data.domain should be an array of valid domain'
+    }
+  }
 };
 
 const updateDomains = {

@@ -8,14 +8,17 @@ const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
 const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
 const AJV = require('../../../services/AJV');
+const {extractPaginationCondition} = require('../../../utils/RequestUtil');
 
 const createLead = async (req, res, next) => {
   // TODO: createLead
   logger.info('LeadController::createLead::called');
 
   try {
-    let {name, email, phone, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, campaignId,
-    bedrooms, street, note, direction} = req.body;
+    let {
+      name, email, phone, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, campaignId,
+      bedrooms, street, note, direction
+    } = req.body;
     if (!name) {
       return next(new Error('Tên bắt buộc'));
     }
@@ -52,7 +55,8 @@ const createLead = async (req, res, next) => {
       phone,
       campaign: campaignId,
       status: {
-        $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả lead) thì mới tạo lead mới
+        $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
+                                         // lead) thì mới tạo lead mới
       }
     });
 
@@ -105,10 +109,69 @@ const createLead = async (req, res, next) => {
  * @returns {Promise<*>}
  */
 const getListLead = async (req, res, next) => {
-  // TODO: getListLead
   logger.info('LeadController::getListLead::called');
   try {
     // TODO: cần confirm lại cách hiển thị lead cho user
+    const queryObj = {
+      deleteFlag: 0
+    };
+    const errors = AJV(LEAD_VALIDATE_SCHEMA.LIST, req.query);
+    if (errors.length > 0) {
+      return next(new Error(errors.join('\n')));
+      /*return res.json({
+        status: HTTP_CODE.ERROR,
+        message: errors, // TODO: should for easy check, should join \n
+        data: {}
+      });*/
+    }
+
+    let {status} = req.query;
+    if (!status) {
+      queryObj.status = global.STATUS.LEAD_NEW;
+    } else {
+      status = parseInt(status, 0);
+      queryObj.status = status;
+      if (status !== global.STATUS.LEAD_NEW) {
+        queryObj.user = req.user.id;
+      }
+    }
+
+    const paginationCond = extractPaginationCondition(req);
+    const stages = LeadService.generateStageGetLeads(queryObj, paginationCond);
+    logger.info('LeadController::getList stage: ', JSON.stringify(stages));
+    const result = await LeadModel.aggregate(stages);
+    const totalItems = result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0;
+    const entries = result[0].entries.map(item => {
+      if (item.campaignInfo && item.campaignInfo.length === 1) {
+        item.campaign = {
+          _id: item.campaignInfo[0]._id,
+          name: item.campaignInfo[0].name
+        };
+      } else {
+        item.campaign = null;
+      }
+
+      if (queryObj.status === global.STATUS.LEAD_NEW) {
+        item.phone = `${item.phone.slice(0, 3)}*******`;
+      }
+
+      delete item.campaignInfo;
+      delete item.deleteFlag;
+      return item;
+    });
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {
+        meta: {
+          totalItems,
+          limit: paginationCond.limit,
+          page: paginationCond.page
+        },
+        entries: entries
+      }
+    });
   } catch (e) {
     logger.error('LeadController::getListLead::error', e);
     return next(e);

@@ -39,7 +39,59 @@ const createNewLeadHistory = async ({name, email, referenceDomain, utmSource, ut
   return newHistory
 };
 
+/**
+ *
+ * @param queryObj
+ * @param paginationCond
+ * @return array
+ */
+const generateStageGetLeads = (queryObj, paginationCond) => {
+  const stages = [];
+
+  const $match = {
+    status: queryObj.status
+  };
+
+  if (queryObj.user) {
+    $match['user'] = queryObj.user;
+  }
+
+  if (queryObj.deleteFlag) {
+    $match['deleteFlag'] = deleteFlag;
+  }
+
+  stages.push({$match});
+
+  // map campaign
+  stages.push({
+    '$lookup': {
+      'from': 'Campaign',
+      'localField': 'campaign',
+      'foreignField': '_id',
+      'as': 'campaignInfo'
+    }
+  });
+
+  // map history
+  // stages.push({"$lookup": {"from": "LeadHistory", "localField": "lead", "foreignField": "_id", "as": "histories"}});
+
+  // pagination
+  stages.push({
+    $facet: {
+      entries: [
+        {$skip: (paginationCond.page - 1) * paginationCond.limit},
+        {$limit: paginationCond.limit}
+      ],
+      meta: [
+        {$group: {_id: null, totalItems: {$sum: 1}}},
+      ],
+    }
+  });
+  return stages;
+};
+
 module.exports = {
   isValidDomainToCampaign,
-  createNewLeadHistory
+  createNewLeadHistory,
+  generateStageGetLeads
 };
