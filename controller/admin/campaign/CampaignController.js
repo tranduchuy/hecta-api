@@ -108,7 +108,7 @@ const list = async (req, res, next) => {
           item.project = item.projectInfo.map(project => {
             return {
               _id: project._id,
-              title: item.title
+              title: project.title
             }
           });
           delete item.projectInfo;
