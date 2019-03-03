@@ -623,11 +623,7 @@ const highlight = async (req, res, next) => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
           message: 'Success',
-          data: body.data.entries.map(u => {
-            if (u.birthday) {
-              u.birthday = new Date(u.birthday).getTime();
-            }
-          })
+          data: body.data.entries
         })
       })
       .catch(err => {
