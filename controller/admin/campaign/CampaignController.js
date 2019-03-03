@@ -111,6 +111,7 @@ const list = async (req, res, next) => {
               title: item.title
             }
           });
+          delete item.projectInfo;
 
           if (item.project.length === 0) {
             item.project = null;

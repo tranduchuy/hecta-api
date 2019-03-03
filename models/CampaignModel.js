@@ -40,7 +40,8 @@ const campaignSchema = new Schema({
     default: 0
   },
   project: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: 'Projects',
     default: null
   },
   domains: {

@@ -674,7 +674,7 @@ const check = async (req, res, next) => {
   }
 };
 
-const UserController = {
+module.exports = {
   login,
   balance,
   childDetail,
@@ -695,5 +695,3 @@ const UserController = {
   resendConfirm,
   update
 };
-
-module.exports = UserController;
