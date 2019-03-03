@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router({});
-const TransactionController = require('../controller/TransactionController');
-const PostPriorityController = require('../controller/PostPriorityController');
+const TransactionController = require('../controller/user/TransactionController');
+const PostPriorityController = require('../controller/user/PostPriorityController');
 const AdminController = require('../controller/admin/AdminController');
 const AdminUserController = require('../controller/admin/UserController');
 const AdminProjectController = require('../controller/admin/ProjectController');
@@ -11,7 +11,7 @@ const AdminSaleController = require('../controller/admin/SaleController');
 const AdminPostController = require('../controller/admin/PostController');
 const AdminCategoryController = require('../controller/admin/CategoryController');
 const AdminTagController = require('../controller/admin/TagController');
-const AdminCampaignController = require('../controller/admin/CampaignController');
+const AdminCampaignController = require('../controller/admin/campaign/CampaignController');
 const CheckAdminMiddleware = require('../middlewares/CheckRoleAdmin');
 
 router.get('/projects/types', AdminProjectController.typeList);

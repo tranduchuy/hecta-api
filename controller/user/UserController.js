@@ -1,16 +1,16 @@
-const ChildModel = require('../models/ChildModel');
-const AccountModel = require('../models/AccountModel');
-const HTTP_CODE = require('../config/http-code');
+const ChildModel = require('../../models/ChildModel');
+const AccountModel = require('../../models/AccountModel');
+const HTTP_CODE = require('../../config/http-code');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const NotifyController = require('./NotifyController');
-const NotifyContent = require('../config/notify-content');
-const Socket = require('../utils/Socket');
-const SocketEvents = require('../config/socket-event');
-const NotifyTypes = require('../config/notify-type');
-const ImageService = require('../services/ImageService');
-const {get, post, put, del} = require('../utils/Request');
-const CDP_APIS = require('../config/cdp-url-api.constant');
+const NotifyContent = require('../../config/notify-content');
+const Socket = require('../../utils/Socket');
+const SocketEvents = require('../../config/socket-event');
+const NotifyTypes = require('../../config/notify-type');
+const ImageService = require('../../services/ImageService');
+const {get, post, put, del} = require('../../utils/Request');
+const CDP_APIS = require('../../config/cdp-url-api.constant');
 
 const forgetPassword = async (req, res, next) => {
   logger.info('UserController::forgetPassword is called');
@@ -670,7 +670,7 @@ const check = async (req, res, next) => {
   }
 };
 
-const UserController = {
+module.exports = {
   login,
   balance,
   childDetail,
@@ -691,5 +691,3 @@ const UserController = {
   resendConfirm,
   update
 };
-
-module.exports = UserController;

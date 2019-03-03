@@ -1,13 +1,13 @@
-const PostModel = require('../models/PostModel');
-const BuyModel = require('../models/BuyModel');
-const TagModel = require('../models/TagModel');
+const PostModel = require('../../models/PostModel');
+const BuyModel = require('../../models/BuyModel');
+const TagModel = require('../../models/TagModel');
 const urlSlug = require('url-slug');
 const mongoose = require('mongoose');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const ImageService = require('../services/ImageService');
-const StringService = require('../services/StringService');
-const HttpCode = require('../config/http-code');
+const ImageService = require('../../services/ImageService');
+const StringService = require('../../services/StringService');
+const HttpCode = require('../../config/http-code');
 
 const BuyController = {
   add: async function (req, res, next) {

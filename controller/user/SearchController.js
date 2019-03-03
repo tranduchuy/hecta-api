@@ -1,21 +1,21 @@
 const _ = require('lodash');
-const UrlParamModel = require('../models/UrlParamModel');
-const PostModel = require('../models/PostModel');
-const BuyModel = require('../models/BuyModel');
-const SaleModel = require('../models/SaleModel');
-const NewsModel = require('../models/NewsModel');
-const ProjectModel = require('../models/ProjectModel');
-const TagModel = require('../models/TagModel');
+const UrlParamModel = require('../../models/UrlParamModel');
+const PostModel = require('../../models/PostModel');
+const BuyModel = require('../../models/BuyModel');
+const SaleModel = require('../../models/SaleModel');
+const NewsModel = require('../../models/NewsModel');
+const ProjectModel = require('../../models/ProjectModel');
+const TagModel = require('../../models/TagModel');
 const urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const HttpCode = require('../config/http-code');
+const HttpCode = require('../../config/http-code');
 
 // service
-const TitleService = require("../services/TitleService");
-const StringService = require('../services/StringService');
-const UrlParamService = require('../services/UrlParamService');
-const RequestUtils = require('../utils/RequestUtil');
+const TitleService = require("../../services/TitleService");
+const StringService = require('../../services/StringService');
+const UrlParamService = require('../../services/UrlParamService');
+const RequestUtils = require('../../utils/RequestUtil');
 
 // cache
 const LRU = require("lru-cache");

@@ -13,6 +13,11 @@ const leadHistorySchema = new Schema({
   bedroom: Number,
   street: Number,
   direction: Number,
+  note: String,
+  referenceDomain: String,
+  utmSource: String,
+  utmCampaign: String,
+  utmMedium: String,
   createdAt: Date,
   updatedAt: Date
 });

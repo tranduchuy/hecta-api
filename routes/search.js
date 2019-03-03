@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router({});
-const SearchController = require('../controller/SearchController');
+const SearchController = require('../controller/user/SearchController');
 
 router.get('', SearchController.searchCache, SearchController.search);
 router.get('/url-redirect', SearchController.getUrlToRedirect);

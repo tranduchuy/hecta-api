@@ -3,20 +3,25 @@ const async = require('async');
 const ObjectId = mongoose.Types.ObjectId;
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const AJV = require('../../services/AJV');
-const HTTP_CODE = require('../../config/http-code');
-const CampaignModel = require('../../models/CampaignModel');
-const CAMPAIGN_SCHEMAS = require('../validation-schemas/admin-campaign.schema');
-const CampaignTypeConstant = require('../../constants/campaign-type');
-const {extractPaginationCondition} = require('../../utils/RequestUtil');
-const CDP_APIS = require('../../config/cdp-url-api.constant');
-const {convertObjectToQueryString, get, post, put, del} = require('../../utils/Request');
+const AJV = require('../../../services/AJV');
+const HTTP_CODE = require('../../../config/http-code');
+const CampaignModel = require('../../../models/CampaignModel');
+const CAMPAIGN_SCHEMAS = require('./validator-schema');
+const CampaignTypeConstant = require('../../../constants/campaign-type');
+const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const CDP_APIS = require('../../../config/cdp-url-api.constant');
+const {convertObjectToQueryString, get, post, put, del} = require('../../../utils/Request');
 
 const create = async (req, res, next) => {
   logger.info('AdminCampaignController::create::called');
   try {
     const errors = AJV(CAMPAIGN_SCHEMAS.CREATE, req.body);
     if (errors.length !== 0) {
+      // return res.json({
+      //   status: HTTP_CODE.ERROR,
+      //   message: errors,
+      //   data: {}
+      // });
       return next(new Error(errors.join('\n')));
     }
 
@@ -62,7 +67,7 @@ const create = async (req, res, next) => {
       }
 
       newCampaign.district = district;
-      newCampaign.project = projectId;
+      newCampaign.project = new ObjectId(projectId);
     }
 
     await newCampaign.save();
@@ -103,7 +108,7 @@ const list = async (req, res, next) => {
           item.project = item.projectInfo.map(project => {
             return {
               _id: project._id,
-              title: item.title
+              title: project.title
             }
           });
           delete item.projectInfo;

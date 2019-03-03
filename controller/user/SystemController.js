@@ -1,11 +1,11 @@
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const SystemModel = require('../models/SystemModel');
-const SaleModel = require('../models/SaleModel');
-const BuyModel = require('../models/BuyModel');
-const NewsModel = require('../models/NewsModel');
-const ProjectModel = require('../models/ProjectModel');
-const HttpCode = require('../config/http-code');
+const SystemModel = require('../../models/SystemModel');
+const SaleModel = require('../../models/SaleModel');
+const BuyModel = require('../../models/BuyModel');
+const NewsModel = require('../../models/NewsModel');
+const ProjectModel = require('../../models/ProjectModel');
+const HttpCode = require('../../config/http-code');
 
 const needBuyId = 400;
 const needRentId = 401;

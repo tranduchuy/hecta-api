@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router({});
-const UserController = require('../controller/UserController');
-const TransactionController = require('../controller/TransactionController');
+const UserController = require('../controller/user/UserController');
+const TransactionController = require('../controller/user/TransactionController');
 
 router.get('/highlight', UserController.highlight);
 

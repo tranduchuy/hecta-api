@@ -1,9 +1,9 @@
-const PostPriorityModel = require('../models/PostPriorityModel');
-const TokenModel = require('../models/TokenModel');
+const PostPriorityModel = require('../../models/PostPriorityModel');
+const TokenModel = require('../../models/TokenModel');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const _ = require('lodash');
-const HTTP_CODE = require('../config/http-code');
+const HTTP_CODE = require('../../config/http-code');
 
 const add = async (req, res, next) => {
   logger.info('PostPriorityController::add::called');

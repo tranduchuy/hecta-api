@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var PostPriorityController = require('../controller/PostPriorityController');
+var PostPriorityController = require('../controller/user/PostPriorityController');
 
 
 

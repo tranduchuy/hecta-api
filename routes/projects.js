@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var ProjectController = require('../controller/ProjectController');
+var ProjectController = require('../controller/user/ProjectController');
 
 
 

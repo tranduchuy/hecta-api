@@ -1,5 +1,5 @@
-var ProjectModel = require('../models/ProjectModel');
-var PostModel = require('../models/PostModel');
+var ProjectModel = require('../../models/ProjectModel');
+var PostModel = require('../../models/PostModel');
 var _ = require('lodash');
 
 

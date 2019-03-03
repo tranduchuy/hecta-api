@@ -1,8 +1,8 @@
 const fs = require('fs');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const CityModel = require('../models/CityModel');
-const ProjectModel = require('../models/ProjectModel');
+const CityModel = require('../../models/CityModel');
+const ProjectModel = require('../../models/ProjectModel');
 const moment = require('moment');
 
 function compare(a, b) {
@@ -66,7 +66,7 @@ const getList = async (req, res, next) => {
 
     cities.sort(compare);
 
-    const filePath = `${__dirname}/../public/files/selectors/cities-${moment().format('YYYY-MM-DD-hh-mm')}.json`;
+    const filePath = `${__dirname}/../../public/files/selectors/cities-${moment().format('YYYY-MM-DD-hh-mm')}.json`;
     fs.closeSync(fs.openSync(filePath, 'w'));
     fs.writeFile(filePath, JSON.stringify(cities), 'utf8', (err) => {
       if (err) {
