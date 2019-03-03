@@ -37,6 +37,7 @@ const getList = async (req, res, next) => {
 
     const paginationCond = extractPaginationCondition(req);
     const stages = LeadService.generateStageGetListLead(queryObj, paginationCond);
+    logger.info('AdminLeadController::getList stage', JSON.stringify(stages));
     const result = await LeadModel.aggregate(stages);
     const totalItems = result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0;
     const entries = result[0].entries.map(item => {

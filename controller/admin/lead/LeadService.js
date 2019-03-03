@@ -38,8 +38,8 @@ const generateStageGetListLead = (queryObj, paginationCond) => {
   stages.push({
     "$lookup": {
       "from": "LeadHistory",
-      "localField": "lead",
-      "foreignField": "_id",
+      "localField": "_id",
+      "foreignField": "lead",
       "as": "histories"
     }
   });
