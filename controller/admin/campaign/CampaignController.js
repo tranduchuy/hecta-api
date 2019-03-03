@@ -67,7 +67,7 @@ const create = async (req, res, next) => {
       }
 
       newCampaign.district = district;
-      newCampaign.project = projectId;
+      newCampaign.project = new ObjectId(projectId);
     }
 
     await newCampaign.save();
@@ -111,7 +111,6 @@ const list = async (req, res, next) => {
               title: item.title
             }
           });
-          delete item.projectInfo;
 
           if (item.project.length === 0) {
             item.project = null;
