@@ -66,7 +66,7 @@ const getList = async (req, res, next) => {
 
     cities.sort(compare);
 
-    const filePath = `${__dirname}/../public/files/selectors/cities-${moment().format('YYYY-MM-DD-hh-mm')}.json`;
+    const filePath = `${__dirname}/../../public/files/selectors/cities-${moment().format('YYYY-MM-DD-hh-mm')}.json`;
     fs.closeSync(fs.openSync(filePath, 'w'));
     fs.writeFile(filePath, JSON.stringify(cities), 'utf8', (err) => {
       if (err) {
