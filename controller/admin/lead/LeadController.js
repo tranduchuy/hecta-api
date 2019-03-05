@@ -104,6 +104,41 @@ const getList = async (req, res, next) => {
   }
 };
 
+const updateStatus = async (req, res, next) => {
+  logger.info('AdminLeadController::updateStatus::called');
+  try {
+    const leadId = req.params.id;
+    const errors = AJV(VALIDATE_SCHEMAS.UPDATE_STATUS, req.body);
+    if (errors.length > 0) {
+      return next(new Error(errors.join('\n')));
+    }
+
+    const lead = await LeadModel.findOne({_id: leadId});
+    if (!lead) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        message: 'Lead not found',
+        data: {}
+      });
+    }
+
+    lead.status = status;
+    await lead.save();
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {}
+    });
+  } catch (e) {
+    logger.error('AdminLeadController::updateStatus::error');
+    return next(e);
+  }
+};
+
+const updateInfo = async (req, res, next) => {};
+
 module.exports = {
-  getList
+  getList,
+  updateStatus
 };

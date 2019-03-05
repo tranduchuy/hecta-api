@@ -1,8 +1,8 @@
 const statusEnum = [
-  global.STATUS.LEAD_NEW.toString(),
-  global.STATUS.LEAD_FINISHED.toString(),
-  global.STATUS.LEAD_RETURNING.toString(),
-  global.STATUS.LEAD_SOLD.toString()
+  global.STATUS.LEAD_NEW,
+  global.STATUS.LEAD_FINISHED,
+  global.STATUS.LEAD_RETURNING,
+  global.STATUS.LEAD_SOLD
 ];
 
 const getList = {
@@ -30,7 +30,7 @@ const getList = {
       pattern: '\\d+'
     },
     status: {
-      enum: statusEnum
+      enum: statusEnum.map(s => s.toString())
     }
   },
   required: [],
@@ -45,6 +45,17 @@ const getList = {
   }
 };
 
+const updateStatus = {
+  type: 'object',
+  properties: {
+    status: {
+      enum: statusEnum
+    }
+  },
+  required: ['status']
+};
+
 module.exports = {
-  LIST: getList
+  LIST: getList,
+  UPDATE_STATUS: updateStatus
 };
