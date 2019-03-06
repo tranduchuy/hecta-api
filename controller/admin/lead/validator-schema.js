@@ -55,7 +55,23 @@ const updateStatus = {
   required: ['status']
 };
 
+const updateInfo = {
+  type: 'object',
+  properties: {
+    name: {},
+    email: {},
+    area: {},
+    price: {},
+    bedrooms: {},
+    street: {},
+    direction: {},
+    note: {}
+  },
+  required: []
+};
+
 module.exports = {
   LIST: getList,
-  UPDATE_STATUS: updateStatus
+  UPDATE_STATUS: updateStatus,
+  UPDATE_INFO: updateInfo
 };

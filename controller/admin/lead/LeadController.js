@@ -139,7 +139,9 @@ const updateStatus = async (req, res, next) => {
 const updateInfo = async (req, res, next) => {
   logger.info('AdminLeadController::updateInfo::called');
   try {
+    const errors = {};
     // TODO: api update info
+    const leadId = req.params.id;
   } catch (e) {
     logger.error('AdminLeadController::updateInfo:error', e);
     return next(e);
