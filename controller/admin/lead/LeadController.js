@@ -136,9 +136,18 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
-const updateInfo = async (req, res, next) => {};
+const updateInfo = async (req, res, next) => {
+  logger.info('AdminLeadController::updateInfo::called');
+  try {
+    // TODO: api update info
+  } catch (e) {
+    logger.error('AdminLeadController::updateInfo:error', e);
+    return next(e);
+  }
+};
 
 module.exports = {
   getList,
-  updateStatus
+  updateStatus,
+  updateInfo
 };

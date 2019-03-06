@@ -40,7 +40,7 @@ const create = async (req, res, next) => {
     newCampaign.formality = formality;
     newCampaign.type = type;
     newCampaign.city = city;
-    newCampaign.district = null;
+    newCampaign.district = district;
     newCampaign.project = null;
     newCampaign.isPrivate = isPrivate;
     newCampaign.domains = domains;
@@ -66,7 +66,6 @@ const create = async (req, res, next) => {
         return next(new Error('Project is required'));
       }
 
-      newCampaign.district = district;
       newCampaign.project = new ObjectId(projectId);
     }
 
