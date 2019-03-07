@@ -19,7 +19,7 @@ const isValidDomainToCampaign = async (campaignId, domain) => {
   }
 };
 
-const createNewLeadHistory = async ({name, email, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, leadId, bedrooms, street, note, direction}) => {
+const createNewLeadHistory = async ({name, email, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, leadId, bedrooms, bathrooms, street, note, direction}) => {
   const newHistory = new LeadHistoryModel();
   newHistory.name = name;
   newHistory.email = email;
@@ -30,6 +30,7 @@ const createNewLeadHistory = async ({name, email, referenceDomain, utmSource, ut
   newHistory.area = area;
   newHistory.price = price;
   newHistory.bedrooms = bedrooms;
+  newHistory.bathrooms = bathrooms;
   newHistory.street = street;
   newHistory.note = note;
   newHistory.direction = direction;

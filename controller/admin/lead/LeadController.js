@@ -1,6 +1,7 @@
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const LeadModel = require('../../../models/LeadModel');
+const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadService = require('./LeadService');
 const AJV = require('../../../services/AJV');
 const VALIDATE_SCHEMAS = require('./validator-schema');
@@ -148,8 +149,70 @@ const updateInfo = async (req, res, next) => {
   }
 };
 
+const create = async (req, res, next) => {
+  logger.info('AdminLeadController::create::called');
+  try {
+    const errors = AJV(VALIDATE_SCHEMAS.CREATE, req.body);
+    if (errors.length > 0) {
+      return next(new Error(errors.join('\n')));
+    }
+
+    const {phone, name, email, campaignId, bedrooms, bathrooms, area, street, direction, note, price} = req.body;
+    // TODO: cần thêm 1 bước chuyển số điện thoại về dạng chuẩn: không có 84, bắt đầu bằng 0
+    let lead = await LeadModel.findOne({
+      phone,
+      campaign: campaignId,
+      status: {
+        $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
+                                         // lead) thì mới tạo lead mới
+      }
+    });
+
+    if (!lead) {
+      lead = new LeadModel();
+      lead.phone = phone;
+      lead.campaign = campaignId;
+      lead.price = null;
+      lead.createdAt = new Date();
+      lead.updatedAt = new Date();
+    }
+
+    const newLeadHistory = {
+      name: name || '',
+      email: email || '',
+      referenceDomain: '',
+      utmSource: '',
+      utmCampaign: '',
+      utmMedium: '',
+      area: area || null,
+      price: price || null,
+      bedrooms: bedrooms || null,
+      bathrooms: bathrooms || null,
+      street: street || '',
+      note: note || '',
+      direction: direction || null,
+      leadId: lead._id
+    };
+
+    const newHistory = await LeadService.createNewLeadHistory(newLeadHistory);
+    lead.histories.push(newHistory._id);
+    await lead.save();
+    logger.info('LeadController::createLead::success');
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {}
+    });
+  } catch (e) {
+    logger.error('AdminLeadController::create::error', e);
+    return next(e);
+  }
+};
+
 module.exports = {
   getList,
   updateStatus,
-  updateInfo
+  updateInfo,
+  create
 };

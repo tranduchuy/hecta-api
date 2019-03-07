@@ -17,7 +17,7 @@ const createLead = async (req, res, next) => {
   try {
     let {
       name, email, phone, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, campaignId,
-      bedrooms, street, note, direction
+      bedrooms, bathrooms, street, note, direction
     } = req.body;
     if (!name) {
       return next(new Error('Tên bắt buộc'));
@@ -79,6 +79,7 @@ const createLead = async (req, res, next) => {
       area: area || null,
       price: price || null,
       bedrooms: bedrooms || null,
+      bathrooms: bathrooms || null,
       street: street || '',
       note: note || '',
       direction: direction || null,
