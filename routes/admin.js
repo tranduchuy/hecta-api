@@ -68,5 +68,7 @@ router.put('/campaigns/:id/domains', AdminCampaignController.updateDomains);
 
 router.get('/leads', AdminLeadController.getList);
 router.post('/leads', AdminLeadController.create);
+router.put('/leads/:id', AdminLeadController.updateInfo);
+router.put('/leads/:id/status', AdminLeadController.updateStatus);
 
 module.exports = router;

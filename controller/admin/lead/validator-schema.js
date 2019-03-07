@@ -63,17 +63,49 @@ const updateStatus = {
 const updateInfo = {
   type: 'object',
   properties: {
-    name: {},
-    email: {},
-    area: {},
-    price: {},
-    bedrooms: {},
-    street: {},
-    direction: {},
-    note: {}
+    name: {
+      type: 'string'
+    },
+    email: {
+      format: 'email'
+    },
+    bedrooms: {
+      type: 'number',
+      minimum: 1
+    },
+    bathrooms: {
+      type: 'number',
+      minimum: 1
+    },
+    area: {
+      type: 'number',
+      minimum: 0
+    },
+    price: {
+      type: 'number',
+      minimum: 0
+    },
+    street: {
+      type: 'string'
+    },
+    direction: {
+      enum: directionEnum // get from selector
+    },
+    note: {
+      type: 'string'
+    }
   },
   required: [],
-  errorMessage: {}
+  errorMessage: {
+    properties: {
+      email: 'Email is wrong format',
+      bedrooms: 'Bedrooms should be a number',
+      bathrooms: 'Bathrooms should be a number',
+      area: 'Area should be a number',
+      price: 'Price should be a number',
+      direction: `Direction should be in enum ${directionEnum.join(', ')}`
+    }
+  }
 };
 
 const create = {

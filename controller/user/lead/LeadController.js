@@ -119,11 +119,6 @@ const getListLead = async (req, res, next) => {
     const errors = AJV(LEAD_VALIDATE_SCHEMA.LIST, req.query);
     if (errors.length > 0) {
       return next(new Error(errors.join('\n')));
-      /*return res.json({
-        status: HTTP_CODE.ERROR,
-        message: errors, // TODO: should for easy check, should join \n
-        data: {}
-      });*/
     }
 
     let {status} = req.query;

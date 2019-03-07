@@ -116,11 +116,7 @@ const updateStatus = async (req, res, next) => {
 
     const lead = await LeadModel.findOne({_id: leadId});
     if (!lead) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        message: 'Lead not found',
-        data: {}
-      });
+      return next(new Error('Lead not found'));
     }
 
     lead.status = status;
@@ -137,12 +133,49 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+// Note: just create new history, because "phone" is primary key, so we can't update this field => just create new history
 const updateInfo = async (req, res, next) => {
   logger.info('AdminLeadController::updateInfo::called');
   try {
-    const errors = {};
-    // TODO: api update info
-    const leadId = req.params.id;
+    const errors = AJV(VALIDATE_SCHEMAS.UPDATE_INFO, req.body);
+    if (errors.length > 0) {
+      return next(new Error(errors.join('\n')));
+    }
+
+    const lead = await LeadModel.findOne({_id: req.params.id});
+    if (!lead) {
+      return next(new Error('Lead not found'));
+    }
+
+    const {name, email, bedrooms, bathrooms, area, street, direction, note, price} = req.body;
+
+    const newLeadHistory = {
+      name: name || '',
+      email: email || '',
+      referenceDomain: '',
+      utmSource: '',
+      utmCampaign: '',
+      utmMedium: '',
+      area: area || null,
+      price: price || null,
+      bedrooms: bedrooms || null,
+      bathrooms: bathrooms || null,
+      street: street || '',
+      note: note || '',
+      direction: direction || null,
+      leadId: lead._id
+    };
+
+    const newHistory = await LeadService.createNewLeadHistory(newLeadHistory);
+    lead.histories.push(newHistory._id);
+    await lead.save();
+    logger.info('LeadController::createLead::success');
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {}
+    });
   } catch (e) {
     logger.error('AdminLeadController::updateInfo:error', e);
     return next(e);
