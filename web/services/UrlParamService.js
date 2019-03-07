@@ -2,7 +2,7 @@ const log4js = require('log4js');
 const urlSlug = require('url-slug');
 const UrlParamModel = require('../models/UrlParamModel');
 const logger = log4js.getLogger('Services');
-const TitleService = require('../services/TitleService');
+const TitleService = require('./TitleService');
 const CityModel = require('../models/CityModel');
 const DistrictModel = require('../models/DistrictModel');
 
