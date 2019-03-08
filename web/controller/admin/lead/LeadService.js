@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
+const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
 
 const generateStageGetListLead = (queryObj, paginationCond) => {
   const stages = [];
@@ -80,7 +81,27 @@ const createNewLeadHistory = async ({name, email, referenceDomain, utmSource, ut
   return newHistory
 };
 
+/**
+ *
+ * @param {String} leadId
+ * @param {CampaignModel} campaign
+ */
+const createScheduleDownLeadPrice = (leadId, campaign) => {
+  const newSchedule = new LeadPriceScheduleModel();
+  newSchedule.lead = new mongoose.Types.ObjectId(leadId);
+  newSchedule.price = campaign.leadMaxPrice;
+  newSchedule.minPrice = campaign.leadMinPrice;
+  newSchedule.downPriceStep = campaign.downPriceStep;
+
+  const now = moment();
+  newSchedule.createdAt = now._d;
+  newSchedule.updatedAt = now._d;
+  newSchedule.downPriceAt = moment().add(campaign.downTime, 'minutes')._d;
+  newSchedule.save();
+};
+
 module.exports = {
   generateStageGetListLead,
-  createNewLeadHistory
+  createNewLeadHistory,
+  createScheduleDownLeadPrice
 };
