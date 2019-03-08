@@ -9,7 +9,7 @@ const urlToPassCheckingToken = [
   '/api/v1/users/register',
   '/api/v1/users/confirm',
   '/api/v1/users/confirm/resend',
-  '/api/v1/users/check/',
+  '/api/v1/users/check',
   '/api/v1/users/highlight',
   '/api/v1/users/forget-password',
   '/api/v1/users/reset-password',
