@@ -1,6 +1,8 @@
 const CampaignModel = require('../../../models/CampaignModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
+const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
 const mongoose = require('mongoose');
+const moment = require('moment');
 
 const isValidDomainToCampaign = async (campaignId, domain) => {
   try {
@@ -91,8 +93,28 @@ const generateStageGetLeads = (queryObj, paginationCond) => {
   return stages;
 };
 
+/**
+ *
+ * @param {String} leadId
+ * @param {CampaignModel} campaign
+ */
+const createScheduleDownLeadPrice = (leadId, campaign) => {
+  const newSchedule = new LeadPriceScheduleModel();
+  newSchedule.lead = new mongoose.Types.ObjectId(leadId);
+  newSchedule.price = campaign.leadMaxPrice;
+  newSchedule.minPrice = campaign.leadMinPrice;
+  newSchedule.downPriceStep = campaign.downPriceStep;
+
+  const now = moment();
+  newSchedule.createdAt = now._d;
+  newSchedule.updatedAt = now._d;
+  newSchedule.downPriceAt = moment().add(campaign.downTime, 'minutes')._d;
+  newSchedule.save();
+};
+
 module.exports = {
   isValidDomainToCampaign,
   createNewLeadHistory,
-  generateStageGetLeads
+  generateStageGetLeads,
+  createScheduleDownLeadPrice
 };

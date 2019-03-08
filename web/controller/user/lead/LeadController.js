@@ -51,6 +51,7 @@ const createLead = async (req, res, next) => {
 
     // TODO: cần thêm 1 bước chuyển số điện thoại về dạng chuẩn: không có 84, bắt đầu bằng 0
 
+    let isCreatingNewLead = false;
     let lead = await LeadModel.findOne({
       phone,
       campaign: campaignId,
@@ -67,6 +68,11 @@ const createLead = async (req, res, next) => {
       lead.price = null;
       lead.createdAt = new Date();
       lead.updatedAt = new Date();
+      isCreatingNewLead = true;
+
+      if (campaign.isPrivate) {
+        lead.user = campaign.user;
+      }
     }
 
     const newLeadHistory = {
@@ -90,6 +96,11 @@ const createLead = async (req, res, next) => {
     lead.histories.push(newHistory._id);
     await lead.save();
     logger.info('LeadController::createLead::success');
+
+    // create schedule down lead price
+    if (!campaign.isPrivate && isCreatingNewLead === true) {
+      LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+    }
 
     return res.json({
       status: HTTP_CODE.SUCCESS,

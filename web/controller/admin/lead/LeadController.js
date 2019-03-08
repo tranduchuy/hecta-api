@@ -3,6 +3,7 @@ const logger = log4js.getLogger('Controllers');
 const LeadModel = require('../../../models/LeadModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadService = require('./LeadService');
+const CampaignModel = require('../../../models/CampaignModel');
 const AJV = require('../../../services/AJV');
 const VALIDATE_SCHEMAS = require('./validator-schema');
 const HTTP_CODE = require('../../../config/http-code');
@@ -201,6 +202,11 @@ const create = async (req, res, next) => {
       }
     });
 
+    const campaign = await CampaignModel.findOne({_id: campaignId});
+    if (!campaign) {
+      return next(new Error('Campaign not found'));
+    }
+
     if (!lead) {
       lead = new LeadModel();
       lead.phone = phone;
@@ -208,6 +214,10 @@ const create = async (req, res, next) => {
       lead.price = null;
       lead.createdAt = new Date();
       lead.updatedAt = new Date();
+
+      if (campaign.isPrivate) {
+        lead.user = campaign.user;
+      }
     }
 
     const newLeadHistory = {
