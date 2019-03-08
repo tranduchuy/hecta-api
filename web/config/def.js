@@ -30,7 +30,7 @@ global.POST_TYPE_BUY = 2;
 global.POST_TYPE_PROJECT = 3;
 global.POST_TYPE_NEWS = 4;
 
-global.ROOT_DIR = '/var/www/server/';
+global.ROOT_DIR = '/var/www/server/web';
 global.IMAGE_DIR = global.ROOT_DIR + 'files/image';
 
 global.USER_TYPE_COMPANY = 1;

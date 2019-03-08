@@ -4,7 +4,8 @@ const statusEnum = [
   global.STATUS.LEAD_NEW,
   global.STATUS.LEAD_FINISHED,
   global.STATUS.LEAD_RETURNING,
-  global.STATUS.LEAD_SOLD
+  global.STATUS.LEAD_SOLD,
+  global.STATUS.DELETE
 ];
 const directionEnum = directionList
   .slice(0)

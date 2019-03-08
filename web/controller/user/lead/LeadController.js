@@ -11,7 +11,6 @@ const AJV = require('../../../services/AJV');
 const {extractPaginationCondition} = require('../../../utils/RequestUtil');
 
 const createLead = async (req, res, next) => {
-  // TODO: createLead
   logger.info('LeadController::createLead::called');
 
   try {
