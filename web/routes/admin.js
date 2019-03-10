@@ -67,6 +67,7 @@ router.delete('/campaigns/:id', AdminCampaignController.remove);
 router.put('/campaigns/:id/domains', AdminCampaignController.updateDomains);
 
 router.get('/leads', AdminLeadController.getList);
+router.get('/leads/:id', AdminLeadController.getDetail);
 router.post('/leads', AdminLeadController.create);
 router.put('/leads/:id', AdminLeadController.updateInfo);
 router.put('/leads/:id/status', AdminLeadController.updateStatus);
