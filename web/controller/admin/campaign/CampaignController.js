@@ -304,7 +304,7 @@ function _buildStageGetListCampaigns(req) {
   }
 
   if (req.query.name) {
-    $match.name = new RegExp('^' + req.query.name.toLowerCase() + '$', "i");
+    $match.name = {$regex: new RegExp('^' + req.query.name.toLowerCase() + '$', "i")};
   }
 
   const searchExtractFields = ['userId', 'formality', 'type', 'city', 'district'];
