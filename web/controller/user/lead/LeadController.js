@@ -184,7 +184,86 @@ const getListLead = async (req, res, next) => {
   }
 };
 
+const buyLead = async (req, res, next) => {
+  logger.info('LeadController::buyLead::called');
+  // TODO
+  /* Step - This code trust demo how implement transaction in mongoose
+  * 1. Check balance info (call to CDP apis)
+  * 2. Commit buy lead
+  * 3. Charge balance by buying lead (call to CDP apis)
+  * */
+  try {
+    let session = null;
+    let lead = null;
+    let currentLeadPrice = null;
+    LeadModel.createCollection()
+      .then(() => LeadModel.startSession())
+      .then(_session => {
+        session = _session;
+        session.startTransaction();
+        console.log(1);
+        return LeadModel.findOne({_id: req.body.leadId}).session(session);
+
+      })
+      .then((_lead) => {
+        if (!_lead) {
+          new Error('Lead not found')
+        }
+
+        lead = _lead;
+        console.log(2);
+        return LeadService.getCurrentLeadPrice(_lead._id);
+      })
+      .then((_currentLeadPrice) => {
+        currentLeadPrice = _currentLeadPrice;
+        console.log(3);
+        return LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), _currentLeadPrice, req.user.token);
+      })
+      .then(async (cdpResponse) => {
+        lead.user = req.user.id;
+        lead.price = currentLeadPrice;
+        await LeadService.finishScheduleDownPrice(lead._id, session);
+
+        console.log(4);
+        return lead.save();
+      })
+      .then(() => {
+        setTimeout(() => {
+          console.log(5);
+          session.commitTransaction();
+          logger.info(`LeadController::buyLead::success`);
+
+          res.json({
+            status: HTTP_CODE.SUCCESS,
+            message: 'Mua thành công lead',
+            data: {}
+          });
+        }, 60 * 1000);
+
+        return '';
+      })
+      .catch(e => {
+        session.abortTransaction();
+        logger.error('LeadController::buyLead::error', e);
+        return next(e);
+      });
+  } catch (e) {
+    logger.error('LeadController::buyLead::error', e);
+    return next(e);
+  }
+};
+
+const getDetailLead = async (req, res, next) => {
+  return res.json({
+    status: HTTP_CODE.SUCCESS,
+    message: '',
+    data: await LeadModel.findOne({_id: req.params.id})
+  });
+};
+
 module.exports = {
   createLead,
-  getListLead
+  getListLead,
+  buyLead,
+  getDetailLead
 };

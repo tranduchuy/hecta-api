@@ -3,6 +3,8 @@ const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
 const mongoose = require('mongoose');
 const moment = require('moment');
+const {get, post} = require('../../../utils/Request');
+const CDP_APIS = require('../../../config/cdp-url-api.constant');
 
 const isValidDomainToCampaign = async (campaignId, domain) => {
   try {
@@ -112,9 +114,45 @@ const createScheduleDownLeadPrice = (leadId, campaign) => {
   newSchedule.save();
 };
 
+const getBalanceInfo = (token) => {
+  return get(CDP_APIS.USER.INFO, token);
+};
+
+const getCurrentLeadPrice = async (leadId) => {
+  const schedule = await LeadPriceScheduleModel.findOne({lead: leadId, isFinished: false});
+  if (!schedule) {
+    throw new Error('Schedule not found, so can not detect current lead\'s value');
+  }
+
+  return schedule.price;
+};
+
+const chargeBalanceByBuyingLead = (leadInfoString, price, token) => {
+  const body = {
+    note: leadInfoString,
+    cost: price
+  };
+
+  return post(CDP_APIS.USER.BUY_LEAD, body, token);
+};
+
+const finishScheduleDownPrice = async (leadId, session) => {
+  const schedule = await LeadPriceScheduleModel.findOne({lead: leadId, isFinished: false}).session(session);
+  if (!schedule) {
+    throw new Error('Schedule not found, so can not detect current lead\'s value');
+  }
+
+  schedule.isFinished = true;
+  await schedule.save();
+};
+
 module.exports = {
   isValidDomainToCampaign,
   createNewLeadHistory,
   generateStageGetLeads,
-  createScheduleDownLeadPrice
+  createScheduleDownLeadPrice,
+  getBalanceInfo,
+  getCurrentLeadPrice,
+  chargeBalanceByBuyingLead,
+  finishScheduleDownPrice
 };
