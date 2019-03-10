@@ -261,8 +261,34 @@ const create = async (req, res, next) => {
   }
 };
 
+const getDetail = async (req, res, next) => {
+  logger.info('LeadController::getDetail::called');
+  try {
+    const lead = await LeadModel.findOne({_id: req.params.id}).lean();
+    if (!lead) {
+      return next(new Error('Lead not found'));
+    }
+
+    lead.histories = await LeadHistoryModel.find({lead: lead._id})
+      .sort('-createdAt')
+      .lean();
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {
+        lead
+      }
+    });
+  } catch (e) {
+    logger.error('LeadController::getDetail::error', e);
+    return next(e);
+  }
+};
+
 module.exports = {
   getList,
+  getDetail,
   updateStatus,
   updateInfo,
   create
