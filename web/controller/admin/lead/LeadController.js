@@ -264,7 +264,9 @@ const create = async (req, res, next) => {
 const getDetail = async (req, res, next) => {
   logger.info('LeadController::getDetail::called');
   try {
-    const lead = await LeadModel.findOne({_id: req.params.id}).lean();
+    const lead = await LeadModel.findOne({_id: req.params.id})
+      .populate('campaign')
+      .lean();
     if (!lead) {
       return next(new Error('Lead not found'));
     }
