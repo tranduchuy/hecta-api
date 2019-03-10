@@ -670,6 +670,22 @@ const check = async (req, res, next) => {
   }
 };
 
+const getLoggedInInfo = async (req, res, next) => {
+  logger.info('UserController::getLoggedInInfo::called');
+  try {
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: {
+        user: req.user
+      }
+    })
+  } catch (e) {
+    logger.error('UserController::getLoggedInInfo::error', e);
+    return next(e);
+  }
+};
+
 module.exports = {
   login,
   balance,
@@ -678,6 +694,7 @@ module.exports = {
   confirm,
   register,
   forgetPassword,
+  getLoggedInInfo,
   resetPassword,
   creditShare,
   childRemove,

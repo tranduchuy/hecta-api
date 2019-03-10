@@ -20,6 +20,7 @@ router.post('/child/response/:id', UserController.childResponse);
 router.post('/child/credit/share/:id', UserController.creditShare);
 router.post('/child/remove/:id?', UserController.childRemove);
 
+router.get('/info', UserController.getLoggedInInfo);
 router.get('/children', UserController.childList);
 router.get('/request/list', UserController.requestList);
 router.get('/child/detail/:id', UserController.childDetail);
