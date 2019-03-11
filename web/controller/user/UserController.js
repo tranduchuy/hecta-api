@@ -673,13 +673,20 @@ const check = async (req, res, next) => {
 const getLoggedInInfo = async (req, res, next) => {
   logger.info('UserController::getLoggedInInfo::called');
   try {
-    return res.json({
-      status: HTTP_CODE.SUCCESS,
-      message: 'Success',
-      data: {
-        user: req.user
-      }
-    })
+    get(CDP_APIS.USER.INFO, req.user.token)
+      .then((response) => {
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: 'Success',
+          data: {
+            user: response.data.entries[0]
+          }
+        })
+      })
+      .catch(e => {
+        logger.error('UserController::getLoggedInInfo::error', e);
+        return next(e);
+      });
   } catch (e) {
     logger.error('UserController::getLoggedInInfo::error', e);
     return next(e);
