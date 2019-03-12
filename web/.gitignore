@@ -6,3 +6,4 @@ logs
 public/files/selectors/
 .idea/
 package-lock.json
+config/*.yaml
