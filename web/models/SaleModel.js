@@ -66,6 +66,10 @@ const saleSchema = new Schema({
     type: Number,
     default: null
   },
+  budgetPerDay: {
+    type: Number,
+    default: 0
+  },
   isValidBalance: { // TODO: chưa biết dùng khi nào, update khi nào. Check lại design
     type: Boolean,
     default: false

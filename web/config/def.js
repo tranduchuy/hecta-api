@@ -86,6 +86,11 @@ global.CREATED_BY = {
   CRAWL: 2
 };
 
+global.PAID_FORM = {
+  DAY: 1,
+  VIEW: 2
+}
+
 
 
 
