@@ -70,7 +70,7 @@ const saleSchema = new Schema({
     type: Number,
     default: 0
   },
-  isValidBalance: { // TODO: chưa biết dùng khi nào, update khi nào. Check lại design
+  isValidBalance: {
     type: Boolean,
     default: false
   },
