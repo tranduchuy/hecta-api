@@ -223,6 +223,8 @@ const add = async (req, res, next) => {
     sale.cpv = cpv;
     sale.paidForm = paidForm;
     sale.budgetPerDay = budgetPerDay;
+    if (paidForm == global.PAID_FORM.VIEW)
+      sale.adStatus = global.STATUS.PAID_FORM_VIEW_ACTIVE;
     
     ImageService.postConfirmImage(images);
     
@@ -407,14 +409,13 @@ const upNew = async (req, res, next) => {
   }
 };
 
+
 const SaleController = {
   add,
   
   upNew,
   
   update: async function (req, res, next) {
-    
-    
     try {
       
       //TODO: implement check token user
@@ -691,8 +692,6 @@ const SaleController = {
         message: 'update success'
       });
     }
-    
-    
     catch (e) {
       return res.json({
         status: 0,
@@ -700,7 +699,86 @@ const SaleController = {
         message: 'unknown error : ' + e.message
       });
     }
-  }
+  },
+  
+  updateAdStatus: async function (req, res, next) {
+    try {
+      //TODO: implement check token user
+      // var token = req.user.token;
+      // var accessToken = await TokenModel.findOne({token: token});
+      
+      let id = req.params.id;
+      
+      if (!id || id.length == 0) {
+        return res.json({
+          status: 0,
+          data: {},
+          message: 'id invalid '
+        });
+      }
+      
+      let post = await PostModel.findOne({_id: id});
+      
+      if (!post || post.postType != global.POST_TYPE_SALE) {
+        return res.json({
+          status: 0,
+          data: {},
+          message: 'post not exist '
+        });
+      }
+      
+      if (post.user != req.user.id) {
+        return res.json({
+          status: 0,
+          data: {},
+          message: 'user does not have permission !'
+        });
+      }
+      
+      var sale = await SaleModel.findOne({_id: post.contentId});
+      
+      if (!sale) {
+        return res.json({
+          status: 0,
+          data: {},
+          message: 'sale not exist '
+        });
+      }
+  
+      if (sale.paidForm != global.PAID_FORM.VIEW) {
+        return res.json({
+          status: 0,
+          data: {},
+          message: 'paidForm is not view'
+        });
+      }
+      
+      var adStatus = req.body.adStatus;
+      
+      if (adStatus == global.STATUS.PAID_FORM_VIEW_ACTIVE)
+        sale.adStatus = global.STATUS.PAID_FORM_VIEW_ACTIVE;
+      
+      if (adStatus == global.STATUS.PAID_FORM_VIEW_STOP)
+        sale.adStatus = global.STATUS.PAID_FORM_VIEW_STOP;
+      
+      sale = await sale.save();
+      
+      return res.json({
+        status: 1,
+        data: sale,
+        message: 'update adStatus success'
+      });
+    }
+    catch (e) {
+      return res.json({
+        status: 0,
+        data: {},
+        message: 'unknown error : ' + e.message
+      });
+    }
+  },
+  
+  
 };
 
 module.exports = SaleController;
