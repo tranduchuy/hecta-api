@@ -73,6 +73,22 @@ const add = async (req, res, next) => {
       });
     }
     
+    if (paidForm == global.PAID_FORM.VIEW && !cpv){
+      return res.json({
+        status: 0,
+        data: {},
+        message: 'cpv not null'
+      });
+    }
+  
+    if (paidForm == global.PAID_FORM.VIEW && !budgetPerDay){
+      return res.json({
+        status: 0,
+        data: {},
+        message: 'budgetPerDay not null'
+      });
+    }
+    
     if (dateCount < priority.minDay) {
       return res.json({
         status: 0,
@@ -262,7 +278,7 @@ const add = async (req, res, next) => {
       }
     }
   
-    if (paidForm === global.PAID_FORM.VIEW) { //tra theo view
+    if (paidForm == global.PAID_FORM.VIEW) { //tra theo view
       post.paymentStatus = global.STATUS.PAYMENT_PAID;
       post = await post.save();
       
@@ -275,7 +291,7 @@ const add = async (req, res, next) => {
     
     post = await post.save();
     
-    if (paidForm === global.PAID_FORM.DAY) { // tra theo ngay
+    if (paidForm == global.PAID_FORM.DAY) { // tra theo ngay
       const postData = {
         note: post._id,
         cost: dateCount * priority.costByDay
@@ -401,19 +417,9 @@ const SaleController = {
     
     try {
       
-      var token = req.headers.accesstoken;
-      
-      var accessToken = await TokenModel.findOne({token: token});
-      
-      
-      if (!accessToken) {
-        return res.json({
-          status: 0,
-          data: {},
-          message: 'access token invalid'
-        });
-      }
-      
+      //TODO: implement check token user
+      // var token = req.user.token;
+      // var accessToken = await TokenModel.findOne({token: token});
       
       let id = req.params.id;
       
@@ -436,7 +442,7 @@ const SaleController = {
         });
       }
       
-      if (post.user != accessToken.user) {
+      if (post.user != req.user.id) {
         return res.json({
           status: 0,
           data: {},
@@ -611,13 +617,13 @@ const SaleController = {
       if (contactEmail) {
         sale.contactEmail = contactEmail;
       }
-      if (status === global.STATUS.DELETE) {
+      if (status == global.STATUS.DELETE) {
         sale.status = status;
       }
   
       sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
       
-      if (sale.paidForm === global.PAID_FORM.VIEW) {
+      if (sale.paidForm == global.PAID_FORM.VIEW) {
         if (cpv)
           sale.cpv = cpv;
         if (budgetPerDay)

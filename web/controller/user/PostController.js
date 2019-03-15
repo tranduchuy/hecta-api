@@ -457,6 +457,10 @@ var PostController = {
             postType: post.postType,
             status: post.status,
             paymentStatus: post.paymentStatus,
+  
+            cpv: content.cpv,
+            paidForm: content.paidForm,
+            budgetPerDay: content.budgetPerDay,
 
             refresh: post.refresh
           },
