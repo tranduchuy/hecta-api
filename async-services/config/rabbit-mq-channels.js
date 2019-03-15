@@ -1,0 +1,3 @@
+module.exports = {
+  UPDATE_AD_RANK_OF_SALES: 'UPDATE_AD_RANK_OF_SALES'
+};
