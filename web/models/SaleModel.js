@@ -38,6 +38,10 @@ const saleSchema = new Schema({
   status: {type: Number, default: global.STATUS.PENDING_OR_WAIT_COMFIRM},
   date: {type: Number, default: Date.now},
   createdByType: {type: Number, default: global.CREATED_BY.HAND},
+  adStatus:{
+    type: Number,
+    default: global.STATUS.PAID_FORM_VIEW_STOP
+  },
   view: {
     type: Number,
     default: 0
