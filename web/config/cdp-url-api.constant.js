@@ -1,5 +1,6 @@
-// const host = 'http://localhost:2901';
-const host = 'https://cdp.hecta.vn';
+const config = require('config');
+const cdpConfig = config.get('cdp');
+const host = `${cdpConfig.host}:${cdpConfig.port}`;
 
 module.exports = {
   USER: {
