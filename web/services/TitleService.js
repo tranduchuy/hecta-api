@@ -206,4 +206,8 @@ module.exports = {
     getLocationTitle,
     getTitle,
     getOrderTitle,
+    getCityByCode,
+    getDistrictByValue,
+    getFormalityBuyByValue,
+    getTypeByValue
 };

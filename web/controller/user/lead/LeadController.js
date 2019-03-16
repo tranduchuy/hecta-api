@@ -1,5 +1,6 @@
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
+const moment = require('moment');
 const LeadModel = require('../../../models/LeadModel');
 const CampaignModel = require('../../../models/CampaignModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
@@ -148,29 +149,44 @@ const getListLead = async (req, res, next) => {
     const result = await LeadModel.aggregate(stages);
     const totalItems = result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0;
     const entries = result[0].entries.map(item => {
-      if (item.campaignInfo && item.campaignInfo.length === 1) {
-        item.campaign = {
-          _id: item.campaignInfo[0]._id,
-          name: item.campaignInfo[0].name
-        };
-      } else {
-        item.campaign = null;
-      }
-
       if (queryObj.status === global.STATUS.LEAD_NEW) {
         item.phone = `${item.phone.slice(0, 3)}*******`;
       }
 
-      delete item.campaignInfo;
+      if (item.priceSchedule.length !== 0) {
+        item.price = item.priceSchedule[0].price;
+        item.timeToDownPrice = item.priceSchedule[0].downPriceAt;
+        item.ahihi = true;
+      } else {
+        item.price = item.campaignInfo.leadMaxPrice;
+        item.timeToDownPrice = moment().add(item.campaignInfo.downTime, 'minutes');
+      }
+
+      item.location = LeadService.getLeadLocation(item.campaignInfo);
+      item.type = LeadService.getTypeOfLead(item.campaignInfo);
+      item.createdAt = item.createdAt || null;
+
+      delete item.histories;
       delete item.deleteFlag;
+      delete item.user;
+      delete item.status;
+      delete item.campaign;
+      delete item.__v;
+      delete item.note;
+      delete item.priceSchedule;
+      delete item.campaignInfo;
+
       return item;
     });
+
+    // lead: {typeStr, location (project name, district, city), price, createdAt, timeToDownPrice }
 
     return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
       data: {
         meta: {
+          currentItemsCount: entries.length,
           totalItems,
           limit: paginationCond.limit,
           page: paginationCond.page
