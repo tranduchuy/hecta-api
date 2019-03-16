@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 const {get, post} = require('../../../utils/Request');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
+const TitleService = require('../../../services/TitleService');
 
 const isValidDomainToCampaign = async (campaignId, domain) => {
   try {
@@ -77,6 +78,33 @@ const generateStageGetLeads = (queryObj, paginationCond) => {
     }
   });
 
+  stages.push({
+    $unwind: {
+      path: '$campaignInfo'
+    }
+  });
+
+  // TODO: database chưa có trường hợp này. cần test lại bằng admin tạo campaign có project
+  // map project inside campaign
+  // stages.push({
+  //   "$lookup": {
+  //     "from": "Project",
+  //     "localField": "",
+  //     "foreignField": "lead",
+  //     "as": "priceSchedule"
+  //   }
+  // });
+
+  // map price schedule
+  stages.push({
+    "$lookup": {
+      "from": "LeadPriceSchedule",
+      "localField": "_id",
+      "foreignField": "lead",
+      "as": "priceSchedule"
+    }
+  });
+
   // map history
   // stages.push({"$lookup": {"from": "LeadHistory", "localField": "lead", "foreignField": "_id", "as": "histories"}});
 
@@ -146,6 +174,53 @@ const finishScheduleDownPrice = async (leadId, session) => {
   await schedule.save();
 };
 
+/**
+ *
+ * @param {CampaignModel} campaignInfo
+ */
+const getLeadLocation = (campaignInfo) => {
+  if (campaignInfo.city) {
+    const city = TitleService.getCityByCode(campaignInfo.city);
+
+    if (!city) {
+      return 'Không xác định';
+    }
+
+    if (campaignInfo.district) {
+      const district = TitleService.getDistrictByValue(city, campaignInfo.district);
+
+      if (!district) {
+        return city.name;
+      }
+
+      return `${district.pre} ${district.name}, ${city.name}`;
+    } else {
+      return city.name;
+    }
+  }
+
+
+  return 'Không xác định';
+};
+
+/**
+ *
+ * @param {CampaignModel} campaignInfo
+ */
+const getTypeOfLead = (campaignInfo) => {
+  const formality = TitleService.getFormalityBuyByValue(campaignInfo.formality);
+  if (formality) {
+    const type = TitleService.getTypeByValue(formality, campaignInfo.type);
+    if (type) {
+      return type.name;
+    }
+
+    return formality.name;
+  }
+
+  return 'Không xác định';
+};
+
 module.exports = {
   isValidDomainToCampaign,
   createNewLeadHistory,
@@ -154,5 +229,7 @@ module.exports = {
   getBalanceInfo,
   getCurrentLeadPrice,
   chargeBalanceByBuyingLead,
-  finishScheduleDownPrice
+  finishScheduleDownPrice,
+  getLeadLocation,
+  getTypeOfLead
 };
