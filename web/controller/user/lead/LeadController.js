@@ -1,4 +1,5 @@
 const log4js = require('log4js');
+const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const moment = require('moment');
 const LeadModel = require('../../../models/LeadModel');
@@ -9,7 +10,7 @@ const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
 const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
 const AJV = require('../../../services/AJV');
-const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const { extractPaginationCondition } = require('../../../utils/RequestUtil');
 
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
@@ -39,7 +40,7 @@ const createLead = async (req, res, next) => {
       return next(new Error('Không xác định được chiến dịch'));
     }
 
-    let campaign = await CampaignModel.findOne({_id: campaignId});
+    let campaign = await CampaignModel.findOne({ _id: campaignId });
     if (!campaign) {
       return next(new Error('Không xác định được chiến dịch'));
     }
@@ -57,7 +58,7 @@ const createLead = async (req, res, next) => {
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
-                                         // lead) thì mới tạo lead mới
+        // lead) thì mới tạo lead mới
       }
     });
 
@@ -132,7 +133,7 @@ const getListLead = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    let {status} = req.query;
+    let { status } = req.query;
     if (!status) {
       queryObj.status = global.STATUS.LEAD_NEW;
     } else {
@@ -218,7 +219,7 @@ const buyLead = async (req, res, next) => {
         session = _session;
         session.startTransaction();
         console.log(1);
-        return LeadModel.findOne({_id: req.body.leadId}).session(session);
+        return LeadModel.findOne({ _id: req.body.leadId }).session(session);
 
       })
       .then((_lead) => {
@@ -270,12 +271,43 @@ const buyLead = async (req, res, next) => {
 };
 
 const getDetailLead = async (req, res, next) => {
-  return res.json({
-    status: HTTP_CODE.SUCCESS,
-    message: '',
-    data: await LeadModel.findOne({_id: req.params.id})
-  });
-};
+  logger.info('LeadController::getDetailLead::called');
+  try {
+    let id = req.params.id;
+    if (!id || id.length == 0) {
+      return res.json({
+        status: 0,
+        data: {},
+        message: 'id null error'
+      });
+    }
+
+    let lead = (await LeadModel.findOne({ _id: id })).toObject();
+    if (!lead) {
+      return res.json({
+        status: 0,
+        data: {},
+        message: 'post not exist'
+      });
+    }
+
+    if (lead.status === 30) {
+      delete lead.phone;
+      delete lead.email;
+    }
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: lead
+    });
+  } catch (error) {
+    return res.json({
+      status: 0,
+      data: {},
+      message: 'unknown error : ' + error.message
+    });
+  }
+}
 
 module.exports = {
   createLead,
