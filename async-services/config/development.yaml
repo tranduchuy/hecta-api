@@ -3,3 +3,15 @@ rabbitmq:
   port: 5672
   username: admin
   password: admin123
+
+accountLogin:
+  username: master
+  password: 123456
+
+cdp:
+  host: http://localhost
+  port: 2901
+
+mongo:
+  username: admin
+  password: xyz1233VF8YLwUWjegMwyxzLv3bFu2

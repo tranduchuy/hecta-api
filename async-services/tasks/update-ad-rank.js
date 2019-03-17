@@ -3,36 +3,14 @@ const config = require('config');
 const rabbitMQConfig = config.get('rabbitmq');
 const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
 const uri = `amqp://${rabbitMQConfig.username}:${rabbitMQConfig.password}@${rabbitMQConfig.host}:${rabbitMQConfig.port}`;
-const {get} = require('../../web/utils/Request');
+const async = require('async');
+const {get, post} = require('../../web/utils/Request');
+const CDP_APIS = require('../../web/config/cdp-url-api.constant');
 
 // models
 const SaleModel = require('../../web/models/SaleModel');
 const PostModel = require('../../web/models/PostModel');
-
-amqp.connect(uri, function (err, conn) {
-  if (err) {
-    throw err;
-  }
-  console.log('Connect to RabbitMQ successfully');
-
-  conn.createChannel(function (err, ch) {
-    if (err) {
-      throw err;
-    }
-
-    ch.assertQueue(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, {durable: true});
-    ch.consume(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, async (msg) => {
-      try {
-        const params = JSON.parse(msg);
-        await runProcess(params);
-        ch.ack(msg);
-      } catch (e) {
-        ch.ack(msg);
-        console.error(e.message);
-      }
-    }, {noAck: true});
-  });
-});
+let token = '';
 
 const runProcess = async (params) => {
   const saleIds = params.saleIds;
@@ -86,5 +64,62 @@ const calculateCTR = (impr, click) => {
 const initDefaultAdInfo = (sale) => {
   ['view', 'impression', 'click', 'cpv', 'ctr', 'adRank', 'budgetPerDay'].forEach(column => {
     sale[column] = sale[column] || 0;
+  });
+};
+
+const loginCDP = (cb) => {
+  const loginData = {
+    username: "master",
+    password: "123456"
+  };
+  console.log('api login', CDP_APIS.USER.LOGIN);
+  post(CDP_APIS.USER.LOGIN, loginData)
+    .then((response) => {
+      return cb(null, response.data.meta.token);
+    })
+    .catch((err) => {
+      return cb(err);
+    })
+};
+
+const connectRabbitMQ = (cb) => {
+  amqp.connect(uri, function (err, conn) {
+    if (err) {
+      return cb(err);
+    }
+    console.log('Connect to RabbitMQ successfully');
+
+    conn.createChannel(function (err, ch) {
+      if (err) {
+        return cb(err);
+      }
+
+      ch.assertQueue(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, {durable: true});
+      return cb(null, ch);
+    });
+  });
+};
+
+module.exports = () => {
+  async.parallel([
+    loginCDP,
+    connectRabbitMQ
+  ], (err, results) => {
+    if (err) {
+      throw err;
+    }
+
+    token = results[0];
+    const channel = results[1];
+
+    channel.consume(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, async (msg) => {
+      console.log('message', msg);
+      try {
+        const params = JSON.parse(msg);
+        await runProcess(params);
+      } catch (e) {
+        console.error(e.message);
+      }
+    }, {noAck: true});
   });
 };
