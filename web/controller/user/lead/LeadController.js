@@ -287,9 +287,9 @@ const getDetailLead = async (req, res, next) => {
 
     let result = {
       _id: lead._id,
-      createdAt: newestLeadHistory.createAt,
-      bedrooms: newestLeadHistory.bedrooms,
-      bathrooms: newestLeadHistory.bathrooms,
+      createdAt: newestLeadHistory.createAt || null,
+      bedrooms: newestLeadHistory.bedrooms || null,
+      bathrooms: newestLeadHistory.bathrooms || null,
       name: newestLeadHistory.name,
       area: newestLeadHistory.area,
       price: newestLeadHistory.price,
@@ -300,9 +300,11 @@ const getDetailLead = async (req, res, next) => {
       timeToDownPrice: leadPriceSchedule.downPriceAt,
       type: LeadService.getTypeOfLead(campaignOfLead),
     }
-    if ([global.STATUS.LEAD_SOLD, global.STATUS.LEAD_FINISHED].includes(lead.status)) {
+    if ([global.STATUS.LEAD_SOLD, global.STATUS.LEAD_FINISHED, global.STATUS.LEAD_RETURNING].includes(lead.status)) {
       result.phone = lead.phone;
       result.email = lead.email;
+      result.address = newestLeadHistory.address || '';
+      result.boughtAt = lead.updatedAt;
     }
 
     return res.json({
@@ -311,7 +313,7 @@ const getDetailLead = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
-    return next(new Error('Unknow error ' + error.message));
+    return next(error);
   }
 }
 
