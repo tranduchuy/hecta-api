@@ -5,6 +5,7 @@ const moment = require('moment');
 const LeadModel = require('../../../models/LeadModel');
 const CampaignModel = require('../../../models/CampaignModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
+const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
 const LeadService = require('./LeadService');
 const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
@@ -274,38 +275,43 @@ const getDetailLead = async (req, res, next) => {
   logger.info('LeadController::getDetailLead::called');
   try {
     let id = req.params.id;
-    if (!id || id.length == 0) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'id null error'
-      });
+    if (!id || id.length == 0) return next(new Error('Id not valid'));
+
+    let lead = await LeadModel.findOne({ _id: id }).lean();
+    if (!lead) return next(new Error('Lead not found'));
+
+    const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
+    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
+    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createAt: 1 });
+    const newestLeadHistory = leadHistory[0];
+
+    let result = {
+      _id: lead._id,
+      createdAt: newestLeadHistory.createAt,
+      bedrooms: newestLeadHistory.bedrooms,
+      bathrooms: newestLeadHistory.bathrooms,
+      name: newestLeadHistory.name,
+      area: newestLeadHistory.area,
+      price: newestLeadHistory.price,
+      street: newestLeadHistory.street,
+      direction: newestLeadHistory.direction,
+      location: LeadService.getLeadLocation(campaignOfLead),
+      leadPrice: lead.price,
+      timeToDownPrice: leadPriceSchedule.downPriceAt,
+      type: LeadService.getTypeOfLead(campaignOfLead),
+    }
+    if ([global.STATUS.LEAD_SOLD, global.STATUS.LEAD_FINISHED].includes(lead.status)) {
+      result.phone = lead.phone;
+      result.email = lead.email;
     }
 
-    let lead = (await LeadModel.findOne({ _id: id })).toObject();
-    if (!lead) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'post not exist'
-      });
-    }
-
-    if (lead.status === 30) {
-      delete lead.phone;
-      delete lead.email;
-    }
     return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
-      data: lead
+      data: result,
     });
   } catch (error) {
-    return res.json({
-      status: 0,
-      data: {},
-      message: 'unknown error : ' + error.message
-    });
+    return next(new Error('Unknow error ' + error.message));
   }
 }
 
