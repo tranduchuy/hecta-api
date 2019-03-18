@@ -279,6 +279,7 @@ const getDetailLead = async (req, res, next) => {
 
     let lead = await LeadModel.findOne({ _id: id }).lean();
     if (!lead) return next(new Error('Lead not found'));
+    if (lead.status === global.STATUS.LEAD_SOLD && lead.user !== req.user.id) return next(new Error('Permission denied'));
 
     const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
     const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
