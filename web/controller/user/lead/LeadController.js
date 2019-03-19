@@ -275,15 +275,15 @@ const getDetailLead = async (req, res, next) => {
   logger.info('LeadController::getDetailLead::called');
   try {
     let id = req.params.id;
-    if (!id || id.length == 0) return next(new Error('Id not valid'));
+    if (!id || id.length == 0) return next(new Error('Id lead không hợp lệ'));
 
     let lead = await LeadModel.findOne({ _id: id }).lean();
-    if (!lead) return next(new Error('Lead not found'));
-    if (lead.status === global.STATUS.LEAD_SOLD && lead.user !== req.user.id) return next(new Error('Permission denied'));
+    if (!lead) return next(new Error('Không tìm thấy lead'));
+    if (lead.status === global.STATUS.LEAD_SOLD && lead.user !== req.user.id) return next(new Error('Bạn không được quyền coi lead này'));
 
     const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
     const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
-    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createAt: 1 });
+    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createdAt: 1 });
     const newestLeadHistory = leadHistory[0];
 
     let result = {
