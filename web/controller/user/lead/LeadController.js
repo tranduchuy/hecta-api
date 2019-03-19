@@ -301,6 +301,7 @@ const getDetailLead = async (req, res, next) => {
       direction: newestLeadHistory.direction,
       location: LeadService.getLeadLocation(campaignOfLead),
       leadPrice: lead.price,
+      status: lead.status,
       timeToDownPrice: leadPriceSchedule.downPriceAt,
       type: LeadService.getTypeOfLead(campaignOfLead),
     };
