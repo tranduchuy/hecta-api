@@ -1,9 +1,11 @@
 const log4js = require('log4js');
+const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const moment = require('moment');
 const LeadModel = require('../../../models/LeadModel');
 const CampaignModel = require('../../../models/CampaignModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
+const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
 const LeadService = require('./LeadService');
 const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
@@ -57,7 +59,7 @@ const createLead = async (req, res, next) => {
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
-                                         // lead) thì mới tạo lead mới
+        // lead) thì mới tạo lead mới
       }
     });
 
@@ -270,11 +272,59 @@ const buyLead = async (req, res, next) => {
 };
 
 const getDetailLead = async (req, res, next) => {
-  return res.json({
-    status: HTTP_CODE.SUCCESS,
-    message: '',
-    data: await LeadModel.findOne({_id: req.params.id})
-  });
+  logger.info('LeadController::getDetailLead::called');
+  try {
+    let id = req.params.id;
+    if (!id || id.length === 0) {
+      return next(new Error('Id lead không hợp lệ'));
+    }
+
+    let lead = await LeadModel.findOne({_id: id}).lean();
+    if (!lead) {
+      return next(new Error('Không tìm thấy lead'));
+    }
+
+    const campaignOfLead = await CampaignModel.findOne({_id: lead.campaign}).lean();
+    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({lead: id}).lean();
+    const leadHistory = await LeadHistoryModel.find({lead: id}).sort({createdAt: 1});
+    const newestLeadHistory = leadHistory[0];
+
+    let result = {
+      _id: lead._id,
+      createdAt: newestLeadHistory.createdAt || null,
+      bedrooms: newestLeadHistory.bedrooms || null,
+      bathrooms: newestLeadHistory.bathrooms || null,
+      name: newestLeadHistory.name,
+      area: newestLeadHistory.area,
+      price: newestLeadHistory.price,
+      street: newestLeadHistory.street,
+      direction: newestLeadHistory.direction,
+      location: LeadService.getLeadLocation(campaignOfLead),
+      leadPrice: lead.price,
+      timeToDownPrice: leadPriceSchedule.downPriceAt,
+      type: LeadService.getTypeOfLead(campaignOfLead),
+    };
+
+    if ([global.STATUS.LEAD_SOLD, global.STATUS.LEAD_FINISHED, global.STATUS.LEAD_RETURNING].includes(lead.status)) {
+      if (lead.user !== req.user.id) {
+        return next(new Error('Bạn không được quyền coi lead này'));
+      }
+
+      result.phone = lead.phone;
+      result.email = lead.email;
+      result.address = newestLeadHistory.address || '';
+      result.boughtAt = lead.updatedAt;
+    }
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: result,
+    });
+  } catch (error) {
+    logger.error('LeadController::getDetailLead::error', error);
+    return next(error);
+  }
 };
 
 module.exports = {
