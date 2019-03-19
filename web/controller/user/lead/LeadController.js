@@ -11,7 +11,7 @@ const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
 const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
 const AJV = require('../../../services/AJV');
-const { extractPaginationCondition } = require('../../../utils/RequestUtil');
+const {extractPaginationCondition} = require('../../../utils/RequestUtil');
 
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
@@ -41,7 +41,7 @@ const createLead = async (req, res, next) => {
       return next(new Error('Không xác định được chiến dịch'));
     }
 
-    let campaign = await CampaignModel.findOne({ _id: campaignId });
+    let campaign = await CampaignModel.findOne({_id: campaignId});
     if (!campaign) {
       return next(new Error('Không xác định được chiến dịch'));
     }
@@ -134,7 +134,7 @@ const getListLead = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    let { status } = req.query;
+    let {status} = req.query;
     if (!status) {
       queryObj.status = global.STATUS.LEAD_NEW;
     } else {
@@ -220,7 +220,7 @@ const buyLead = async (req, res, next) => {
         session = _session;
         session.startTransaction();
         console.log(1);
-        return LeadModel.findOne({ _id: req.body.leadId }).session(session);
+        return LeadModel.findOne({_id: req.body.leadId}).session(session);
 
       })
       .then((_lead) => {
@@ -275,20 +275,23 @@ const getDetailLead = async (req, res, next) => {
   logger.info('LeadController::getDetailLead::called');
   try {
     let id = req.params.id;
-    if (!id || id.length == 0) return next(new Error('Id lead không hợp lệ'));
+    if (!id || id.length === 0) {
+      return next(new Error('Id lead không hợp lệ'));
+    }
 
-    let lead = await LeadModel.findOne({ _id: id }).lean();
-    if (!lead) return next(new Error('Không tìm thấy lead'));
-    if (lead.status === global.STATUS.LEAD_SOLD && lead.user !== req.user.id) return next(new Error('Bạn không được quyền coi lead này'));
+    let lead = await LeadModel.findOne({_id: id}).lean();
+    if (!lead) {
+      return next(new Error('Không tìm thấy lead'));
+    }
 
-    const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
-    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
-    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createdAt: 1 });
+    const campaignOfLead = await CampaignModel.findOne({_id: lead.campaign}).lean();
+    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({lead: id}).lean();
+    const leadHistory = await LeadHistoryModel.find({lead: id}).sort({createdAt: 1});
     const newestLeadHistory = leadHistory[0];
 
     let result = {
       _id: lead._id,
-      createdAt: newestLeadHistory.createAt || null,
+      createdAt: newestLeadHistory.createdAt || null,
       bedrooms: newestLeadHistory.bedrooms || null,
       bathrooms: newestLeadHistory.bathrooms || null,
       name: newestLeadHistory.name,
@@ -300,8 +303,13 @@ const getDetailLead = async (req, res, next) => {
       leadPrice: lead.price,
       timeToDownPrice: leadPriceSchedule.downPriceAt,
       type: LeadService.getTypeOfLead(campaignOfLead),
-    }
+    };
+
     if ([global.STATUS.LEAD_SOLD, global.STATUS.LEAD_FINISHED, global.STATUS.LEAD_RETURNING].includes(lead.status)) {
+      if (lead.user !== req.user.id) {
+        return next(new Error('Bạn không được quyền coi lead này'));
+      }
+
       result.phone = lead.phone;
       result.email = lead.email;
       result.address = newestLeadHistory.address || '';
@@ -314,9 +322,10 @@ const getDetailLead = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
+    logger.error('LeadController::getDetailLead::error', error);
     return next(error);
   }
-}
+};
 
 module.exports = {
   createLead,
