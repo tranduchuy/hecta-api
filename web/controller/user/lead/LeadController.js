@@ -219,9 +219,12 @@ const buyLead = async (req, res, next) => {
     const balance = userInfo.balance;
     // start session
     session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session.startTransaction();
     // step 1 get lead
     const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
+    lead.$session();
     if (!lead) throw new Error('Lead not found');
+    if (!_.isNil(lead.boughtAt)) throw new Error('Lead was bought');
     // step 2 get current price and check with balance
     const currentPrice = await LeadService.getCurrentLeadPrice(lead._id);
     if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
@@ -230,6 +233,7 @@ const buyLead = async (req, res, next) => {
     lead.user = req.user.id;
     lead.price = currentPrice;
     lead.boughtAt = new Date();
+    await lead.save();
     await LeadService.finishScheduleDownPrice(lead._id, session);
     session.commitTransaction();
 
