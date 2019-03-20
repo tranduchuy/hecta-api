@@ -212,13 +212,13 @@ const buyLead = async (req, res, next) => {
   * 2. Commit buy lead
   * 3. Charge balance by buying lead (call to CDP apis)
   * */
+ let session = null;
   try {
     // get user balance
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
     const balance = userInfo.balance;
-
     // start session
-    const session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
     // step 1 get lead
     const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
     if (!lead) throw new Error('Lead not found');
@@ -229,6 +229,7 @@ const buyLead = async (req, res, next) => {
     await LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), currentPrice, req.user.token);
     lead.user = req.user.id;
     lead.price = currentPrice;
+    lead.boughtAt = new Date();
     await LeadService.finishScheduleDownPrice(lead._id, session);
     session.commitTransaction();
 
@@ -238,6 +239,7 @@ const buyLead = async (req, res, next) => {
       data: {}
     });
   } catch (e) {
+    session.abortTransaction();
     logger.error('LeadController::buyLead::error', e);
     return next(e);
   }
@@ -286,7 +288,7 @@ const getDetailLead = async (req, res, next) => {
       result.phone = lead.phone;
       result.email = lead.email;
       result.address = newestLeadHistory.address || '';
-      result.boughtAt = lead.updatedAt;
+      result.boughtAt = lead.boughtAt;
     }
 
     return res.json({
