@@ -416,6 +416,7 @@ const login = async (req, res, next) => {
         });
       })
       .catch((err) => {
+        logger.error('UserController::login::error', err);
         return next(err);
       });
   } catch (e) {

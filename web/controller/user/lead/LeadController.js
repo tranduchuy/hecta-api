@@ -1,16 +1,18 @@
 const log4js = require('log4js');
+const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const moment = require('moment');
 const LeadModel = require('../../../models/LeadModel');
 const CampaignModel = require('../../../models/CampaignModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
+const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
 const LeadService = require('./LeadService');
 const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
 const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
 const AJV = require('../../../services/AJV');
-const {extractPaginationCondition} = require('../../../utils/RequestUtil');
-const {post, get, del, put} = require('../../../utils/Request');
+const { extractPaginationCondition } = require('../../../utils/RequestUtil');
+const { post, get, del, put } = require('../../../utils/Request');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
 
 const createLead = async (req, res, next) => {
@@ -41,7 +43,7 @@ const createLead = async (req, res, next) => {
       return next(new Error('Không xác định được chiến dịch'));
     }
 
-    let campaign = await CampaignModel.findOne({_id: campaignId});
+    let campaign = await CampaignModel.findOne({ _id: campaignId });
     if (!campaign) {
       return next(new Error('Không xác định được chiến dịch'));
     }
@@ -59,7 +61,7 @@ const createLead = async (req, res, next) => {
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
-                                         // lead) thì mới tạo lead mới
+        // lead) thì mới tạo lead mới
       }
     });
 
@@ -134,7 +136,7 @@ const getListLead = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    let {status} = req.query;
+    let { status } = req.query;
     if (!status) {
       queryObj.status = global.STATUS.LEAD_NEW;
     } else {
@@ -210,30 +212,24 @@ const buyLead = async (req, res, next) => {
   * 2. Commit buy lead
   * 3. Charge balance by buying lead (call to CDP apis)
   * */
+ let session = null;
   try {
     // get user balance
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
     const balance = userInfo.balance;
-
     // start session
-    const session = await LeadModel.createCollection().then(() => LeadModel.startSession());
-
+    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
     // step 1 get lead
-    const lead = await LeadModel.findOne({_id: req.body.leadId}).session(session);
-    if (!lead) {
-      return next(new Error('Lead không tồn tại'));
-    }
-
+    const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
+    if (!lead) throw new Error('Lead not found');
     // step 2 get current price and check with balance
     const currentPrice = await LeadService.getCurrentLeadPrice(lead._id);
-    if (balance.main1 < currentPrice) {
-      return next(new Error("Số dư tài khoản không đủ"));
-    }
-
+    if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
     // step 3 buy lead, change balance of user + update lead
     await LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), currentPrice, req.user.token);
     lead.user = req.user.id;
     lead.price = currentPrice;
+    lead.boughtAt = new Date();
     await LeadService.finishScheduleDownPrice(lead._id, session);
     session.commitTransaction();
 
@@ -243,6 +239,7 @@ const buyLead = async (req, res, next) => {
       data: {}
     });
   } catch (e) {
+    session.abortTransaction();
     logger.error('LeadController::buyLead::error', e);
     return next(e);
   }
@@ -256,14 +253,14 @@ const getDetailLead = async (req, res, next) => {
       return next(new Error('Id lead không hợp lệ'));
     }
 
-    let lead = await LeadModel.findOne({_id: id}).lean();
+    let lead = await LeadModel.findOne({ _id: id }).lean();
     if (!lead) {
       return next(new Error('Không tìm thấy lead'));
     }
 
-    const campaignOfLead = await CampaignModel.findOne({_id: lead.campaign}).lean();
-    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({lead: id}).lean();
-    const leadHistory = await LeadHistoryModel.find({lead: id}).sort({createdAt: 1});
+    const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
+    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
+    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createdAt: 1 });
     const newestLeadHistory = leadHistory[0];
 
     let result = {
@@ -291,7 +288,7 @@ const getDetailLead = async (req, res, next) => {
       result.phone = lead.phone;
       result.email = lead.email;
       result.address = newestLeadHistory.address || '';
-      result.boughtAt = lead.updatedAt;
+      result.boughtAt = lead.boughtAt;
     }
 
     return res.json({
