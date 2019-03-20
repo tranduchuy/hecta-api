@@ -40,6 +40,13 @@ const runProcessForOneSale = async (saleId) => {
     // get user balance
     const userBalance = await getDetailBalance(post.user);
 
+    // update sale ad info
+    sale.impression++;
+    sale.ctr = calculateCTR(sale.impression, sale.click);
+    sale.adRank = calculateAdRank(sale.ctr, sale.cpv);
+    sale.isValidBalance = userBalance.main1 >= sale.cpv;
+    await sale.save();
+
 
   } catch (e) {
     console.error(`runProcessForOneSale. sale id: ${saleId}`, e);
@@ -55,11 +62,22 @@ const getDetailPost = async (saleId) => {
 };
 
 const getDetailBalance = async (userId) => {
-  return
+  const url = CDP_APIS.ADMIN.USER_INFO_BY_ID.replace(':id', userId);
+  const response = await get(url, token);
+  return response.data.entries[0].balance;
 };
 
 const calculateCTR = (impr, click) => {
+  if (impr === 0) {
+    return 0;
+  }
+
+  return Math.round(1000 * click / impr) / 1000;
 };
+
+const calculateAdRank = (ctr, cpv) => {
+  return (ctr + 1) * cpv;
+}
 
 const initDefaultAdInfo = (sale) => {
   ['view', 'impression', 'click', 'cpv', 'ctr', 'adRank', 'budgetPerDay'].forEach(column => {
@@ -112,11 +130,20 @@ module.exports = () => {
     token = results[0];
     const channel = results[1];
 
+    /*
+    * {
+    *   salesIds: []
+    * }
+    *
+    * */
     channel.consume(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, async (msg) => {
       console.log('message', msg);
       try {
         const params = JSON.parse(msg);
-        await runProcess(params);
+
+        if (params.salesId && params.salesId.length !== 0) {
+          await runProcess(params);
+        }
       } catch (e) {
         console.error(e.message);
       }
