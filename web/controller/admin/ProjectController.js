@@ -128,7 +128,7 @@ const add = async (req, res, next) => {
 
     try {
         const admin = req.user;
-        if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.status) === -1) {
+        if ([global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].indexOf(admin.role) === -1) {
             return next(new Error('Permission denied'));
         }
 
