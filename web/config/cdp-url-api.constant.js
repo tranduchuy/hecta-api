@@ -22,7 +22,8 @@ module.exports = {
     LIST_USER: `${host}/user`,
     LIST_USER_INFO: `${host}/user/info-by-ids`,
     LIST_USER_FOR_NOTIFY: `${host}/user/for-notifies`,
-    SHARE_CREDIT: `${host}/user/share-credit`
+    SHARE_CREDIT: `${host}/user/share-credit`,
+    ADMIN_IDS: `${host}/user/admin-ids`
   },
   ADMIN: {
     UPDATE_BALANCE: `${host}/user/balance`,
