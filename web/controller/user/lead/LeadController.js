@@ -236,6 +236,7 @@ const buyLead = async (req, res, next) => {
     lead.user = req.user.id;
     lead.price = currentPrice;
     lead.boughtAt = new Date();
+    lead.status = global.STATUS.LEAD_SOLD;
     await lead.save();
     await LeadService.finishScheduleDownPrice(lead._id, session);
     session.commitTransaction();
