@@ -1,4 +1,5 @@
 const log4js = require('log4js');
+const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const LeadModel = require('../../../models/LeadModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
@@ -288,10 +289,38 @@ const getDetail = async (req, res, next) => {
   }
 };
 
+const refundLead = async (req, res, next) => {
+  logger.info('LeadController::refundLead::called');
+  try {
+    const lead = await LeadModel.findOne({ _id: req.params.id });
+    if (!lead) throw new Error('Không tìm thấy lead');
+    if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
+    if (!_.isEqual(lead.status, global.STATUS.LEAD_RETURNING)) throw new Error('Lead này không yêu cầu trả');
+
+    if (req.params.even==="approve") {
+      return res.json({
+        status: HTTP_CODE.SUCCESS,
+        message: `Chấp nhận trả lead ${lead.id}`,
+        data: {}
+      });
+    }
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: `Không chấp nhận trả lead ${lead.id}`,
+      data: {}
+    });
+  } catch (e) {
+    logger.error('LeadController::refundLead::error', e);
+    return next(e);
+  }
+};
+
 module.exports = {
   getList,
   getDetail,
   updateStatus,
   updateInfo,
-  create
+  create,
+  refundLead
 };
