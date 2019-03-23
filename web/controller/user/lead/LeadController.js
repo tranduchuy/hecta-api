@@ -14,6 +14,10 @@ const AJV = require('../../../services/AJV');
 const { extractPaginationCondition } = require('../../../utils/RequestUtil');
 const { post, get, del, put } = require('../../../utils/Request');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
+const NotifyController = require('../NotifyController');
+const NotifyTypes = require('../../../config/notify-type');
+const SocketEvents = require('../../../config/socket-event');
+const Socket = require('../../../utils/Socket');
 
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
@@ -212,7 +216,7 @@ const buyLead = async (req, res, next) => {
   * 2. Commit buy lead
   * 3. Charge balance by buying lead (call to CDP apis)
   * */
- let session = null;
+  let session = null;
   try {
     // get user balance
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
@@ -250,6 +254,58 @@ const buyLead = async (req, res, next) => {
   } catch (e) {
     session.abortTransaction();
     logger.error('LeadController::buyLead::error', e);
+    return next(e);
+  }
+};
+
+const refundLead = async (req, res, next) => {
+  logger.info('LeadController::refundLead::called');
+  try {
+    const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
+
+    const lead = await LeadModel.findOne({ _id: req.body.leadId });
+    if (!lead) throw new Error('Không tìm thấy lead');
+    if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
+    if (!_.isEqual(lead.user, userInfo.id)) throw new Error('Lead không thuộc sở hữu của bạn');
+    if (_.isEqual(lead.status, global.STATUS.LEAD_SOLD)) {
+      // Update lead status
+      lead.status = global.STATUS.LEAD_RETURNING;
+      lead.save();
+
+      // create notiry
+      const leadHistory = await LeadHistoryModel.find({ lead: lead._id }).sort({ createdAt: 1 });
+      const notifyParams = {
+        fromUserId: userInfo.id,
+        toUserId: null,
+        title: `<${userInfo.email}> muốn trả lead <${lead.phone}>`,
+        content: req.body.reason,
+        type: NotifyTypes.USER_WANT_TO_RETURN_LEAD,
+        params: {
+          lead: {
+            id: lead._id,
+            phone: lead.phone,
+            email: lead.email,
+            name: leadHistory[0].name
+          }
+        }
+      };
+      NotifyController.createNotify(notifyParams);
+
+      // send socket
+      notifyParams.toUserIds = [notifyParams.toUserId];
+      delete notifyParams.toUserId;
+      Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
+      logger.info('SaleController::add::success. Create post sale successfully');
+    }
+
+
+    res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Đã nhận yêu cầu trả lead',
+      data: {}
+    });
+  } catch (e) {
+    logger.error('LeadController::refundLead::error', e);
     return next(e);
   }
 };
@@ -315,5 +371,6 @@ module.exports = {
   createLead,
   getListLead,
   buyLead,
+  refundLead,
   getDetailLead
 };
