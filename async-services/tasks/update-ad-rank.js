@@ -1,11 +1,12 @@
-const amqp = require('amqplib/callback_api');
+
 const config = require('config');
-const rabbitMQConfig = config.get('rabbitmq');
+const adminAccount = config.get('adminAccount');
 const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
-const uri = `amqp://${rabbitMQConfig.username}:${rabbitMQConfig.password}@${rabbitMQConfig.host}:${rabbitMQConfig.port}`;
 const async = require('async');
 const {get, post} = require('../../web/utils/Request');
 const CDP_APIS = require('../../web/config/cdp-url-api.constant');
+const UserService = require('../services/user');
+const RabbitMQService = require('../services/rabbitmq');
 
 // models
 const SaleModel = require('../../web/models/SaleModel');
@@ -77,7 +78,7 @@ const calculateCTR = (impr, click) => {
 
 const calculateAdRank = (ctr, cpv) => {
   return (ctr + 1) * cpv;
-}
+};
 
 const initDefaultAdInfo = (sale) => {
   ['view', 'impression', 'click', 'cpv', 'ctr', 'adRank', 'budgetPerDay'].forEach(column => {
@@ -85,43 +86,12 @@ const initDefaultAdInfo = (sale) => {
   });
 };
 
-const loginCDP = (cb) => {
-  const loginData = {
-    username: "master",
-    password: "123456"
-  };
-  console.log('api login', CDP_APIS.USER.LOGIN);
-  post(CDP_APIS.USER.LOGIN, loginData)
-    .then((response) => {
-      return cb(null, response.data.meta.token);
-    })
-    .catch((err) => {
-      return cb(err);
-    })
-};
-
-const connectRabbitMQ = (cb) => {
-  amqp.connect(uri, function (err, conn) {
-    if (err) {
-      return cb(err);
-    }
-    console.log('Connect to RabbitMQ successfully');
-
-    conn.createChannel(function (err, ch) {
-      if (err) {
-        return cb(err);
-      }
-
-      ch.assertQueue(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, {durable: true});
-      return cb(null, ch);
-    });
-  });
-};
-
 module.exports = () => {
   async.parallel([
-    loginCDP,
-    connectRabbitMQ
+    (cb) => {
+      UserService.login(adminAccount, cb);
+    },
+    RabbitMQService.connect
   ], (err, results) => {
     if (err) {
       throw err;

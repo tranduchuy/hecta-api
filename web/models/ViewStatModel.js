@@ -8,11 +8,11 @@ const viewStateSchema = new mongoose.Schema({
   utmSource: String,
   utmCampaign: String,
   utmMedium: String,
-  device: String,
   browser: String,
   referrer: String,
   version: String,
-  platform: String,
+  device: String,
+  os: String,
   createdAt: Date
 });
 

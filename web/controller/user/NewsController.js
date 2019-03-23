@@ -1,13 +1,15 @@
 var NewsModel = require('../../models/NewsModel');
 var PostModel = require('../../models/PostModel');
 var _ = require('lodash');
+const EU = require('express-useragent');
 
 var NewsController = {
 
     highlight: async function (req, res, next) {
 
         try {
-
+            const a = req.get('User-Agent');
+            console.log(EU.parse(a));
 
             let newsList = await NewsModel.find({status : global.STATUS.ACTIVE}).sort({date: -1}).limit(6);
             let results = await Promise.all(newsList.map(async news => {

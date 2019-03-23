@@ -15,3 +15,7 @@ cdp:
 mongo:
   username: admin
   password: xyz1233VF8YLwUWjegMwyxzLv3bFu2
+
+adminAccount:
+  username: master
+  password: 123456

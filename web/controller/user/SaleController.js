@@ -24,22 +24,6 @@ const CDP_APIS = require('../../config/cdp-url-api.constant');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 
-const checkUserPayment = async (user, post, price) => {
-  if (!user) {
-    return;
-  }
-  post.user = user._id;
-  
-  let purchaseStatus = await UserModel.purchase(user._id, price);
-  
-  if (purchaseStatus) {
-    post.paymentStatus = global.STATUS.PAYMENT_PAID;
-    await TransactionHistoryModel.addTransaction(user._id, undefined, price, 'post : ' + post.title, post._id, global.TRANSACTION_TYPE_PAY_POST, purchaseStatus.before, purchaseStatus.after);
-  }
-  
-  await post.save();
-};
-
 const add = async (req, res, next) => {
   const user = req.user;
   const {
@@ -334,10 +318,6 @@ const add = async (req, res, next) => {
           return next(e);
         });
     }
-    
-    // await checkUserPayment(user, post, dateCount * priority.costByDay);
-    
-    
   } catch (e) {
     logger.error('SaleController::add::error', e);
     return next(e);
