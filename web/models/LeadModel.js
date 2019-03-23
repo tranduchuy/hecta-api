@@ -28,7 +28,10 @@ const leadSchema = new Schema({
   },
   createdAt: Date,
   updatedAt: Date,
-  boughtAt: Date
+  boughtAt: {
+    type: Date,
+    default: null
+  }
 });
 
 const LeadModel = mongoose.model('Lead', leadSchema, 'Leads');

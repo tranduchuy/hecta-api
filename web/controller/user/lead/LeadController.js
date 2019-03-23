@@ -158,17 +158,17 @@ const getListLead = async (req, res, next) => {
       }
 
       if (item.priceSchedule.length !== 0) {
-        item.price = item.priceSchedule[0].price;
+        item.leadPrice = item.priceSchedule[0].price;
         item.timeToDownPrice = item.priceSchedule[0].downPriceAt;
         item.ahihi = true;
       } else {
-        item.price = item.campaignInfo.leadMaxPrice;
+        item.leadPrice = item.campaignInfo.leadMaxPrice;
         item.timeToDownPrice = moment().add(item.campaignInfo.downTime, 'minutes');
       }
 
       item.location = LeadService.getLeadLocation(item.campaignInfo);
       item.type = LeadService.getTypeOfLead(item.campaignInfo);
-      item.createdAt = item.createdAt || null;
+      item.createdAt = item.createdAt || new Date(2019, 1, 1);
 
       delete item.histories;
       delete item.deleteFlag;
@@ -219,21 +219,30 @@ const buyLead = async (req, res, next) => {
     const balance = userInfo.balance;
     // start session
     session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session.startTransaction();
     // step 1 get lead
     const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
-    if (!lead) throw new Error('Lead not found');
+    lead.$session();
+    if (!lead) throw new Error('Không tìm thấy thông tin');
+
+    if (!_.isNil(lead.user)) throw new Error('Thông tin này đã được mua');
+
     // step 2 get current price and check with balance
     const currentPrice = await LeadService.getCurrentLeadPrice(lead._id);
     if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
+
     // step 3 buy lead, change balance of user + update lead
     await LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), currentPrice, req.user.token);
     lead.user = req.user.id;
     lead.price = currentPrice;
     lead.boughtAt = new Date();
+    lead.status = global.STATUS.LEAD_SOLD;
+    await lead.save();
     await LeadService.finishScheduleDownPrice(lead._id, session);
     session.commitTransaction();
 
-    res.json({
+    logger.info(`LeadController::buyLead::success. ${req.user.id} buy lead ${lead._id} at ${lead.boughtAt}`);
+    return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Mua thành công lead',
       data: {}

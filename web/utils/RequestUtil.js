@@ -15,6 +15,13 @@ const extractPaginationCondition = (req) => {
   return cond;
 };
 
+const extractUserAgent = (userAgent) => {
+  // TODO: extract user agent
+  console.log(userAgent);
+  return {};
+};
+
 module.exports = {
-  extractPaginationCondition: extractPaginationCondition
+  extractPaginationCondition,
+  extractUserAgent
 };
