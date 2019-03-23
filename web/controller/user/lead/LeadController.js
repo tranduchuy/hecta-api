@@ -158,17 +158,17 @@ const getListLead = async (req, res, next) => {
       }
 
       if (item.priceSchedule.length !== 0) {
-        item.price = item.priceSchedule[0].price;
+        item.leadPrice = item.priceSchedule[0].price;
         item.timeToDownPrice = item.priceSchedule[0].downPriceAt;
         item.ahihi = true;
       } else {
-        item.price = item.campaignInfo.leadMaxPrice;
+        item.leadPrice = item.campaignInfo.leadMaxPrice;
         item.timeToDownPrice = moment().add(item.campaignInfo.downTime, 'minutes');
       }
 
       item.location = LeadService.getLeadLocation(item.campaignInfo);
       item.type = LeadService.getTypeOfLead(item.campaignInfo);
-      item.createdAt = item.createdAt || null;
+      item.createdAt = item.createdAt || new Date(2019, 1, 1);
 
       delete item.histories;
       delete item.deleteFlag;
