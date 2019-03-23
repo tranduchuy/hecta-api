@@ -223,11 +223,14 @@ const buyLead = async (req, res, next) => {
     // step 1 get lead
     const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
     lead.$session();
-    if (!lead) throw new Error('Lead not found');
-    if (!_.isNil(lead.boughtAt)) throw new Error('Lead was bought');
+    if (!lead) throw new Error('Không tìm thấy thông tin');
+
+    if (!_.isNil(lead.user)) throw new Error('Thông tin này đã được mua');
+
     // step 2 get current price and check with balance
     const currentPrice = await LeadService.getCurrentLeadPrice(lead._id);
     if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
+
     // step 3 buy lead, change balance of user + update lead
     await LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), currentPrice, req.user.token);
     lead.user = req.user.id;
@@ -237,7 +240,8 @@ const buyLead = async (req, res, next) => {
     await LeadService.finishScheduleDownPrice(lead._id, session);
     session.commitTransaction();
 
-    res.json({
+    logger.info(`LeadController::buyLead::success. ${req.user.id} buy lead ${lead._id} at ${lead.boughtAt}`);
+    return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Mua thành công lead',
       data: {}
