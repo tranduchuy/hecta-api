@@ -261,19 +261,24 @@ const buyLead = async (req, res, next) => {
 const refundLead = async (req, res, next) => {
   logger.info('LeadController::refundLead::called');
   try {
+    // start session
+    let session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session.startTransaction();
+
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
 
-    const lead = await LeadModel.findOne({ _id: req.body.leadId });
+    const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
+    lead.$session();
     if (!lead) throw new Error('Không tìm thấy lead');
     if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
     if (!_.isEqual(lead.user, userInfo.id)) throw new Error('Lead không thuộc sở hữu của bạn');
     if (_.isEqual(lead.status, global.STATUS.LEAD_SOLD)) {
       // Update lead status
       lead.status = global.STATUS.LEAD_RETURNING;
-      lead.save();
+      await lead.save();
 
       // create notiry
-      const leadHistory = await LeadHistoryModel.find({ lead: lead._id }).sort({ createdAt: 1 });
+      const leadHistory = await LeadHistoryModel.find({ lead: lead._id }).sort({ createdAt: 1 }).session(session);
       const notifyParams = {
         fromUserId: userInfo.id,
         toUserId: null,
@@ -289,22 +294,26 @@ const refundLead = async (req, res, next) => {
           }
         }
       };
-      NotifyController.createNotify(notifyParams);
+      await NotifyController.createNotifySession(notifyParams, session);
 
+      session.commitTransaction();
+      
       // send socket
       notifyParams.toUserIds = [notifyParams.toUserId];
       delete notifyParams.toUserId;
       Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
       logger.info('SaleController::add::success. Create post sale successfully');
+
+      return res.json({
+        status: HTTP_CODE.SUCCESS,
+        message: 'Đã nhận yêu cầu trả lead',
+        data: {}
+      });
     }
 
-
-    res.json({
-      status: HTTP_CODE.SUCCESS,
-      message: 'Đã nhận yêu cầu trả lead',
-      data: {}
-    });
+    throw new Error('Lead này không trả được');
   } catch (e) {
+    session.abortTransaction();
     logger.error('LeadController::refundLead::error', e);
     return next(e);
   }

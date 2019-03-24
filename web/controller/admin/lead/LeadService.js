@@ -101,8 +101,21 @@ const createScheduleDownLeadPrice = (leadId, campaign) => {
   newSchedule.save();
 };
 
+
+const revertFinishScheduleDownPrice = async (leadId, session) => {
+  const schedule = await LeadPriceScheduleModel.findOne({lead: leadId, isFinished: true}).session(session);
+  if (!schedule) {
+    throw new Error('Schedule not found, so can not detect current lead\'s value');
+  }
+
+  schedule.$session()
+  schedule.isFinished = false;
+  await schedule.save();
+};
+
 module.exports = {
   generateStageGetListLead,
   createNewLeadHistory,
-  createScheduleDownLeadPrice
+  createScheduleDownLeadPrice,
+  revertFinishScheduleDownPrice
 };

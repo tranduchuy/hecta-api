@@ -297,13 +297,19 @@ const getDetail = async (req, res, next) => {
 const refundLead = async (req, res, next) => {
   logger.info('LeadController::refundLead::called');
   try {
-    const notify = await NotifyModel.findOne({ _id: req.params.id });
+    // start session
+    let session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session.startTransaction();
+
+    const notify = await NotifyModel.findOne({ _id: req.params.id }).session(session);
+    notify.$session();
     if (
       !_.isEqual(notify.type, NotifyTypes.USER_WANT_TO_RETURN_LEAD) ||
       !_.includes(['approve', 'reject'], req.params.even)
     ) throw new Error('Tác vụ không hợp lệ');
 
-    const lead = await LeadModel.findOne({ _id: notify.params.lead.id });
+    const lead = await LeadModel.findOne({ _id: notify.params.lead.id }).session(session);
+    lead.$session();
     if (!lead) throw new Error('Không tìm thấy lead');
     if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
     if (!_.isEqual(lead.status, global.STATUS.LEAD_RETURNING)) throw new Error('Lead này không yêu cầu trả');
@@ -316,6 +322,9 @@ const refundLead = async (req, res, next) => {
 
     if (req.params.even === "approve") {
       lead.status = global.STATUS.LEAD_NEW;
+      lead.user = null;
+      lead.boughtAt = null;
+      await LeadService.revertFinishScheduleDownPrice(lead._id, session);
       notify.params.approve = true;
       notify2UserParams.title = `Chấp nhận trả lead`;
       notify2UserParams.content = `Yêu cầu trả lead <${notify.params.lead.email}> được chấp nhận`;
@@ -330,9 +339,10 @@ const refundLead = async (req, res, next) => {
       notify2UserParams.type = NotifyTypes.RETURN_LEAD_FAIL;
     }
 
-    lead.save();
-    notify.save();
+    await lead.save();
+    await notify.save();
     NotifyController.createNotify(notify2UserParams);
+    session.commitTransaction();
 
     // send socket
     notify2UserParams.toUserIds = [notify2UserParams.toUserId];
@@ -346,6 +356,7 @@ const refundLead = async (req, res, next) => {
       data: {}
     });
   } catch (e) {
+    session.abortTransaction();
     logger.error('LeadController::refundLead::error', e);
     return next(e);
   }
