@@ -71,7 +71,6 @@ router.get('/leads/:id', AdminLeadController.getDetail);
 router.post('/leads', AdminLeadController.create);
 router.put('/leads/:id', AdminLeadController.updateInfo);
 router.put('/leads/:id/status', AdminLeadController.updateStatus);
-router.put('/leads/:id/refund/:even', AdminLeadController.refundLead);
 
 router.put('/notifies/:id/refund/:even', AdminLeadController.refundLead);
 
