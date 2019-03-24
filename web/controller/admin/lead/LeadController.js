@@ -2,6 +2,7 @@ const log4js = require('log4js');
 const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const LeadModel = require('../../../models/LeadModel');
+const NotifyModel = require('../../../models/Notify');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadService = require('./LeadService');
 const CampaignModel = require('../../../models/CampaignModel');
@@ -9,7 +10,11 @@ const AJV = require('../../../services/AJV');
 const VALIDATE_SCHEMAS = require('./validator-schema');
 const HTTP_CODE = require('../../../config/http-code');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
-const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const { extractPaginationCondition } = require('../../../utils/RequestUtil');
+const NotifyController = require('../../user/NotifyController');
+const NotifyTypes = require('../../../config/notify-type');
+const SocketEvents = require('../../../config/socket-event');
+const Socket = require('../../../utils/Socket');
 
 const getList = async (req, res, next) => {
   logger.info('AdminLeadController::getList::called');
@@ -20,7 +25,7 @@ const getList = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    const {status, campaignId, userId, phone} = req.query;
+    const { status, campaignId, userId, phone } = req.query;
     const queryObj = {};
     if (status) {
       queryObj.status = parseInt(status, 0);
@@ -82,7 +87,7 @@ const getList = async (req, res, next) => {
             status: HTTP_CODE.SUCCESS,
             message: 'Success',
             data: {
-              meta: {totalItems},
+              meta: { totalItems },
               entries: entriesWithUsers
             }
           });
@@ -97,7 +102,7 @@ const getList = async (req, res, next) => {
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
       data: {
-        meta: {totalItems},
+        meta: { totalItems },
         entries: entries
       }
     });
@@ -116,7 +121,7 @@ const updateStatus = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    const lead = await LeadModel.findOne({_id: leadId});
+    const lead = await LeadModel.findOne({ _id: leadId });
     if (!lead) {
       return next(new Error('Lead not found'));
     }
@@ -144,12 +149,12 @@ const updateInfo = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    const lead = await LeadModel.findOne({_id: req.params.id});
+    const lead = await LeadModel.findOne({ _id: req.params.id });
     if (!lead) {
       return next(new Error('Lead not found'));
     }
 
-    const {name, email, bedrooms, bathrooms, area, street, direction, note, price} = req.body;
+    const { name, email, bedrooms, bathrooms, area, street, direction, note, price } = req.body;
 
     const newLeadHistory = {
       name: name || '',
@@ -192,7 +197,7 @@ const create = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    const {phone, name, email, campaignId, bedrooms, bathrooms, area, street, direction, note, price} = req.body;
+    const { phone, name, email, campaignId, bedrooms, bathrooms, area, street, direction, note, price } = req.body;
 
     // TODO: cần thêm 1 bước chuyển số điện thoại về dạng chuẩn: không có 84, bắt đầu bằng 0
     let isCreatingNewLead = false;
@@ -201,11 +206,11 @@ const create = async (req, res, next) => {
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
-                                         // lead) thì mới tạo lead mới
+        // lead) thì mới tạo lead mới
       }
     });
 
-    const campaign = await CampaignModel.findOne({_id: campaignId});
+    const campaign = await CampaignModel.findOne({ _id: campaignId });
     if (!campaign) {
       return next(new Error('Campaign not found'));
     }
@@ -265,14 +270,14 @@ const create = async (req, res, next) => {
 const getDetail = async (req, res, next) => {
   logger.info('LeadController::getDetail::called');
   try {
-    const lead = await LeadModel.findOne({_id: req.params.id})
+    const lead = await LeadModel.findOne({ _id: req.params.id })
       .populate('campaign')
       .lean();
     if (!lead) {
       return next(new Error('Lead not found'));
     }
 
-    lead.histories = await LeadHistoryModel.find({lead: lead._id})
+    lead.histories = await LeadHistoryModel.find({ lead: lead._id })
       .sort('-createdAt')
       .lean();
 
@@ -292,22 +297,52 @@ const getDetail = async (req, res, next) => {
 const refundLead = async (req, res, next) => {
   logger.info('LeadController::refundLead::called');
   try {
-    const lead = await LeadModel.findOne({ _id: req.params.id });
+    const notify = await NotifyModel.findOne({ _id: req.params.id });
+    if (
+      !_.isEqual(notify.type, NotifyTypes.USER_WANT_TO_RETURN_LEAD) ||
+      !_.includes(['approve', 'reject'], req.params.even)
+    ) throw new Error('Tác vụ không hợp lệ');
+
+    const lead = await LeadModel.findOne({ _id: notify.params.lead.id });
     if (!lead) throw new Error('Không tìm thấy lead');
     if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
     if (!_.isEqual(lead.status, global.STATUS.LEAD_RETURNING)) throw new Error('Lead này không yêu cầu trả');
 
-    if (req.params.even==="approve") {
-      return res.json({
-        status: HTTP_CODE.SUCCESS,
-        message: `Chấp nhận trả lead ${lead.id}`,
-        data: {}
-      });
+    const notify2UserParams = {
+      fromUserId: null,
+      toUserId: notify.fromUserId,
+      params: notify.params
+    };
+
+    if (req.params.even === "approve") {
+      lead.status = global.STATUS.LEAD_NEW;
+      notify.params.approve = true;
+      notify2UserParams.title = `Chấp nhận trả lead`;
+      notify2UserParams.content = `Yêu cầu trả lead <${notify.params.lead.email}> được chấp nhận`;
+      notify2UserParams.type = NotifyTypes.RETURN_LEAD_SUCCESSFULLY;
     }
 
+    if (req.params.even === "reject") {
+      lead.status = global.STATUS.LEAD_SOLD;
+      notify.params.approve = false;
+      notify2UserParams.title = `Từ chối trả lead`;
+      notify2UserParams.content = `Yêu cầu trả lead bị từ chối`;
+      notify2UserParams.type = NotifyTypes.RETURN_LEAD_FAIL;
+    }
+
+    lead.save();
+    notify.save();
+    NotifyController.createNotify(notify2UserParams);
+
+    // send socket
+    notify2UserParams.toUserIds = [notify2UserParams.toUserId];
+    delete notify2UserParams.toUserId;
+    Socket.broadcast(SocketEvents.NOTIFY, notify2UserParams);
+    logger.info('LeadController::refund::success. Notify refund result successfully');
+    
     return res.json({
       status: HTTP_CODE.SUCCESS,
-      message: `Không chấp nhận trả lead ${lead.id}`,
+      message: notify2UserParams.content,
       data: {}
     });
   } catch (e) {
