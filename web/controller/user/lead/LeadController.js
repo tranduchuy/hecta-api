@@ -284,7 +284,7 @@ const refundLead = async (req, res, next) => {
           lead: {
             id: lead._id,
             phone: lead.phone,
-            email: lead.email,
+            email: leadHistory.email,
             name: leadHistory[0].name
           }
         }
