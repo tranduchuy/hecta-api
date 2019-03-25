@@ -46,9 +46,9 @@ const getListReturnLeadNotifies = async (req, res, next) => {
             message: [],
             data: {
                 meta: {
-                    total,
-                    page,
-                    limit,
+                    totalItems: total,
+                    page: page,
+                    limit: limit,
                     sortBy: 'createdTime'
                 },
                 entries: notifies
@@ -115,10 +115,10 @@ const getListReturnLeadNotifies = async (req, res, next) => {
               message: [],
               data: {
                 meta: {
-                  total,
-                  page,
-                  limit,
-                  sortBy: 'createdTime'
+                    totalItems: total,
+                    page: page,
+                    limit: limit,
+                    sortBy: 'createdTime'
                 },
                 entries: results
               }
