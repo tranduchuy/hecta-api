@@ -51,7 +51,7 @@ const getListReturnLeadNotifies = async (req, res, next) => {
                     limit,
                     sortBy: 'createdTime'
                 },
-                entry: notifies
+                entries: notifies
             }
         })
     }
@@ -120,7 +120,7 @@ const getListReturnLeadNotifies = async (req, res, next) => {
                   limit,
                   sortBy: 'createdTime'
                 },
-                entry: results
+                entries: results
               }
             })
           })
