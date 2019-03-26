@@ -30,7 +30,8 @@ module.exports = {
     LIST_ADMIN: `${host}/user/admin`,
     REGISTER_ADMIN: `${host}/user/register-admin`,
     UPDATE_STATUS_ADMIN: `${host}/user/admin-status/:adminId`,
-    USER_INFO_BY_ID: `${host}/user/admin-get-user-info/:id`
+    USER_INFO_BY_ID: `${host}/user/admin-get-user-info/:id`,
+    PURCHASE_BY_VIEW_SALE: `${host}/user/balance/purchase-by-view-sale`
   },
   RELATION_SHIP: {
     REQUEST_LIST: `${host}/user-relationship/request`,

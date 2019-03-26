@@ -39,7 +39,7 @@ const runProcessForOneSale = async (saleId) => {
     }
 
     // get user balance
-    const userBalance = await getDetailBalance(post.user);
+    const userBalance = await UserService.getDetailBalance(post.user, token);
 
     // update sale ad info
     sale.impression++;
@@ -60,12 +60,6 @@ const getDetailSale = async (saleId) => {
 };
 const getDetailPost = async (saleId) => {
   return await PostModel.findOne({contentId: saleId});
-};
-
-const getDetailBalance = async (userId) => {
-  const url = CDP_APIS.ADMIN.USER_INFO_BY_ID.replace(':id', userId);
-  const response = await get(url, token);
-  return response.data.entries[0].balance;
 };
 
 const calculateCTR = (impr, click) => {

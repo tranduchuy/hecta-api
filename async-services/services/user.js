@@ -11,6 +11,14 @@ const login = (account, cb) => {
     })
 };
 
+const getDetailBalance = async (userId, token) => {
+  const url = CDP_APIS.ADMIN.USER_INFO_BY_ID.replace(':id', userId);
+  const response = await get(url, token);
+  return response.data.entries[0].balance;
+};
+
+
 module.exports = {
-  login
+  login,
+  getDetailBalance
 };
