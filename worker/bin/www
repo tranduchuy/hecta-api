@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const app = require('../app');
 const http = require('http');
-const db = require('../database/db');
+const db = require('../../web/database/db');
 require('../../web/models');
 const config = require('config');
 const ChangeLeadStatusWorker = require('../jobs/change-lead-status');

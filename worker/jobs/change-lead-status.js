@@ -4,17 +4,14 @@ const schedule = require('node-schedule');
 
 const findValidLeads = async () => {
     try {
-        console.log('findValidLeads work')
         let query = {};
         query.status = global.STATUS.LEAD_SOLD;
-        let leads = await LeadModel.findOne({});
-        console.log(leads);
+        let leads = await LeadModel.find(query);
         const searchDate = new Date();
         searchDate.setMinutes(searchDate.getMinutes() - 10);
         leads = leads.filter((lead)=> {
-            return !moment(searchDate).isAfter(lead.boughtAt);
+            return !moment(searchDate).isBefore(lead.boughtAt);
         });
-        console.log(leads);
         return leads;
     }catch (e) {
         console.log(e);
@@ -23,10 +20,8 @@ const findValidLeads = async () => {
 
 const shouldDownPriceOnLead = async () => {
     try {
-        console.log("should down price work");
         let leads = await findValidLeads();
-        console.log(leads);
-        if(leads > 0){
+        if(leads.length > 0){
             const results = await Promise.all(leads.map( async lead =>{
                 lead.status = global.STATUS.LEAD_FINISHED;
                 await lead.save();
@@ -42,13 +37,12 @@ const shouldDownPriceOnLead = async () => {
 
 
 const ChangeLeadStatusWorker =  ()=>{
-    console.log('worker work');
+    console.log("Change status lead worker started...")
     return schedule.scheduleJob("*/5 * * * * *",  async () => {
         try {
             console.log('This runs every 30 seconds', new Date());
             const results = await shouldDownPriceOnLead();
-            console.log(results);
-            console.log("done");
+            console.log("Number of changed status leads : " + results.length);
         }catch (e) {
             console.log(e);
         }
