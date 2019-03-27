@@ -1,3 +1,4 @@
+const config = require('config');
 const adminAccount = config.get('adminAccount');
 const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
 const async = require('async');
@@ -152,7 +153,7 @@ module.exports = () => {
     * */
     channel.consume(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, async (msg) => {
       try {
-        const params = JSON.parse(msg);
+        const params = JSON.parse(msg.content);
         if (params.saleIds || params.saleIds.length !== 0) {
           await runProcess(params);
           logger.info('InsertViewState::finished');

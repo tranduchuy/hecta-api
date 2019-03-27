@@ -2,7 +2,11 @@ const CDP_APIS = require('../../web/config/cdp-url-api.constant');
 const {post} = require('../../web/utils/Request');
 
 const login = (account, cb) => {
-  post(CDP_APIS.USER.LOGIN, account)
+  console.log('account', account);
+  post(CDP_APIS.USER.LOGIN, {
+    username: account.username.toString().trim(),
+    password: account.password.toString().trim()
+  })
     .then((response) => {
       return cb(null, response.data.meta.token);
     })

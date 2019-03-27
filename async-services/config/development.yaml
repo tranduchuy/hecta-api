@@ -1,8 +1,8 @@
 rabbitmq:
-  host: 178.128.105.93
+  host: localhost
   port: 5672
-  username: admin
-  password: admin123
+  username: guest
+  password: 123456
 
 accountLogin:
   username: master
