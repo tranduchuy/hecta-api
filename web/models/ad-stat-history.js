@@ -5,6 +5,10 @@ const viewStateSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     default: null
   },
+  type: {
+    type: String,
+    default: 'VIEW' // VIEW | CLICK
+  },
   utmSource: String,
   utmCampaign: String,
   utmMedium: String,
@@ -16,4 +20,4 @@ const viewStateSchema = new mongoose.Schema({
   createdAt: Date
 });
 
-module.exports = mongoose.model('ViewStats', viewStateSchema, 'ViewStats');
+module.exports = mongoose.model('AdStatHistory', viewStateSchema, 'AdStatHistory');

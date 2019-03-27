@@ -96,7 +96,8 @@ module.exports = () => {
 
     /*
     * {
-    *   salesIds: []
+    *   salesIds: [],
+    *   updateField: CLICK | IMPRESSION // TODO
     * }
     *
     * */

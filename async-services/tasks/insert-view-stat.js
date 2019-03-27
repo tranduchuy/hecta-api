@@ -5,11 +5,13 @@ const UserService = require('../services/user');
 const RabbitMQService = require('../services/rabbitmq');
 const HTTP_CODE = require('../../web/config/http-code');
 const CDP_APIs = require('../../web/config/cdp-url-api.constant');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Tasks');
 
 // models
 const SaleModel = require('../../web/models/SaleModel');
 const PostModel = require('../../web/models/PostModel');
-const ViewStatModel = require('../../web/models/ViewStatModel');
+const AdStatHistoryModel = require('../../web/models/ad-stat-history');
 let token = '';
 
 /**
@@ -17,6 +19,7 @@ let token = '';
  * @param {{logData: [Object], saleIds: [string]}} params
  */
 const runProcess = async (params) => {
+  logger.info('InsertViewState::runProcess::called. Params', JSON.stringify(params));
   await Promise.all(params.saleIds.map(async (saleId) => {
     await saveLogViewOfSale(saleId, params.logData);
   }));
@@ -25,36 +28,47 @@ const runProcess = async (params) => {
 /**
  *
  * @param {string} saleId
- * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os}} logData
+ * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os, type}} logData
  */
 const saveLogViewOfSale = async (saleId, logData) => {
+  if (!isValidViewType(logData.type)) {
+    logger.warn('InsertViewStat::saveLogViewOfSale. Wrong type', Object.assign({}, logData, {saleId}));
+    return;
+  }
+
   const sale = await getDetailSale(saleId);
   if (!sale) {
+    logger.warn('InsertViewStat::saveLogViewOfSale::notFound. Sale not found, sale id', saleId);
     return;
   }
 
   if (sale.paidForm !== global.PAID_FORM.VIEW) {
+    logger.warn('InsertViewStat::saveLogViewOfSale::invalid params. Sale paid form is not PAID_FORM.VIEW', saleId);
     return;
   }
 
   // get post of sale
   const post = await getDetailPost(saleId);
   if (post || !post.user) {
+    logger.warn('InsertViewStat::saveLogViewOfSale::notFound. Post not found or not detect user of post. Sale id', saleId);
     return;
   }
 
   // get user balance
-  const view = await saveViewLog(Object.assign({}, logData, {saleId}));
+  const adStat = await saveAdLog(Object.assign({}, logData, {saleId}));
 
-  try {
-    const response = await purchase(post.user, saleId, view._id, sale.cpv);
-    // TODO: api chưa trả mã hết tiền để có thể set sale.isValidBalance = false;
-    if (response.status === HTTP_CODE.NOT_ENOUGH_MONEY) {
-      sale.isValidBalance = false;
-      await sale.sale();
+  // tính tiền với case VIEW
+  if (logData.type === 'VIEW') {
+    try {
+      const response = await purchase(post.user, saleId, adStat._id, sale.cpv);
+      // TODO: api chưa trả mã hết tiền để có thể set sale.isValidBalance = false;
+      if (response.status === HTTP_CODE.NOT_ENOUGH_MONEY) {
+        sale.isValidBalance = false;
+        await sale.sale();
+      }
+    } catch (e) {
+      logger.error('InsertViewStat::saveLogViewOfSale::error', e);
     }
-  } catch (e) {
-
   }
 };
 
@@ -66,40 +80,57 @@ const getDetailPost = async (saleId) => {
   return await PostModel.findOne({contentId: saleId}).lean();
 };
 
-const purchase = async (userId, saleId, viewId, cost) => {
+const purchase = async (userId, saleId, adStatId, cost) => {
   const data = {
     userId,
     note: JSON.stringify({
       saleId,
-      viewId
+      adStatId
     }),
     cost
   };
+  logger.info(`InsertViewStat::purchase::called. Call CDP url ${CDP_APIs.ADMIN.PURCHASE_BY_VIEW_SALE}`, JSON.stringify(data));
 
   return await post(CDP_APIs.ADMIN.PURCHASE_BY_VIEW_SALE, data, token);
 };
 
 /**
  *
- * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os, saleId}} logData
+ * @param {string} type
+ * @returns {boolean}
+ */
+const isValidViewType = (type) => {
+  return [
+    'VIEW',
+    'CLICK'
+  ].includes(type);
+};
+
+/**
+ *
+ * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os, type, saleId}} logData
  * @returns {Promise<void>}
  */
-const saveViewLog = async (logData) => {
-  const view = new ViewStatModel();
-  view.sale = logData.saleId;
-  view.utmCampaign = logData.utmCampaign;
-  view.utmMedium = logData.utmMedium;
-  view.browser = logData.browser;
-  view.referrer = logData.referrer;
-  view.version = logData.version;
-  view.device = logData.device;
-  view.os = logData.os;
-  view.createdAt = new Date();
+const saveAdLog = async (logData) => {
+  const adStat = new AdStatHistoryModel();
+  adStat.sale = logData.saleId;
+  adStat.utmCampaign = logData.utmCampaign;
+  adStat.utmMedium = logData.utmMedium;
+  adStat.browser = logData.browser;
+  adStat.referrer = logData.referrer;
+  adStat.version = logData.version;
+  adStat.device = logData.device;
+  adStat.os = logData.os;
+  adStat.type = logData.type.toUpperCase();
+  adStat.createdAt = new Date();
+  logger.info('InsertViewStat::saveAdLog::success. View data', JSON.stringify(adStat));
 
-  return await view.save();
+  return await adStat.save();
 };
 
 module.exports = () => {
+  logger.info('========================================');
+  logger.info('InsertViewState::called');
   async.parallel([
     (cb) => {
       UserService.login(adminAccount, cb);
@@ -116,16 +147,18 @@ module.exports = () => {
     /*
     * msg:
     *   logData: {utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os}
-    *   saleIds: [string]
+    *   saleIds: [string],
+    *   type: VIEW | CLICK
     * */
     channel.consume(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, async (msg) => {
       try {
         const params = JSON.parse(msg);
         if (params.saleIds || params.saleIds.length !== 0) {
           await runProcess(params);
+          logger.info('InsertViewState::finished');
         }
       } catch (e) {
-        console.error(e.message);
+        logger.error('InsertViewState::error', e);
       }
     }, {noAck: true});
   });
