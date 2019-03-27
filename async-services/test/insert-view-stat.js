@@ -25,7 +25,7 @@ amqp.connect(uri, function (err, conn) {
         device: '',
         os: ''
       },
-      saleIds: [],
+      saleIds: ['5c9af51ea9a02917a980253a'],
       type: 'VIEW'
     };
     ch.sendToQueue(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, new Buffer(JSON.stringify(message)));

@@ -8,6 +8,7 @@ const HTTP_CODE = require('../../web/config/http-code');
 const CDP_APIs = require('../../web/config/cdp-url-api.constant');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Tasks');
+const {get, post} = require('../../web/utils/Request');
 
 // models
 const SaleModel = require('../../web/models/SaleModel');
@@ -22,17 +23,18 @@ let token = '';
 const runProcess = async (params) => {
   logger.info('InsertViewState::runProcess::called. Params', JSON.stringify(params));
   await Promise.all(params.saleIds.map(async (saleId) => {
-    await saveLogViewOfSale(saleId, params.logData);
+    await saveLogViewOfSale(saleId, params.logData, params.type);
   }));
 };
 
 /**
  *
  * @param {string} saleId
- * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os, type}} logData
+ * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os}} logData
+ * @param {string} type
  */
-const saveLogViewOfSale = async (saleId, logData) => {
-  if (!isValidViewType(logData.type)) {
+const saveLogViewOfSale = async (saleId, logData, type) => {
+  if (!isValidViewType(type)) {
     logger.warn('InsertViewStat::saveLogViewOfSale. Wrong type', Object.assign({}, logData, {saleId}));
     return;
   }
@@ -50,16 +52,16 @@ const saveLogViewOfSale = async (saleId, logData) => {
 
   // get post of sale
   const post = await getDetailPost(saleId);
-  if (post || !post.user) {
+  if (!post || !post.user) {
     logger.warn('InsertViewStat::saveLogViewOfSale::notFound. Post not found or not detect user of post. Sale id', saleId);
     return;
   }
 
   // get user balance
-  const adStat = await saveAdLog(Object.assign({}, logData, {saleId}));
+  const adStat = await saveAdLog(Object.assign({}, logData, {saleId, type}));
 
   // tính tiền với case VIEW
-  if (logData.type === 'VIEW') {
+  if (type === 'VIEW') {
     try {
       const response = await purchase(post.user, saleId, adStat._id, sale.cpv);
       // TODO: api chưa trả mã hết tiền để có thể set sale.isValidBalance = false;
@@ -104,7 +106,7 @@ const isValidViewType = (type) => {
   return [
     'VIEW',
     'CLICK'
-  ].includes(type);
+  ].indexOf(type.toUpperCase()) !== -1;
 };
 
 /**

@@ -33,7 +33,7 @@ const runProcessForOneSale = async (saleId) => {
 
     // get post of sale
     const post = await getDetailPost(saleId);
-    if (post || !post.user) {
+    if (!post || !post.user) {
       // TODO: should confirm about case not found info. Should update adRank to be 0 or not
       return;
     }
