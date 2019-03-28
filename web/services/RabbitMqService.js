@@ -48,22 +48,23 @@ const updateAdRank = (saleIds, updateField) => {
       saleIds,
       updateField
     };
+
     channel.sendToQueue(RABBIT_MQ_NAMES.UPDATE_AD_RANK_OF_SALES, new Buffer(JSON.stringify(message)));
-    conn.close();
+    console.log(`Send queue ${RABBIT_MQ_NAMES.UPDATE_AD_RANK_OF_SALES} message: ${JSON.stringify(message)}`);
   });
 };
 
 /**
  *
  * @param {string[]} saleIds
- * @param {{}} logData
+ * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os}} logData
  * @param {string} type
  */
 const insertAdStatHistory = (saleIds, logData, type) => {
   // type should be: VIEW or CLICK
-  connectRabbitMQ(RABBIT_MQ_NAMES.UPDATE_AD_RANK_OF_SALES, (err, channel, conn) => {
+  connectRabbitMQ(RABBIT_MQ_NAMES.INSERT_VIEW_STAT_WHEN_VIEW_SALE, (err, channel, conn) => {
     if (err) {
-      console.error(`Cannot connect queue ${RABBIT_MQ_NAMES.UPDATE_AD_RANK_OF_SALES}`, err);
+      console.error(`Cannot connect queue ${RABBIT_MQ_NAMES.INSERT_VIEW_STAT_WHEN_VIEW_SALE}`, err);
       return;
     }
 
@@ -72,8 +73,8 @@ const insertAdStatHistory = (saleIds, logData, type) => {
       logData,
       type
     };
-    channel.sendToQueue(RABBIT_MQ_NAMES.UPDATE_AD_RANK_OF_SALES, new Buffer(JSON.stringify(message)));
-    conn.close();
+    channel.sendToQueue(RABBIT_MQ_NAMES.INSERT_VIEW_STAT_WHEN_VIEW_SALE, new Buffer(JSON.stringify(message)));
+    console.log(`Send queue ${RABBIT_MQ_NAMES.INSERT_VIEW_STAT_WHEN_VIEW_SALE} message: ${JSON.stringify(message)}`);
   });
 };
 

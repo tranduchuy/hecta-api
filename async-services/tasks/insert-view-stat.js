@@ -1,6 +1,6 @@
 const config = require('config');
 const adminAccount = config.get('adminAccount');
-const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
+const RABBIT_MQ_CHANNELS = require('../../web/config/rabbit-mq-channels');
 const async = require('async');
 const UserService = require('../services/user');
 const RabbitMQService = require('../services/rabbitmq');
@@ -138,14 +138,16 @@ module.exports = () => {
     (cb) => {
       UserService.login(adminAccount, cb);
     },
-    RabbitMQService.connect
+    (cb) => {
+      RabbitMQService.connect(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, cb);
+    }
   ], (err, results) => {
     if (err) {
       throw err;
     }
 
     token = results[0];
-    const channel = results[1];
+    const channel = results[1][0];
 
     /*
     * msg:
@@ -156,6 +158,7 @@ module.exports = () => {
     channel.consume(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, async (msg) => {
       try {
         const params = JSON.parse(msg.content);
+        logger.info('InsertViewState::Recieve message', params);
         if (params.saleIds || params.saleIds.length !== 0) {
           await runProcess(params);
           logger.info('InsertViewState::finished');

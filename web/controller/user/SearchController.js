@@ -10,12 +10,14 @@ const urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const HttpCode = require('../../config/http-code');
+const EU = require('express-useragent');
 
 // service
 const TitleService = require("../../services/TitleService");
 const StringService = require('../../services/StringService');
 const UrlParamService = require('../../services/UrlParamService');
 const RequestUtils = require('../../utils/RequestUtil');
+const RabbitMQService = require('../../services/RabbitMqService');
 
 // cache
 const LRU = require("lru-cache");
@@ -93,7 +95,6 @@ const mapListPostAndListSaleOrBuy = (saleOrBuyList, postList) => {
         }
     });
 
-    console.log(JSON.stringify(targetPostHaveData));
     return targetPostHaveData;
 };
 
@@ -679,9 +680,17 @@ const search = async (req, res, next) => {
         const a = new Date().getTime();
         if (isValidSlugDetail(slug)) {
             result = await handleSearchCaseNotCategory(param, slug, next);
+            if (result.type === global.POST_TYPE_SALE) {
+                saveAdStatHistory(req, result.data.contentId, {
+                    utmCampaign: req.query.utmCampaign || '',
+                    utmSource: req.query.utmSource || '',
+                    utmMedium: req.query.utmMedium || '',
+                    referrer: req.query.referrer || '',
+                });
+            }
+
             if (result.status === HttpCode.SUCCESS) {
                 cache.set(req.originalUrl, JSON.stringify(result));
-                console.log('==>', new Date().getTime() - a);
                 return res.json(result);
             }
         }
@@ -690,7 +699,6 @@ const search = async (req, res, next) => {
             result = await handleSearchCaseCategory(req, param, next);
             if (result.status === HttpCode.SUCCESS) {
                 cache.set(req.originalUrl, JSON.stringify(result));
-                console.log('==>', new Date().getTime() - a);
                 return res.json(result);
             }
         }
@@ -841,13 +849,39 @@ const searchCache = (req, res, next) => {
 
     if (cachedData) {
         try {
-            return res.json(JSON.parse(cachedData));
+            const result = JSON.parse(cachedData);
+            if (result.type === global.POST_TYPE_SALE) {
+                saveAdStatHistory(req, result.data.contentId, {
+                    utmCampaign: req.query.utmCampaign || '',
+                    utmSource: req.query.utmSource || '',
+                    utmMedium: req.query.utmMedium || '',
+                    referrer: req.query.referrer || '',
+                });
+            }
+
+            return res.json(result);
         } catch (e) {
             logger.error('SearchController::searchCache::error. Cannot parse string.');
         }
     }
 
     next();
+};
+
+const saveAdStatHistory = (req, saleId, extraData) => {
+    const agentObj = EU.parse(req.get('User-Agent'));
+    const logData = {
+        utmSource: extraData.utmSource,
+        utmCampaign: extraData.utmCampaign,
+        utmMedium: extraData.utmMedium,
+        browser: agentObj.browser,
+        referrer: extraData.referrer,
+        version: agentObj.version,
+        device: agentObj.platform,
+        os: agentObj.os
+    };
+
+    RabbitMQService.insertAdStatHistory([saleId], logData, 'VIEW');
 };
 
 module.exports = {

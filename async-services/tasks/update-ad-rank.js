@@ -1,6 +1,6 @@
 const config = require('config');
 const adminAccount = config.get('adminAccount');
-const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
+const RABBIT_MQ_CHANNELS = require('../../web/config/rabbit-mq-channels');
 const async = require('async');
 const {get, post} = require('../../web/utils/Request');
 const CDP_APIS = require('../../web/config/cdp-url-api.constant');
@@ -107,14 +107,16 @@ module.exports = () => {
     (cb) => {
       UserService.login(adminAccount, cb);
     },
-    RabbitMQService.connect
+    (cb) => {
+      RabbitMQService.connect(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, cb);
+    }
   ], (err, results) => {
     if (err) {
       throw err;
     }
 
     token = results[0];
-    const channel = results[1];
+    const channel = results[1][0];
 
     /*
     * {
