@@ -3,6 +3,7 @@ var BuyModel = require('../../models/BuyModel');
 var PostModel = require('../../models/PostModel');
 var _ = require('lodash');
 var UrlParamModel = require('../../models/UrlParamModel');
+
 var urlSlug = require('url-slug');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
@@ -10,6 +11,7 @@ const {get, post, del, put} = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 const HTTP_CODE = require('../../config/http-code');
 const EU = require('express-useragent');
+const AdStatModel = require('../../models/ad-stat-history');
 
 //service
 const RabbitMQService = require('../../services/RabbitMqService');
@@ -646,7 +648,8 @@ var PostController = {
             status: post.status,
             paymentStatus: post.paymentStatus,
             
-            refresh: post.refresh
+            refresh: post.refresh,
+            viewCount: await AdStatModel.countDocuments({type: 'VIEW', sale: post.contentId})
           }
             ;
         } else {
