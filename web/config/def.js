@@ -22,7 +22,10 @@ global.STATUS = {
   LEAD_NEW: 30,
   LEAD_SOLD: 31,
   LEAD_RETURNING: 32,
-  LEAD_FINISHED: 33
+  LEAD_FINISHED: 33,
+  
+  PAID_FORM_VIEW_ACTIVE: 40,
+  PAID_FORM_VIEW_STOP: 50,
 };
 
 global.POST_TYPE_SALE = 1;
@@ -85,6 +88,11 @@ global.CREATED_BY = {
   HAND: 1,
   CRAWL: 2
 };
+
+global.PAID_FORM = {
+  DAY: 1,
+  VIEW: 2
+}
 
 
 

@@ -18,6 +18,7 @@
     "email-validator": "^2.0.4",
     "eslint": "^5.14.1",
     "express": "^4.16.4",
+    "express-useragent": "^1.0.12",
     "gmail-send": "^1.2.14",
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
