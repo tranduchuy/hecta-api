@@ -4,7 +4,8 @@ const logger = log4js.getLogger('Controllers');
 const httpCode = require('../../config/http-code');
 const requestUtil = require('../../utils/RequestUtil');
 const NotifyType = require('../../config/notify-type');
-const { post, del, put, get, convertObjectToQueryString } = require('../../utils/Request');
+const {post, del, put, get, convertObjectToQueryString} = require('../../utils/Request');
+const {extractPaginationCondition} = require('../../utils/RequestUtil');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 /**
  *
@@ -26,7 +27,7 @@ const isValidStatusForUpdating = (status) => {
  * @return {Object}
  */
 const createNotify = async (_params) => {
-  const params = { ..._params };
+  const params = {..._params};
   logger.info('NotifyController::createNotify is called', params);
   const newNotify = await new NotifyModel();
   newNotify.fromUser = params.fromUserId || null;
@@ -48,7 +49,7 @@ const createNotify = async (_params) => {
 };
 
 const createNotifySession = async (_params, session) => {
-  const params = { ..._params };
+  const params = {..._params};
   logger.info('NotifyController::createNotify is called', params);
   // const newNotify = await NotifyModel(); 
   const newNotify = await NotifyModel.create([{
@@ -61,7 +62,7 @@ const createNotifySession = async (_params, session) => {
     updatedTime: new Date(),
     type: params.type,
     params: params.params,
-  }], { session });
+  }], {session});
   // newNotify.$session();
   // await newNotify.save();
 
@@ -78,9 +79,9 @@ const updateNotify = async (req, res, next) => {
   logger.info('NotifyController::updateNotify is called');
 
   try {
-    const notify = await NotifyModel.findOne({ _id: req.params['notifyId'] });
+    const notify = await NotifyModel.findOne({_id: req.params['notifyId']});
 
-    let { title, content, status } = req.body;
+    let {title, content, status} = req.body;
     if (isNaN(status)) {
       return res.json({
         status: httpCode.BAD_REQUEST,
@@ -135,7 +136,7 @@ const updateNotify = async (req, res, next) => {
 const getListNotifies = async (req, res, next) => {
   logger.info('NotifyController::getListNotifies is called');
   try {
-    const { page, limit } = requestUtil.extractPaginationCondition(req);
+    const {page, limit} = requestUtil.extractPaginationCondition(req);
     const query = {
       toUser: req.user.id
     };
@@ -144,7 +145,7 @@ const getListNotifies = async (req, res, next) => {
 
     let notifies = await NotifyModel
       .find(query)
-      .sort({ createdTime: -1 })
+      .sort({createdTime: -1})
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -258,10 +259,76 @@ const countUnRead = async (req, res, next) => {
   }
 };
 
+const returnLead = async (req, res, next) => {
+  logger.info('NotifyController::returnLead::called');
+  try {
+    const paginationCond = extractPaginationCondition(req);
+    let type = req.query.type;
+    if (!type || isNaN(type)) {
+      return next(new Error('Thông số không hợp lệ'));
+    }
+
+    type = parseInt(type, 0);
+    if ([NotifyType.RETURN_LEAD_SUCCESSFULLY, NotifyType.RETURN_LEAD_FAIL].indexOf(type) === -1) {
+      return next(new Error('Thông số không hợp lệ'));
+    }
+
+    const stages = generateStageGetNotifyLeadWhenReturn(req.user.id, paginationCond, type);
+    logger.info('NotifyController::returnLead::stages', JSON.stringify(stages));
+    const result = await NotifyModel.aggregate(stages);
+    const totalItems = result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0;
+    logger.info('NotifyController::returnLead::success');
+
+    return res.json({
+      status: httpCode.SUCCESS,
+      message: 'Success',
+      data: {
+        meta: {
+          totalItems,
+          current: result[0].data.entries,
+          ...paginationCond
+        },
+        entries: result[0].data.entries
+      }
+    })
+  } catch (e) {
+    logger.error('NotifyController::returnLead::error', e);
+    return next(e);
+  }
+};
+
+/**
+ * @param {number} userId
+ * @param {{page: number, limit: number}} paginationCond
+ * @param {number} notifyType
+ */
+const generateStageGetNotifyLeadWhenReturn = (userId, paginationCond, notifyType) => {
+  return [
+    {
+      $match: {
+        type: notifyType,
+        toUser: userId,
+      },
+    },
+    {
+      $facet: {
+        entries: [
+          {$skip: (paginationCond.page - 1) * paginationCond.limit},
+          {$limit: paginationCond.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    }
+  ];
+};
+
 module.exports = {
   createNotify,
   createNotifySession,
   updateNotify,
   getListNotifies,
-  countUnRead
+  countUnRead,
+  returnLead
 };
