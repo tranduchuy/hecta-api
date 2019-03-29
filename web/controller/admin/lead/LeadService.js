@@ -108,7 +108,7 @@ const revertFinishScheduleDownPrice = async (leadId, session) => {
     throw new Error('Schedule not found, so can not detect current lead\'s value');
   }
 
-  schedule.$session()
+  schedule.$session();
   schedule.isFinished = false;
   await schedule.save();
 };
