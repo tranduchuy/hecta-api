@@ -18,7 +18,7 @@ const NotifyController = require('../NotifyController');
 const NotifyTypes = require('../../../config/notify-type');
 const SocketEvents = require('../../../config/socket-event');
 const Socket = require('../../../utils/Socket');
-
+const NotificationHelper = require('../../../helper/notification-helper');
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
 
@@ -109,6 +109,10 @@ const createLead = async (req, res, next) => {
     if (!campaign.isPrivate && isCreatingNewLead === true) {
       LeadService.createScheduleDownLeadPrice(lead._id, campaign);
     }
+
+      // notify to user
+      NotificationHelper.notifyNewLeadByCampaign(campaignId);
+      logger.info('LeadController::notifyLead::success');
 
     return res.json({
       status: HTTP_CODE.SUCCESS,
