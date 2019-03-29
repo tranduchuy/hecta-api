@@ -510,9 +510,11 @@ const handleSearchCaseCategory = async (req, param) => {
         const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
         logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
         const tmpResults2 = await SaleModel.aggregate(stages2);
-        if (tmpResults2[0].entries.length !== 0) {
-          data = tmpResults[0].entries.concat(tmpResults2.entries);
-          const saleIds = tmpResults2[0].entries.map(item => item.contentId);
+        const viewItems = tmpResults2[0].entries;
+
+        if (viewItems.length !== 0) {
+          data = tmpResults[0].entries.concat(viewItems);
+          const saleIds = viewItems.map(item => item.contentId);
           updateAdRankBySearch(saleIds);
         }
         break;

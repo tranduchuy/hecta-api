@@ -207,6 +207,7 @@ const add = async (req, res, next) => {
     sale.cpv = cpv;
     sale.adRank = cpv;
     sale.paidForm = paidForm;
+    sale.isValidBalance = true;
     sale.budgetPerDay = budgetPerDay;
     if (paidForm == global.PAID_FORM.VIEW)
       sale.adStatus = global.STATUS.PAID_FORM_VIEW_ACTIVE;
