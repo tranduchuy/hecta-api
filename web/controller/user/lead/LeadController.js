@@ -261,9 +261,10 @@ const buyLead = async (req, res, next) => {
 
 const refundLead = async (req, res, next) => {
   logger.info('LeadController::refundLead::called');
+  let session = null;
   try {
     // start session
-    let session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
     session.startTransaction();
 
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];

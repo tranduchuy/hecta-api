@@ -742,7 +742,7 @@ const search = async (req, res, next) => {
     let result = {};
     if (isValidSlugDetail(slug)) {
       result = await handleSearchCaseNotCategory(param, slug, next);
-      if (result.type === global.POST_TYPE_SALE) {
+      if (result && result.type === global.POST_TYPE_SALE) {
         // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
         saveAdStatHistory(req, result.data.contentId, {
           utmCampaign: req.query.utmCampaign || '',
