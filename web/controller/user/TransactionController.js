@@ -137,10 +137,10 @@ const childList = async (req, res) => {
   
   logger.info('TransactionController::childList is called');
   try {
-    const pagination = extractPaginationCondition(req, req.query.childId);
-    const cond = extractSearchCondition(req);
+    const pagination = extractPaginationCondition(req);
+    const cond = extractSearchCondition(req, req.params.id);
     const queryStr = `?${request.convertObjectToQueryString(cond)}&${request.convertObjectToQueryString(pagination)}`;
-    const uri = `${CDP_APIS.TRANSACTION_HISTORY.LIST_MY}${queryStr}`;
+    const uri = `${CDP_APIS.TRANSACTION_HISTORY.LIST_CHILD}${queryStr}`;
     
     get(uri, req.user.token)
       .then(async (r) => {
