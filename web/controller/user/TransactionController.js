@@ -146,39 +146,37 @@ const childList = async (req, res) => {
       .then(async (r) => {
         let transactions = await Promise.all(r.data.entries.map(async transaction => {
           
-          if (ObjectId.isValid(transaction.note)) {
-            if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
-              transaction.type === global.TRANSACTION_TYPE_UP_NEW ||
-              transaction.type === global.TRANSACTION_TYPE_VIEW_POST_SALE) {
-              
-              try {
-                let note = JSON.parse(transaction.note);
-                const sale = await SaleModel.findOne({_id: note.saleId});
-                if (sale) {
-                  transaction.info = {
-                    title: sale.title
-                  };
-                }
-              }
-              catch (e) {
-                logger.error('TransactionController::list', e);
+          if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
+            transaction.type === global.TRANSACTION_TYPE_UP_NEW ||
+            transaction.type === global.TRANSACTION_TYPE_VIEW_POST_SALE) {
+            
+            try {
+              let note = JSON.parse(transaction.note);
+              const sale = await SaleModel.findOne({_id: note.saleId});
+              if (sale) {
+                transaction.info = {
+                  title: sale.title
+                };
               }
             }
-            
-            if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
-              transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
-              try {
-                let note = JSON.parse(transaction.note);
-                const lead = await LeadHistoryModel.findOne({_id: note.leadId});
-                if (lead) {
-                  transaction.info = {
-                    title: lead.name
-                  };
-                }
+            catch (e) {
+              logger.error('TransactionController::list', e);
+            }
+          }
+          
+          if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
+            transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
+            try {
+              let note = JSON.parse(transaction.note);
+              const lead = await LeadHistoryModel.findOne({_id: note.leadId});
+              if (lead) {
+                transaction.info = {
+                  title: lead.name
+                };
               }
-              catch (e) {
-                logger.error('TransactionController::list', e);
-              }
+            }
+            catch (e) {
+              logger.error('TransactionController::list', e);
             }
           }
           
@@ -220,41 +218,40 @@ const list = async (req, res, next) => {
       .then(async (r) => {
         let transactions = await Promise.all(r.data.entries.map(async transaction => {
           
-          if (ObjectId.isValid(transaction.note)) {
-            if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
-              transaction.type === global.TRANSACTION_TYPE_UP_NEW ||
-              transaction.type === global.TRANSACTION_TYPE_VIEW_POST_SALE) {
-              
-              try {
-                let note = JSON.parse(transaction.note);
-                const sale = await SaleModel.findOne({_id: note.saleId});
-                if (sale) {
-                  transaction.info = {
-                    title: sale.title
-                  };
-                }
-              }
-              catch (e) {
-                logger.error('TransactionController::list', e);
+          if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
+            transaction.type === global.TRANSACTION_TYPE_UP_NEW ||
+            transaction.type === global.TRANSACTION_TYPE_VIEW_POST_SALE) {
+            
+            try {
+              let note = JSON.parse(transaction.note);
+              const sale = await SaleModel.findOne({_id: note.saleId});
+              if (sale) {
+                transaction.info = {
+                  title: sale.title
+                };
               }
             }
-            
-            if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
-              transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
-              try {
-                let note = JSON.parse(transaction.note);
-                const lead = await LeadHistoryModel.findOne({_id: note.leadId});
-                if (lead) {
-                  transaction.info = {
-                    title: lead.name
-                  };
-                }
-              }
-              catch (e) {
-                logger.error('TransactionController::list', e);
-              }
+            catch (e) {
+              logger.error('TransactionController::list', e);
             }
           }
+          
+          if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
+            transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
+            try {
+              let note = JSON.parse(transaction.note);
+              const lead = await LeadHistoryModel.findOne({_id: note.leadId});
+              if (lead) {
+                transaction.info = {
+                  title: lead.name
+                };
+              }
+            }
+            catch (e) {
+              logger.error('TransactionController::list', e);
+            }
+          }
+          
           
           return transaction;
         }));
