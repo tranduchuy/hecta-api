@@ -45,14 +45,14 @@ const saveLogViewOfSale = async (saleId, logData, type) => {
     return;
   }
 
-  if (sale.paidForm !== global.PAID_FORM.VIEW) {
-    logger.warn('InsertViewStat::saveLogViewOfSale::invalid params. Sale paid form is not PAID_FORM.VIEW', saleId);
-    return;
-  }
+  // if (sale.paidForm !== global.PAID_FORM.VIEW) {
+  //   logger.warn('InsertViewStat::saveLogViewOfSale::invalid params. Sale paid form is not PAID_FORM.VIEW', saleId);
+  //   return;
+  // }
 
   // get post of sale
   const post = await getDetailPost(saleId);
-  if (!post || !post.user) {
+  if (!post || !post.user) { // méo quan tâm bài của khách vãng lai đăng
     logger.warn('InsertViewStat::saveLogViewOfSale::notFound. Post not found or not detect user of post. Sale id', saleId);
     return;
   }

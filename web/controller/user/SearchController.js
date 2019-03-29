@@ -510,8 +510,11 @@ const handleSearchCaseCategory = async (req, param) => {
         const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
         logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
         const tmpResults2 = await SaleModel.aggregate(stages2);
-        data = tmpResults[0].entries.concat(tmpResults2.entries);
-
+        if (tmpResults2[0].entries.length !== 0) {
+          data = tmpResults[0].entries.concat(tmpResults2.entries);
+          const saleIds = tmpResults2[0].entries.map(item => item.contentId);
+          updateAdRankBySearch(saleIds);
+        }
         break;
       case global.POST_TYPE_BUY:
         sortObj = {};
@@ -941,7 +944,13 @@ const saveAdStatHistory = (req, saleId, extraData) => {
     os: agentObj.os
   };
 
+  logger.info('SearchController::saveAdStatHistory::Call function send rabbit mq insertAdStatHistory');
   RabbitMQService.insertAdStatHistory([saleId], logData, 'VIEW');
+};
+
+const updateAdRankBySearch = (saleIds) => {
+  logger.info('SearchController::updateAdRankBySearch::Call function send rabbit mq updateAdRank');
+  RabbitMQService.updateAdRank(saleIds, 'IMPRESSION');
 };
 
 module.exports = {
