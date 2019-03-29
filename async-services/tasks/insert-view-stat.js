@@ -1,6 +1,6 @@
 const config = require('config');
 const adminAccount = config.get('adminAccount');
-const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
+const RABBIT_MQ_CHANNELS = require('../../web/config/rabbit-mq-channels');
 const async = require('async');
 const UserService = require('../services/user');
 const RabbitMQService = require('../services/rabbitmq');
@@ -8,6 +8,7 @@ const HTTP_CODE = require('../../web/config/http-code');
 const CDP_APIs = require('../../web/config/cdp-url-api.constant');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Tasks');
+const {get, post} = require('../../web/utils/Request');
 
 // models
 const SaleModel = require('../../web/models/SaleModel');
@@ -22,17 +23,18 @@ let token = '';
 const runProcess = async (params) => {
   logger.info('InsertViewState::runProcess::called. Params', JSON.stringify(params));
   await Promise.all(params.saleIds.map(async (saleId) => {
-    await saveLogViewOfSale(saleId, params.logData);
+    await saveLogViewOfSale(saleId, params.logData, params.type);
   }));
 };
 
 /**
  *
  * @param {string} saleId
- * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os, type}} logData
+ * @param {{utmSource, utmCampaign, utmMedium, browser, referrer, version, device, os}} logData
+ * @param {string} type
  */
-const saveLogViewOfSale = async (saleId, logData) => {
-  if (!isValidViewType(logData.type)) {
+const saveLogViewOfSale = async (saleId, logData, type) => {
+  if (!isValidViewType(type)) {
     logger.warn('InsertViewStat::saveLogViewOfSale. Wrong type', Object.assign({}, logData, {saleId}));
     return;
   }
@@ -43,23 +45,23 @@ const saveLogViewOfSale = async (saleId, logData) => {
     return;
   }
 
-  if (sale.paidForm !== global.PAID_FORM.VIEW) {
-    logger.warn('InsertViewStat::saveLogViewOfSale::invalid params. Sale paid form is not PAID_FORM.VIEW', saleId);
-    return;
-  }
+  // if (sale.paidForm !== global.PAID_FORM.VIEW) {
+  //   logger.warn('InsertViewStat::saveLogViewOfSale::invalid params. Sale paid form is not PAID_FORM.VIEW', saleId);
+  //   return;
+  // }
 
   // get post of sale
   const post = await getDetailPost(saleId);
-  if (post || !post.user) {
+  if (!post || !post.user) { // méo quan tâm bài của khách vãng lai đăng
     logger.warn('InsertViewStat::saveLogViewOfSale::notFound. Post not found or not detect user of post. Sale id', saleId);
     return;
   }
 
   // get user balance
-  const adStat = await saveAdLog(Object.assign({}, logData, {saleId}));
+  const adStat = await saveAdLog(Object.assign({}, logData, {saleId, type}));
 
   // tính tiền với case VIEW
-  if (logData.type === 'VIEW') {
+  if (type === 'VIEW') {
     try {
       const response = await purchase(post.user, saleId, adStat._id, sale.cpv);
       // TODO: api chưa trả mã hết tiền để có thể set sale.isValidBalance = false;
@@ -84,10 +86,8 @@ const getDetailPost = async (saleId) => {
 const purchase = async (userId, saleId, adStatId, cost) => {
   const data = {
     userId,
-    note: JSON.stringify({
-      saleId,
-      adStatId
-    }),
+    saleId,
+    adStatId,
     cost
   };
   logger.info(`InsertViewStat::purchase::called. Call CDP url ${CDP_APIs.ADMIN.PURCHASE_BY_VIEW_SALE}`, JSON.stringify(data));
@@ -104,7 +104,7 @@ const isValidViewType = (type) => {
   return [
     'VIEW',
     'CLICK'
-  ].includes(type);
+  ].indexOf(type.toUpperCase()) !== -1;
 };
 
 /**
@@ -136,14 +136,16 @@ module.exports = () => {
     (cb) => {
       UserService.login(adminAccount, cb);
     },
-    RabbitMQService.connect
+    (cb) => {
+      RabbitMQService.connect(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, cb);
+    }
   ], (err, results) => {
     if (err) {
       throw err;
     }
 
     token = results[0];
-    const channel = results[1];
+    const channel = results[1][0];
 
     /*
     * msg:
@@ -154,6 +156,7 @@ module.exports = () => {
     channel.consume(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, async (msg) => {
       try {
         const params = JSON.parse(msg.content);
+        logger.info('InsertViewState::Recieve message', params);
         if (params.saleIds || params.saleIds.length !== 0) {
           await runProcess(params);
           logger.info('InsertViewState::finished');

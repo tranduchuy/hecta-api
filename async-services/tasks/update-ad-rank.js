@@ -1,30 +1,43 @@
-
 const config = require('config');
 const adminAccount = config.get('adminAccount');
-const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
+const RABBIT_MQ_CHANNELS = require('../../web/config/rabbit-mq-channels');
 const async = require('async');
 const {get, post} = require('../../web/utils/Request');
 const CDP_APIS = require('../../web/config/cdp-url-api.constant');
 const UserService = require('../services/user');
 const RabbitMQService = require('../services/rabbitmq');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Tasks');
 
 // models
 const SaleModel = require('../../web/models/SaleModel');
 const PostModel = require('../../web/models/PostModel');
 let token = '';
 
+/**
+ *
+ * @param {{saleIds: string[], updateField: string}} params
+ * @returns {Promise<void>}
+ */
 const runProcess = async (params) => {
+  logger.info('UpdateAdRank::runProcess::called with params', JSON.stringify(params));
   const saleIds = params.saleIds;
   saleIds.forEach(async (saleId) => {
-    await runProcessForOneSale(saleId);
+    await runProcessForOneSale(saleId, params.updateField);
   });
 };
 
-const runProcessForOneSale = async (saleId) => {
+/**
+ *
+ * @param {string} saleId
+ * @param {string} updateField
+ * @returns {Promise<void>}
+ */
+const runProcessForOneSale = async (saleId, updateField) => {
   try {
     const sale = await getDetailSale(saleId);
     if (!sale) {
-      // TODO: should confirm about case not found info. Should update adRank to be 0 or not
+      logger.error('UpdateAdRank::runProcessForOneSale::error. Sale not found. Sale id', saleId);
       return;
     }
 
@@ -33,8 +46,8 @@ const runProcessForOneSale = async (saleId) => {
 
     // get post of sale
     const post = await getDetailPost(saleId);
-    if (post || !post.user) {
-      // TODO: should confirm about case not found info. Should update adRank to be 0 or not
+    if (!post || !post.user) {
+      logger.error('UpdateAdRank::runProcessForOneSale::error. Post not found or not determine user id. Post: ', JSON.stringify(post || {}));
       return;
     }
 
@@ -42,22 +55,29 @@ const runProcessForOneSale = async (saleId) => {
     const userBalance = await UserService.getDetailBalance(post.user, token);
 
     // update sale ad info
-    sale.impression++;
+    switch (updateField) {
+      case 'IMPRESSION':
+        sale.impression++;
+        break;
+      case 'CLICK':
+        sale.click++;
+        break;
+    }
+
     sale.ctr = calculateCTR(sale.impression, sale.click);
     sale.adRank = calculateAdRank(sale.ctr, sale.cpv);
-    sale.isValidBalance = userBalance.main1 >= sale.cpv;
+    sale.isValidBalance = UserService.isValidBalance(userBalance, sale.cpv);
     await sale.save();
-
-
+    logger.info('UpdateAdRank::runProcessForOneSale::success. Update adRank successfully for sale', saleId);
   } catch (e) {
-    console.error(`runProcessForOneSale. sale id: ${saleId}`, e);
-    return;
+    logger.error(`UpdateAdRank::runProcessForOneSale::error. Cannot update Sale id: ${saleId}`, e);
   }
 };
 
 const getDetailSale = async (saleId) => {
   return await SaleModel.findOne({_id: saleId});
 };
+
 const getDetailPost = async (saleId) => {
   return await PostModel.findOne({contentId: saleId});
 };
@@ -81,18 +101,22 @@ const initDefaultAdInfo = (sale) => {
 };
 
 module.exports = () => {
+  logger.info('========================================');
+  logger.info('UpdateAdRank::called');
   async.parallel([
     (cb) => {
       UserService.login(adminAccount, cb);
     },
-    RabbitMQService.connect
+    (cb) => {
+      RabbitMQService.connect(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, cb);
+    }
   ], (err, results) => {
     if (err) {
       throw err;
     }
 
     token = results[0];
-    const channel = results[1];
+    const channel = results[1][0];
 
     /*
     * {
@@ -102,15 +126,13 @@ module.exports = () => {
     *
     * */
     channel.consume(RABBIT_MQ_CHANNELS.UPDATE_AD_RANK_OF_SALES, async (msg) => {
-      console.log('message', msg);
       try {
-        const params = JSON.parse(msg);
-
-        if (params.salesId && params.salesId.length !== 0) {
+        const params = JSON.parse(msg.content);
+        if (params.saleIds && params.saleIds.length !== 0) {
           await runProcess(params);
         }
       } catch (e) {
-        console.error(e.message);
+        logger.error('UpdateAdRank::error', e);
       }
     }, {noAck: true});
   });

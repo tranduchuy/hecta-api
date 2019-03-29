@@ -92,7 +92,11 @@ global.CREATED_BY = {
 global.PAID_FORM = {
   DAY: 1,
   VIEW: 2
-}
+};
+
+global.SEARCH_PARAMS = {
+  numberOfSaleByView: 3
+};
 
 
 

@@ -9,6 +9,10 @@ const logger = log4js.getLogger('Controllers');
 const {get, post, del, put} = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 const HTTP_CODE = require('../../config/http-code');
+const EU = require('express-useragent');
+
+//service
+const RabbitMQService = require('../../services/RabbitMqService');
 
 var PostController = {
   child: async function (req, res, next) {
@@ -703,6 +707,41 @@ var PostController = {
         message: 'unknown error : ' + e.message
       });
     }
+  },
+  
+  clickPostSale: async (req, res, next) => {
+  
+    let id = req.body.id ? req.body.id : null;
+    
+    logger.info(`PostController::clickPostSale id ${id}`);
+    
+    if (!id || id.length == 0) {
+      return next(new Error('Invalid id'));
+    }
+  
+    RabbitMQService.updateAdRank([id], 'CLICK');
+  
+    const agentObj = EU.parse(req.get('User-Agent'));
+    const logData = {
+      utmCampaign: req.query.utmCampaign || '',
+      utmSource: req.query.utmSource || '',
+      utmMedium: req.query.utmMedium || '',
+      referrer: req.query.referrer || '',
+      browser: agentObj.browser,
+      version: agentObj.version,
+      device: agentObj.platform,
+      os: agentObj.os
+    };
+    
+    RabbitMQService.insertAdStatHistory([id],logData, 'CLICK');
+    
+  
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      data: {},
+      message: 'SUCCESS'
+    });
+    
   }
 };
 

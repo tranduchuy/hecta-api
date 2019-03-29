@@ -7,6 +7,7 @@
     "start2": "nodemon --inspect ./bin/www"
   },
   "dependencies": {
+    "amqplib": "^0.5.3",
     "ajv": "^5.5.2",
     "ajv-errors": "^1.0.1",
     "async": "^2.6.2",

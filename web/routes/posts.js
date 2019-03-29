@@ -8,5 +8,7 @@ router.get('/top/city', PostController.topCity);
 router.get('/detail/:id', PostController.detail);
 router.get('/list', PostController.list);
 
+router.post('/click-post-sale/:id', PostController.clickPostSale);
+
 
 module.exports = router;
