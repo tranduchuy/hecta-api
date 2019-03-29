@@ -441,7 +441,8 @@ const generateStageQuerySaleByViewCaseCategory = (req, query, paginationCond) =>
       $match: {
         ...query,
         paidForm: global.PAID_FORM.VIEW,
-        isValidBalance: true
+        isValidBalance: true,
+        adStatus: global.STATUS.PAID_FORM_VIEW_ACTIVE
       }
     }
   ];
