@@ -155,22 +155,38 @@ const getCurrentLeadPrice = async (leadId) => {
   return schedule.price;
 };
 
-const chargeBalanceByBuyingLead = (leadInfoString, price, token) => {
+/**
+ *
+ * @param {string} leadId
+ * @param {number }price
+ * @param {string} token
+ * @returns {*}
+ */
+const chargeBalanceByBuyingLead = (leadId, price, token) => {
   const body = {
-    note: leadInfoString,
+    leadId,
     cost: price
   };
 
   return post(CDP_APIS.USER.BUY_LEAD, body, token);
 };
 
+/**
+ *
+ * @param {string} leadId
+ * @param {Object} session
+ * @returns {Promise<void>}
+ */
 const finishScheduleDownPrice = async (leadId, session) => {
-  const schedule = await LeadPriceScheduleModel.findOne({lead: leadId, isFinished: false}).session(session);
+  const schedule = await LeadPriceScheduleModel
+    .findOne({lead: leadId, isFinished: false})
+    .session(session);
+
   if (!schedule) {
     throw new Error('Schedule not found, so can not detect current lead\'s value');
   }
 
-  schedule.$session()
+  schedule.$session();
   schedule.isFinished = true;
   await schedule.save();
 };

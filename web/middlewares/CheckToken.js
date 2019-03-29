@@ -19,6 +19,7 @@ const urlToPassCheckingToken = [
 
   '/api/v1/images/upload',
   '/api/v1/images/get', // /api/v1/images/get/{id}
+  '/api/v1/posts/click-post-sale',
 
   '/api/v1/search',
   '/api/v1/search/box',

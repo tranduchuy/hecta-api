@@ -4,7 +4,7 @@ const logger = log4js.getLogger('Controllers');
 const httpCode = require('../../config/http-code');
 const requestUtil = require('../../utils/RequestUtil');
 const NotifyType = require('../../config/notify-type');
-const {post, del, put, get, convertObjectToQueryString} = require('../../utils/Request');
+const { post, del, put, get, convertObjectToQueryString } = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 /**
  *
@@ -26,7 +26,7 @@ const isValidStatusForUpdating = (status) => {
  * @return {Object}
  */
 const createNotify = async (_params) => {
-  const params = {..._params};
+  const params = { ..._params };
   logger.info('NotifyController::createNotify is called', params);
   const newNotify = await new NotifyModel();
   newNotify.fromUser = params.fromUserId || null;
@@ -47,6 +47,27 @@ const createNotify = async (_params) => {
   return newNotify;
 };
 
+const createNotifySession = async (_params, session) => {
+  const params = { ..._params };
+  logger.info('NotifyController::createNotify is called', params);
+  // const newNotify = await NotifyModel(); 
+  const newNotify = await NotifyModel.create([{
+    fromUser: params.fromUserId || null,
+    toUser: params.toUserId || null,
+    status: global.STATUS.NOTIFY_NONE,
+    title: params.title.toString().trim(),
+    content: params.content.toString().trim(),
+    createdTime: new Date(),
+    updatedTime: new Date(),
+    type: params.type,
+    params: params.params,
+  }], { session });
+  // newNotify.$session();
+  // await newNotify.save();
+
+  return newNotify;
+};
+
 /**
  *
  * @param {*} req body: {status, title, content}, params: {notifyId}
@@ -57,9 +78,9 @@ const updateNotify = async (req, res, next) => {
   logger.info('NotifyController::updateNotify is called');
 
   try {
-    const notify = await NotifyModel.findOne({_id: req.params['notifyId']});
+    const notify = await NotifyModel.findOne({ _id: req.params['notifyId'] });
 
-    let {title, content, status} = req.body;
+    let { title, content, status } = req.body;
     if (isNaN(status)) {
       return res.json({
         status: httpCode.BAD_REQUEST,
@@ -114,7 +135,7 @@ const updateNotify = async (req, res, next) => {
 const getListNotifies = async (req, res, next) => {
   logger.info('NotifyController::getListNotifies is called');
   try {
-    const {page, limit} = requestUtil.extractPaginationCondition(req);
+    const { page, limit } = requestUtil.extractPaginationCondition(req);
     const query = {
       toUser: req.user.id
     };
@@ -123,7 +144,7 @@ const getListNotifies = async (req, res, next) => {
 
     let notifies = await NotifyModel
       .find(query)
-      .sort({createdTime: -1})
+      .sort({ createdTime: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -239,6 +260,7 @@ const countUnRead = async (req, res, next) => {
 
 module.exports = {
   createNotify,
+  createNotifySession,
   updateNotify,
   getListNotifies,
   countUnRead

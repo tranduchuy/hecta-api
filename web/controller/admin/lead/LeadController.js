@@ -1,6 +1,8 @@
 const log4js = require('log4js');
+const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const LeadModel = require('../../../models/LeadModel');
+const NotifyModel = require('../../../models/Notify');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadService = require('./LeadService');
 const CampaignModel = require('../../../models/CampaignModel');
@@ -9,6 +11,11 @@ const VALIDATE_SCHEMAS = require('./validator-schema');
 const HTTP_CODE = require('../../../config/http-code');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
 const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const NotifyController = require('../../user/NotifyController');
+const NotifyTypes = require('../../../config/notify-type');
+const SocketEvents = require('../../../config/socket-event');
+const Socket = require('../../../utils/Socket');
+const config = require('config');
 
 const getList = async (req, res, next) => {
   logger.info('AdminLeadController::getList::called');
@@ -200,7 +207,7 @@ const create = async (req, res, next) => {
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
-                                         // lead) thì mới tạo lead mới
+        // lead) thì mới tạo lead mới
       }
     });
 
@@ -288,10 +295,124 @@ const getDetail = async (req, res, next) => {
   }
 };
 
+/**
+ *
+ * @param {{params: {notifyId: string, event: string}}} req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
+const refundLead = async (req, res, next) => {
+  logger.info('LeadController::refundLead::called');
+  try {
+    // start session
+    let session = await LeadModel.createCollection()
+      .then(() => LeadModel.startSession());
+    session.startTransaction();
+
+    const notify = await NotifyModel.findOne({_id: req.params.notifyId}).session(session);
+    notify.$session();
+    if (
+      !_.isEqual(notify.type, NotifyTypes.USER_WANT_TO_RETURN_LEAD) ||
+      !_.includes(['approve', 'reject'], req.params.event)
+    ) {
+      throw new Error('Tác vụ không hợp lệ');
+    }
+
+    const lead = await LeadModel.findOne({_id: notify.params.lead.id}).session(session);
+    lead.$session();
+
+    if (!lead) {
+      throw new Error('Không tìm thấy lead');
+    }
+
+    if (_.isNil(lead.boughtAt)) {
+      throw new Error('Lead chưa được mua');
+    }
+
+    if (!_.isEqual(lead.status, global.STATUS.LEAD_RETURNING)) {
+      throw new Error('Lead này không yêu cầu trả');
+    }
+
+    const notify2UserParams = {
+      fromUserId: null,
+      toUserId: [notify.fromUserId],
+      params: notify.params
+    };
+
+    if (req.params.event === "approve") {
+      await callCDPRefundWhenApprovingReturningLead(lead.user, lead._id, lead.price);
+      lead.status = global.STATUS.LEAD_NEW;
+      lead.user = null;
+      lead.boughtAt = null;
+      await LeadService.revertFinishScheduleDownPrice(lead._id, session);
+      notify.params.approve = true;
+      notify2UserParams.title = `Chấp nhận trả lead`;
+      notify2UserParams.content = `Yêu cầu trả lead ${notify.params.lead.email} được chấp nhận`;
+      notify2UserParams.type = NotifyTypes.RETURN_LEAD_SUCCESSFULLY;
+    }
+
+    if (req.params.event === "reject") {
+      lead.status = global.STATUS.LEAD_SOLD;
+      notify.params.approve = false;
+      notify2UserParams.title = `Từ chối trả lead`;
+      notify2UserParams.content = `Yêu cầu trả lead bị từ chối`;
+      notify2UserParams.type = NotifyTypes.RETURN_LEAD_FAIL;
+    }
+
+    await lead.save();
+    await notify.save();
+    await NotifyController.createNotify(notify2UserParams);
+    session.commitTransaction();
+
+    // send socket
+    notify2UserParams.toUserIds = [notify2UserParams.toUserId];
+    delete notify2UserParams.toUserId;
+    Socket.broadcast(SocketEvents.NOTIFY, notify2UserParams);
+    logger.info('LeadController::refund::success. Notify refund finish successfully');
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: [],
+      data: {
+        notifyMessage: notify2UserParams.content
+      }
+    });
+  } catch (e) {
+    session.abortTransaction();
+    logger.error('LeadController::refundLead::error', e);
+    return next(e);
+  }
+};
+
+/**
+ *
+ * @param {number} userId
+ * @param {string} leadId
+ * @param {number} cost
+ * @returns {Promise<void>}
+ */
+const callCDPRefundWhenApprovingReturningLead = async (userId, leadId, cost) => {
+  const account = config.get('masterAccount');
+  if (account) {
+    const responseLogin = await post(CDP_APIS.USER.LOGIN, {
+      username: account.username.toString().trim(),
+      password: account.password.toString().trim()
+    });
+
+    const token = responseLogin.data.meta.token;
+    const postData = {userId, leadId, cost};
+    return await post(CDP_APIS.USER.REVERT_BUY_LEAD, postData, token);
+  } else {
+    throw new Error(`Cannot purchase because account master is not defined`);
+  }
+};
+
 module.exports = {
   getList,
   getDetail,
   updateStatus,
   updateInfo,
-  create
+  create,
+  refundLead
 };

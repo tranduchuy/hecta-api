@@ -72,4 +72,6 @@ router.post('/leads', AdminLeadController.create);
 router.put('/leads/:id', AdminLeadController.updateInfo);
 router.put('/leads/:id/status', AdminLeadController.updateStatus);
 
+router.put('/notifies/:notifyId/refund/:even', AdminLeadController.refundLead);
+
 module.exports = router;

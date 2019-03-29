@@ -44,6 +44,13 @@ const get = (uri, token) => {
   });
 };
 
+/**
+ *
+ * @param {string} uri
+ * @param {Object} data
+ * @param {string} token
+ * @returns {Promise<any>}
+ */
 const post = (uri, data, token) => {
   return new Promise((resolve, reject) => {
     const options = {

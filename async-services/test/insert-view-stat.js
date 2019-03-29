@@ -1,7 +1,7 @@
 const amqp = require('amqplib/callback_api');
 const config = require('config');
 const rabbitMQConfig = config.get('rabbitmq');
-const RABBIT_MQ_CHANNELS = require('../config/rabbit-mq-channels');
+const RABBIT_MQ_CHANNELS = require('../../web/config/rabbit-mq-channels');
 const uri = `amqp://${rabbitMQConfig.username}:${rabbitMQConfig.password}@${rabbitMQConfig.host}:${rabbitMQConfig.port}`;
 
 amqp.connect(uri, function (err, conn) {
@@ -25,7 +25,7 @@ amqp.connect(uri, function (err, conn) {
         device: '',
         os: ''
       },
-      saleIds: [],
+      saleIds: ['5c9af51ea9a02917a980253a'],
       type: 'VIEW'
     };
     ch.sendToQueue(RABBIT_MQ_CHANNELS.INSERT_VIEW_STAT_WHEN_VIEW_SALE, new Buffer(JSON.stringify(message)));
