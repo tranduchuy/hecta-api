@@ -740,11 +740,10 @@ const search = async (req, res, next) => {
     }
 
     let result = {};
-    const a = new Date().getTime();
     if (isValidSlugDetail(slug)) {
       result = await handleSearchCaseNotCategory(param, slug, next);
       if (result.type === global.POST_TYPE_SALE) {
-        // TODO: call purchase when view detail sale
+        // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
         saveAdStatHistory(req, result.data.contentId, {
           utmCampaign: req.query.utmCampaign || '',
           utmSource: req.query.utmSource || '',
@@ -766,7 +765,6 @@ const search = async (req, res, next) => {
         return res.json(result);
       }
     }
-
 
     logger.error('SearchController::search:error. Invalid url. Not match case slug', url);
     return next(new Error('Invalid url. Not match case slug: ' + url));

@@ -86,10 +86,8 @@ const getDetailPost = async (saleId) => {
 const purchase = async (userId, saleId, adStatId, cost) => {
   const data = {
     userId,
-    note: JSON.stringify({
-      saleId,
-      adStatId
-    }),
+    saleId,
+    adStatId,
     cost
   };
   logger.info(`InsertViewStat::purchase::called. Call CDP url ${CDP_APIs.ADMIN.PURCHASE_BY_VIEW_SALE}`, JSON.stringify(data));
