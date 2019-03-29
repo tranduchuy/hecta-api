@@ -279,7 +279,7 @@ const add = async (req, res, next) => {
     
     if (paidForm == global.PAID_FORM.DAY) { // tra theo ngay
       const postData = {
-        note: post._id,
+        saleId: sale._id,
         cost: dateCount * priority.costByDay
       };
       
@@ -347,7 +347,7 @@ const upNew = async (req, res, next) => {
     
     const postData = {
       cost: price,
-      note: post._id.toString()
+      saleId: post.contentId.toString()
     };
     Request.post(CDP_APIS.USER.UP_NEW, postData, req.user.token)
       .then(async r => {

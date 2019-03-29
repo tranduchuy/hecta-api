@@ -744,6 +744,7 @@ const search = async (req, res, next) => {
     if (isValidSlugDetail(slug)) {
       result = await handleSearchCaseNotCategory(param, slug, next);
       if (result.type === global.POST_TYPE_SALE) {
+        // TODO: call purchase when view detail sale
         saveAdStatHistory(req, result.data.contentId, {
           utmCampaign: req.query.utmCampaign || '',
           utmSource: req.query.utmSource || '',

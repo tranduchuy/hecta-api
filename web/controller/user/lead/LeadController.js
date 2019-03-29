@@ -11,8 +11,8 @@ const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
 const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
 const AJV = require('../../../services/AJV');
-const { extractPaginationCondition } = require('../../../utils/RequestUtil');
-const { post, get, del, put } = require('../../../utils/Request');
+const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const {post, get, del, put} = require('../../../utils/Request');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
 
 const createLead = async (req, res, next) => {
@@ -43,7 +43,7 @@ const createLead = async (req, res, next) => {
       return next(new Error('Không xác định được chiến dịch'));
     }
 
-    let campaign = await CampaignModel.findOne({ _id: campaignId });
+    let campaign = await CampaignModel.findOne({_id: campaignId});
     if (!campaign) {
       return next(new Error('Không xác định được chiến dịch'));
     }
@@ -136,7 +136,7 @@ const getListLead = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    let { status } = req.query;
+    let {status} = req.query;
     if (!status) {
       queryObj.status = global.STATUS.LEAD_NEW;
     } else {
@@ -206,22 +206,23 @@ const getListLead = async (req, res, next) => {
 
 const buyLead = async (req, res, next) => {
   logger.info('LeadController::buyLead::called');
-  // TODO
   /* Step - This code trust demo how implement transaction in mongoose
   * 1. Check balance info (call to CDP apis)
   * 2. Commit buy lead
   * 3. Charge balance by buying lead (call to CDP apis)
   * */
- let session = null;
+  let session = null;
   try {
     // get user balance
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
     const balance = userInfo.balance;
     // start session
-    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session = await LeadModel.createCollection()
+      .then(() => LeadModel.startSession());
+
     session.startTransaction();
     // step 1 get lead
-    const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
+    const lead = await LeadModel.findOne({_id: req.body.leadId}).session(session);
     lead.$session();
     if (!lead) throw new Error('Không tìm thấy thông tin');
 
@@ -232,7 +233,7 @@ const buyLead = async (req, res, next) => {
     if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
 
     // step 3 buy lead, change balance of user + update lead
-    await LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), currentPrice, req.user.token);
+    await LeadService.chargeBalanceByBuyingLead(lead._id, currentPrice, req.user.token);
     lead.user = req.user.id;
     lead.price = currentPrice;
     lead.boughtAt = new Date();
@@ -262,14 +263,14 @@ const getDetailLead = async (req, res, next) => {
       return next(new Error('Id lead không hợp lệ'));
     }
 
-    let lead = await LeadModel.findOne({ _id: id }).lean();
+    let lead = await LeadModel.findOne({_id: id}).lean();
     if (!lead) {
       return next(new Error('Không tìm thấy lead'));
     }
 
-    const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
-    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
-    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createdAt: 1 });
+    const campaignOfLead = await CampaignModel.findOne({_id: lead.campaign}).lean();
+    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({lead: id}).lean();
+    const leadHistory = await LeadHistoryModel.find({lead: id}).sort({createdAt: 1});
     const newestLeadHistory = leadHistory[0];
 
     let result = {
