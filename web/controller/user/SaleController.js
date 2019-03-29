@@ -205,6 +205,7 @@ const add = async (req, res, next) => {
     sale.contactEmail = contactEmail;
     
     sale.cpv = cpv;
+    sale.adRank = cpv;
     sale.paidForm = paidForm;
     sale.budgetPerDay = budgetPerDay;
     if (paidForm == global.PAID_FORM.VIEW)
