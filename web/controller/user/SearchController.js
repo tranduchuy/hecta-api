@@ -515,7 +515,7 @@ const handleSearchCaseCategory = async (req, param) => {
 
         if (viewItems.length !== 0) {
           data = tmpResults[0].entries.concat(viewItems);
-          const saleIds = viewItems.map(item => item.contentId);
+          const saleIds = viewItems.map(item => item._id);
           updateAdRankBySearch(saleIds);
         }
         break;
