@@ -6,6 +6,7 @@ const TIME_WAIT_TO_DOWN_LEAD_PRICE = timeConfig.next_time_down; // minute
 
 
 function defineModel() {
+  return require('../../web/models/LeadPriceScheduleModel');
   const mongoose = require('mongoose');
   const Schema = mongoose.Schema;
   const leadPriceScheduleSchema = new Schema({
@@ -28,31 +29,33 @@ function defineModel() {
   return mongoose.model('LeadPriceSchedule', leadPriceScheduleSchema, 'LeadPriceSchedule');
 }
 
-schedule.scheduleJob(`*/${DOWN_LEAD_PRICE_WORKER_TIMER} * * * *`, async () => {
-  try {
-    /*TODO: DEFINE MODEL*/
-    const LeadPriceScheduleModel = defineModel();
-    console.log('This runs every 1 minutes', new Date());
-    const leadPriceSchedules = await LeadPriceScheduleModel.find({isFinished: false});
+module.exports = () => {
+  schedule.scheduleJob(`*/${DOWN_LEAD_PRICE_WORKER_TIMER} * * * *`, async () => {
+    try {
+      /*TODO: DEFINE MODEL*/
+      const LeadPriceScheduleModel = defineModel();
+      console.log('This runs every 1 minutes', new Date());
+      const leadPriceSchedules = await LeadPriceScheduleModel.find({isFinished: false});
 
-    leadPriceSchedules.map(async ($) => {
-      console.log(`BEFORE\nPrice${$.price}\nMinPrice:${$.minPrice}\nNow: ${Date.now()}\nNext ${$.downPriceAt.getTime()}`);
+      leadPriceSchedules.map(async ($) => {
+        console.log(`BEFORE\nPrice${$.price}\nMinPrice:${$.minPrice}\nNow: ${Date.now()}\nNext ${$.downPriceAt.getTime()}`);
 
-      if (Date.now() < $.downPriceAt.getTime()) return;
+        if (Date.now() < $.downPriceAt.getTime()) return;
 
-      console.log("$.downPriceStep", $.downPriceStep);
+        console.log("$.downPriceStep", $.downPriceStep);
 
-      $.price -= $.downPriceStep;
-      $.downPriceAt = new Date(Date.now() + TIME_WAIT_TO_DOWN_LEAD_PRICE * 60000);
-      if ($.price <= $.minPrice) {
-        $.price = $.minPrice;
-        $.isFinished = true;
-      }
+        $.price -= $.downPriceStep;
+        $.downPriceAt = new Date(Date.now() + TIME_WAIT_TO_DOWN_LEAD_PRICE * 60000);
+        if ($.price <= $.minPrice) {
+          $.price = $.minPrice;
+          $.isFinished = true;
+        }
 
-      await $.save();
-      console.log(`AFTER\nPrice${$.price}\nMinPrice:${$.minPrice}\nNext ${$.downPriceAt.getTime()}\n`);
-    });
-  } catch (error) {
-    console.error(error);
-  }
-});
+        await $.save();
+        console.log(`AFTER\nPrice${$.price}\nMinPrice:${$.minPrice}\nNext ${$.downPriceAt.getTime()}\n`);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  });
+};

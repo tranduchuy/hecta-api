@@ -2,9 +2,7 @@
 const app = require('../app');
 const http = require('http');
 const db = require('../../web/database/db');
-require('../../web/models');
 const config = require('config');
-const ChangeLeadStatusWorker = require('../jobs/change-lead-status');
 
 const port = config.get('app').port || 2000;
 app.set('port', port);
@@ -14,7 +12,6 @@ server.on('listening', onListening);
 
 db(() => {
   console.log('Connect to mongodb successfully');
-    ChangeLeadStatusWorker();
   server.listen(port);
 });
 
