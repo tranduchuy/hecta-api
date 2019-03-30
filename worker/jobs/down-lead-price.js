@@ -1,61 +1,47 @@
 const config = require('config');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Workers');
 const schedule = require('node-schedule');
 const timeConfig = config.get('down_price_worker');
+const moment = require('moment');
+const LeadPriceScheduleModel = require('../../web/models/LeadPriceScheduleModel');
 const DOWN_LEAD_PRICE_WORKER_TIMER = timeConfig.interval_time_check; // minute
 const TIME_WAIT_TO_DOWN_LEAD_PRICE = timeConfig.next_time_down; // minute
 
+const findLeadScheduleNeedToBeUpdate = async () => {
+  return await LeadPriceScheduleModel.find({isFinished: false});
+};
 
-function defineModel() {
-  return require('../../web/models/LeadPriceScheduleModel');
-  const mongoose = require('mongoose');
-  const Schema = mongoose.Schema;
-  const leadPriceScheduleSchema = new Schema({
-    lead: {
-      type: Schema.Types.ObjectId,
-      ref: 'Lead'
-    },
-    isFinished: {
-      type: Boolean,
-      default: false
-    },
-    price: Number,
-    downPriceStep: Number,
-    minPrice: Number,
-    downPriceAt: Date,
-    createdAt: Date,
-    updatedAt: Date
-  });
+const processDecreaseLeadPrice = async (leadPriceSchedules) => {
+  await Promise.all(leadPriceSchedules.map(async (ls) => {
+    if (moment().isBefore(moment(ls.downPriceAt))) {
+      logger.info(`WORKER::DownLeadPrice::processDecreaseLeadPrice. Update lead id ${ls.lead}. Before price ${ls.price}, isFinished ${ls.isFinished}`);
 
-  return mongoose.model('LeadPriceSchedule', leadPriceScheduleSchema, 'LeadPriceSchedule');
-}
+      ls.price -= ls.downPriceStep;
+      ls.downPriceAt = new Date(Date.now() + TIME_WAIT_TO_DOWN_LEAD_PRICE * 60000);
+
+      if (ls.price <= ls.minPrice) {
+        ls.price = ls.minPrice;
+        ls.isFinished = true;
+      }
+
+      await ls.save();
+      logger.info(`WORKER::DownLeadPrice::processDecreaseLeadPrice. Finish updating lead id ${ls.lead}. After price ${ls.price}, isFinished ${ls.isFinished}`);
+    }
+  }));
+};
 
 module.exports = () => {
+  logger.info('WORKER::DownLeadPrice::Init');
+
   schedule.scheduleJob(`*/${DOWN_LEAD_PRICE_WORKER_TIMER} * * * *`, async () => {
+    logger.info('WORKER::DownLeadPrice::Start at', new Date());
+
     try {
-      /*TODO: DEFINE MODEL*/
-      const LeadPriceScheduleModel = defineModel();
-      console.log('This runs every 1 minutes', new Date());
-      const leadPriceSchedules = await LeadPriceScheduleModel.find({isFinished: false});
-
-      leadPriceSchedules.map(async ($) => {
-        console.log(`BEFORE\nPrice${$.price}\nMinPrice:${$.minPrice}\nNow: ${Date.now()}\nNext ${$.downPriceAt.getTime()}`);
-
-        if (Date.now() < $.downPriceAt.getTime()) return;
-
-        console.log("$.downPriceStep", $.downPriceStep);
-
-        $.price -= $.downPriceStep;
-        $.downPriceAt = new Date(Date.now() + TIME_WAIT_TO_DOWN_LEAD_PRICE * 60000);
-        if ($.price <= $.minPrice) {
-          $.price = $.minPrice;
-          $.isFinished = true;
-        }
-
-        await $.save();
-        console.log(`AFTER\nPrice${$.price}\nMinPrice:${$.minPrice}\nNext ${$.downPriceAt.getTime()}\n`);
-      });
-    } catch (error) {
-      console.error(error);
+      const leadPriceSchedules = await findLeadScheduleNeedToBeUpdate();
+      await processDecreaseLeadPrice(leadPriceSchedules);
+    } catch (e) {
+      logger.error('WORKER::DownLeadPrice::error', e);
     }
   });
 };
