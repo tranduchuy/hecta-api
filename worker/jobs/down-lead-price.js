@@ -1,8 +1,10 @@
+const config = require('config');
 const schedule = require('node-schedule');
 var db = require('../database/db');
 
-const DOWN_LEAD_PRICE_WORKER_TIMER = "1"; // minute
-const TIME_WAIT_TO_DOWN_LEAD_PRICE = "10"; // minute
+const timeConfig = config.get('down_price_worker');
+const DOWN_LEAD_PRICE_WORKER_TIMER = timeConfig.interval_time_check; // minute
+const TIME_WAIT_TO_DOWN_LEAD_PRICE = timeConfig.next_time_down; // minute
 
 db(() => {
   console.log('Connect to mongodb successfully');
