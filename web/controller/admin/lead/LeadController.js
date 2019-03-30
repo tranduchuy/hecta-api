@@ -1,4 +1,5 @@
 const log4js = require('log4js');
+const libphonenumber = require('libphonenumber-js');
 const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const LeadModel = require('../../../models/LeadModel');
@@ -200,11 +201,11 @@ const create = async (req, res, next) => {
     }
 
     const {phone, name, email, campaignId, bedrooms, bathrooms, area, street, direction, note, price} = req.body;
-
-    // TODO: cần thêm 1 bước chuyển số điện thoại về dạng chuẩn: không có 84, bắt đầu bằng 0
+    const normalizedPhone = libphonenumber.parsePhoneNumber(phone).number;
+    
     let isCreatingNewLead = false;
     let lead = await LeadModel.findOne({
-      phone,
+      phone: normalizedPhone,
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
@@ -219,7 +220,7 @@ const create = async (req, res, next) => {
 
     if (!lead) {
       lead = new LeadModel();
-      lead.phone = phone;
+      lead.phone = normalizedPhone;
       lead.campaign = campaignId;
       lead.price = null;
       lead.createdAt = new Date();

@@ -1,4 +1,5 @@
 const log4js = require('log4js');
+const libphonenumber = require('libphonenumber-js');
 const _ = require('lodash');
 const logger = log4js.getLogger('Controllers');
 const moment = require('moment');
@@ -27,15 +28,16 @@ const createLead = async (req, res, next) => {
       name, email, phone, referenceDomain, utmSource, utmCampaign, utmMedium, area, price, campaignId,
       bedrooms, bathrooms, street, note, direction
     } = req.body;
+    const normalizedPhone = libphonenumber.parsePhoneNumber(phone).number;
     if (!name) {
       return next(new Error('Tên bắt buộc'));
     }
 
-    if (!phone) {
+    if (!normalizedPhone) {
       return next(new Error('Số điện thoại là bắt buộc'));
     }
 
-    if (!Validator.isValidPhoneNumber(phone) || isNaN(phone)) {
+    if (!Validator.isValidPhoneNumber(normalizedPhone) || isNaN(normalizedPhone)) {
       return next(new Error('Số điện thoại không đúng, 10-13 kí tự'));
     }
 
@@ -61,7 +63,7 @@ const createLead = async (req, res, next) => {
 
     let isCreatingNewLead = false;
     let lead = await LeadModel.findOne({
-      phone,
+      phone: normalizedPhone,
       campaign: campaignId,
       status: {
         $ne: global.STATUS.LEAD_FINISHED // chỉ khi nào lead đó hoàn toàn thuộc về 1 user (qua thời gian có thể trả
@@ -71,7 +73,7 @@ const createLead = async (req, res, next) => {
 
     if (!lead) {
       lead = new LeadModel();
-      lead.phone = phone;
+      lead.phone = normalizedPhone;
       lead.campaign = campaignId;
       lead.price = null;
       lead.createdAt = new Date();
