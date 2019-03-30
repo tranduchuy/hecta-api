@@ -1,11 +1,22 @@
-const { encrypt } = require('./Encrypt');
+const {encrypt} = require('./Encrypt');
 let io = null;
+const SocketEvents = require('../config/socket-event');
 
-const onDisconnect = (socket) => { };
+const onDisconnect = (socket) => {
+};
 
 const onConnectFn = (socket) => {
   console.log('User connect');
-  socket.on('disconnection', () => { onDisconnect(socket) });
+
+  socket.on(SocketEvents.JOIN, (data) => {
+    console.log(data);
+    socket.join(data.userId);//using room of socket io
+    pushToUser(data.userId, {title: "Hello"});
+  });
+
+  socket.on('disconnection', () => {
+    onDisconnect(socket)
+  });
 };
 
 const init = (ioInput) => {
@@ -14,6 +25,14 @@ const init = (ioInput) => {
     io.set('origins', '*:*');
     io.on('connection', onConnectFn);
   }
+};
+
+const pushToUser = (userId, content) => {
+  if (!io) {
+    return;
+  }
+
+  io.in(userId).emit(SocketEvents.NOTIFY, content);
 };
 
 const broadcast = (type, content) => {
@@ -27,5 +46,6 @@ const broadcast = (type, content) => {
 
 module.exports = {
   init,
-  broadcast
+  broadcast,
+  pushToUser
 };

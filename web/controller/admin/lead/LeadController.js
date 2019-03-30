@@ -16,6 +16,7 @@ const NotifyTypes = require('../../../config/notify-type');
 const SocketEvents = require('../../../config/socket-event');
 const Socket = require('../../../utils/Socket');
 const config = require('config');
+const NotificationService = require('../../../services/NotificationService');
 const {get, post, put, del, convertObjectToQueryString} = require('../../../utils/Request');
 
 const getList = async (req, res, next) => {
@@ -253,9 +254,14 @@ const create = async (req, res, next) => {
     await lead.save();
     logger.info('LeadController::createLead::success');
 
-    // create schedule down lead price
-    if (!campaign.isPrivate && isCreatingNewLead === true) {
-      LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+    if (campaign.isPrivate) {
+      NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
+    } else {
+      if (isCreatingNewLead) {
+        LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+        NotificationService.notifyNewLeadByCampaign(campaignId);
+        logger.info('LeadController::notifyLead::success');
+      }
     }
 
     return res.json({
