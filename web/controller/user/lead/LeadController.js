@@ -18,7 +18,7 @@ const NotifyController = require('../NotifyController');
 const NotifyTypes = require('../../../config/notify-type');
 const SocketEvents = require('../../../config/socket-event');
 const Socket = require('../../../utils/Socket');
-const NotificationHelper = require('../../../helper/notification-helper');
+const NotificationService = require('../../../services/NotificationService');
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
 
@@ -105,14 +105,15 @@ const createLead = async (req, res, next) => {
     await lead.save();
     logger.info('LeadController::createLead::success');
 
-    // create schedule down lead price
-    if (!campaign.isPrivate && isCreatingNewLead === true) {
-      LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+    if (campaign.isPrivate) {
+      NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
+    } else {
+      if (isCreatingNewLead) {
+        LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+        NotificationService.notifyNewLeadByCampaign(campaignId);
+        logger.info('LeadController::notifyLead::success');
+      }
     }
-
-      // notify to user
-      NotificationHelper.notifyNewLeadByCampaign(campaignId);
-      logger.info('LeadController::notifyLead::success');
 
     return res.json({
       status: HTTP_CODE.SUCCESS,
@@ -273,7 +274,7 @@ const refundLead = async (req, res, next) => {
 
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
 
-    const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
+    const lead = await LeadModel.findOne({_id: req.body.leadId}).session(session);
     lead.$session();
     if (!lead) throw new Error('Không tìm thấy lead');
     if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
@@ -284,7 +285,7 @@ const refundLead = async (req, res, next) => {
       await lead.save();
 
       // create notiry
-      const leadHistory = await LeadHistoryModel.find({ lead: lead._id }).sort({ createdAt: 1 }).session(session);
+      const leadHistory = await LeadHistoryModel.find({lead: lead._id}).sort({createdAt: 1}).session(session);
       const notifyParams = {
         fromUserId: userInfo.id,
         toUserId: null,
@@ -303,7 +304,7 @@ const refundLead = async (req, res, next) => {
       await NotifyController.createNotifySession(notifyParams, session);
 
       session.commitTransaction();
-      
+
       // send socket
       notifyParams.toUserIds = [notifyParams.toUserId];
       delete notifyParams.toUserId;
