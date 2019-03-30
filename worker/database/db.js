@@ -3,7 +3,7 @@ const mongoConfig = config.get('mongo');
 const mongoose = require('mongoose');
 
 module.exports = (callback) => {
-  const connectDbStr = `mongodb://${mongoConfig.username}:${mongoConfig.password}@${mongoConfig['host']}:${mongoConfig['port']}/${mongoConfig['databaseName']}`;
+  const connectDbStr = `mongodb+srv://${mongoConfig.username}:${mongoConfig.password}@hecta-ye9xf.mongodb.net/hecta_v2?retryWrites=true`;
 
   console.log('Connection String: ', connectDbStr);
 
@@ -15,3 +15,4 @@ module.exports = (callback) => {
     }
   });
 };
+require('../../web/models/LeadModel');

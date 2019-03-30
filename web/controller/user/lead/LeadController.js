@@ -265,9 +265,10 @@ const buyLead = async (req, res, next) => {
 
 const refundLead = async (req, res, next) => {
   logger.info('LeadController::refundLead::called');
+  let session = null;
   try {
     // start session
-    let session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
     session.startTransaction();
 
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
@@ -353,7 +354,7 @@ const getDetailLead = async (req, res, next) => {
       street: newestLeadHistory.street,
       direction: newestLeadHistory.direction,
       location: LeadService.getLeadLocation(campaignOfLead),
-      leadPrice: lead.price,
+      leadPrice: leadPriceSchedule.price,
       status: lead.status,
       timeToDownPrice: leadPriceSchedule.downPriceAt,
       type: LeadService.getTypeOfLead(campaignOfLead),

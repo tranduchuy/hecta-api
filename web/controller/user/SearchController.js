@@ -441,7 +441,8 @@ const generateStageQuerySaleByViewCaseCategory = (req, query, paginationCond) =>
       $match: {
         ...query,
         paidForm: global.PAID_FORM.VIEW,
-        isValidBalance: true
+        isValidBalance: true,
+        adStatus: global.STATUS.PAID_FORM_VIEW_ACTIVE
       }
     }
   ];
@@ -510,9 +511,11 @@ const handleSearchCaseCategory = async (req, param) => {
         const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
         logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
         const tmpResults2 = await SaleModel.aggregate(stages2);
-        if (tmpResults2[0].entries.length !== 0) {
-          data = tmpResults[0].entries.concat(tmpResults2.entries);
-          const saleIds = tmpResults2[0].entries.map(item => item.contentId);
+        const viewItems = tmpResults2[0].entries;
+
+        if (viewItems.length !== 0) {
+          data = tmpResults[0].entries.concat(viewItems);
+          const saleIds = viewItems.map(item => item._id);
           updateAdRankBySearch(saleIds);
         }
         break;
@@ -742,7 +745,7 @@ const search = async (req, res, next) => {
     let result = {};
     if (isValidSlugDetail(slug)) {
       result = await handleSearchCaseNotCategory(param, slug, next);
-      if (result.type === global.POST_TYPE_SALE) {
+      if (result && result.type === global.POST_TYPE_SALE) {
         // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
         saveAdStatHistory(req, result.data.contentId, {
           utmCampaign: req.query.utmCampaign || '',

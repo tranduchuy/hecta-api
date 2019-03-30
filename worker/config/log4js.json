@@ -1,0 +1,21 @@
+{
+  "appenders": [
+    {
+      "type": "console"
+    },
+    {
+      "type": "dateFile",
+      "maxLogSize": 20480,
+      "filename": "./logs/app.log",
+      "category": "app",
+      "alwaysIncludePattern": true
+    },
+    {
+      "type": "dateFile",
+      "maxLogSize": 20480,
+      "filename": "./logs/Workers.log",
+      "category": "Workers",
+      "alwaysIncludePattern": true
+    }
+  ]
+}
