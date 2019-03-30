@@ -2,7 +2,6 @@ const config = require('config');
 const schedule = require('node-schedule');
 const LeadPriceScheduleModel = require('../../web/models/LeadPriceScheduleModel');
 const db = require('../database/db');
-const config = require('config');
 
 const timeConfig = config.get('down_price_worker');
 const DOWN_LEAD_PRICE_WORKER_TIMER = timeConfig.interval_time_check; // minute
