@@ -285,10 +285,10 @@ const returnLead = async (req, res, next) => {
       data: {
         meta: {
           totalItems,
-          current: result[0].data.entries,
+          current: result[0].entries,
           ...paginationCond
         },
-        entries: result[0].data.entries
+        entries: result[0].entries
       }
     })
   } catch (e) {

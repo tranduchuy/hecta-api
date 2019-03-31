@@ -246,11 +246,10 @@ const create = async (req, res, next) => {
       street: street || '',
       note: note || '',
       direction: direction || null,
-      leadId: lead._id
+      lead: lead._id
     };
 
-    const newHistory = await LeadService.createNewLeadHistory(newLeadHistory);
-    lead.histories.push(newHistory._id);
+    await LeadService.createNewLeadHistory(newLeadHistory);
     await lead.save();
     logger.info('LeadController::createLead::success');
 

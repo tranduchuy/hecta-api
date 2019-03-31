@@ -57,8 +57,6 @@ const createLead = async (req, res, next) => {
       return next(new Error('Domain không hợp lệ'));
     }
 
-    // TODO: cần thêm 1 bước chuyển số điện thoại về dạng chuẩn: không có 84, bắt đầu bằng 0
-
     let isCreatingNewLead = false;
     let lead = await LeadModel.findOne({
       phone,
@@ -97,11 +95,10 @@ const createLead = async (req, res, next) => {
       street: street || '',
       note: note || '',
       direction: direction || null,
-      leadId: lead._id
+      lead: lead._id
     };
 
-    const newHistory = await LeadService.createNewLeadHistory(newLeadHistory);
-    lead.histories.push(newHistory._id);
+    await LeadService.createNewLeadHistory(newLeadHistory);
     await lead.save();
     logger.info('LeadController::createLead::success');
 
