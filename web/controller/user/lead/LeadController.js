@@ -158,7 +158,7 @@ const getListLead = async (req, res, next) => {
     logger.info('LeadController::getList stage: ', JSON.stringify(stages));
     const result = await LeadModel.aggregate(stages);
     const totalItems = result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0;
-    const entries = result[0].entries.map(item => {
+    let entries = result[0].entries.map(item => {
       if (queryObj.status === global.STATUS.LEAD_NEW) {
         item.phone = `${item.phone.slice(0, 3)}*******`;
       }
@@ -166,7 +166,6 @@ const getListLead = async (req, res, next) => {
       if (item.priceSchedule.length !== 0) {
         item.leadPrice = item.priceSchedule[0].price;
         item.timeToDownPrice = item.priceSchedule[0].downPriceAt;
-        item.ahihi = true;
       } else {
         item.leadPrice = item.campaignInfo.leadMaxPrice;
         item.timeToDownPrice = moment().add(item.campaignInfo.downTime, 'minutes');
@@ -190,6 +189,9 @@ const getListLead = async (req, res, next) => {
     });
 
     // lead: {typeStr, location (project name, district, city), price, createdAt, timeToDownPrice }
+    if (queryObj.status === global.STATUS.LEAD_RETURNING) {
+      entries = await LeadService.findReasonOfReturningLeads(req.user.id, entries);
+    }
 
     return res.json({
       status: HTTP_CODE.SUCCESS,

@@ -1,11 +1,13 @@
 const CampaignModel = require('../../../models/CampaignModel');
 const LeadHistoryModel = require('../../../models/LeadHistoryModel');
 const LeadPriceScheduleModel = require('../../../models/LeadPriceScheduleModel');
+const NotifyModel = require('../../../models/Notify');
 const mongoose = require('mongoose');
 const moment = require('moment');
 const {get, post} = require('../../../utils/Request');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
 const TitleService = require('../../../services/TitleService');
+const NotifyTypeContant = require('../../../config/notify-type');
 
 const isValidDomainToCampaign = async (campaignId, domain) => {
   try {
@@ -63,7 +65,7 @@ const generateStageGetLeads = (queryObj, paginationCond) => {
   }
 
   if (queryObj.deleteFlag) {
-    $match['deleteFlag'] = deleteFlag;
+    $match['deleteFlag'] = queryObj.deleteFlag;
   }
 
   stages.push({$match});
@@ -238,6 +240,32 @@ const getTypeOfLead = (campaignInfo) => {
   return 'Không xác định';
 };
 
+const findReasonOfReturningLead = async (userId, leadInfo) => {
+  const notify = await NotifyModel.findOne({
+    $query: {
+      fromUser: userId,
+      type: NotifyTypeContant.USER_WANT_TO_RETURN_LEAD,
+      'params.lead.id': leadInfo._id
+    },
+    $orderBy: {
+      createdTime: -1
+    }
+  });
+
+  if (notify) {
+    return notify.content;
+  }
+
+  return '';
+};
+
+const findReasonOfReturningLeads = async (userId, leadInfos) => {
+  return await Promise.all(leadInfos.map(async leadInfo => {
+    leadInfo.reason = await findReasonOfReturningLead(userId, leadInfo);
+    return leadInfo;
+  }));
+};
+
 module.exports = {
   isValidDomainToCampaign,
   createNewLeadHistory,
@@ -248,5 +276,6 @@ module.exports = {
   chargeBalanceByBuyingLead,
   finishScheduleDownPrice,
   getLeadLocation,
-  getTypeOfLead
+  getTypeOfLead,
+  findReasonOfReturningLeads
 };
