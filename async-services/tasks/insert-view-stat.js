@@ -61,7 +61,7 @@ const saveLogViewOfSale = async (saleId, logData, type) => {
   const adStat = await saveAdLog(Object.assign({}, logData, {saleId, type}));
 
   // tính tiền với case VIEW
-  if (type === 'VIEW') {
+  if (type === 'VIEW' && sale.paidForm === global.PAID_FORM.VIEW) {
     try {
       const response = await purchase(post.user, saleId, adStat._id, sale.cpv);
       // TODO: api chưa trả mã hết tiền để có thể set sale.isValidBalance = false;
