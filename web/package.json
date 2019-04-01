@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "start2": "nodemon ./bin/www"
+    "start": "node --inspect ./bin/www",
+    "start2": "nodemon --inspect ./bin/www"
   },
   "dependencies": {
+    "amqplib": "^0.5.3",
     "ajv": "^5.5.2",
     "ajv-errors": "^1.0.1",
     "async": "^2.6.2",
@@ -18,6 +19,7 @@
     "email-validator": "^2.0.4",
     "eslint": "^5.14.1",
     "express": "^4.16.4",
+    "express-useragent": "^1.0.12",
     "gmail-send": "^1.2.14",
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",

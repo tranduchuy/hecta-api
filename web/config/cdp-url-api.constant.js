@@ -19,6 +19,7 @@ module.exports = {
     SALE_COST: `${host}/user/balance/sale-cost`,
     UP_NEW: `${host}/user/balance/up-news-cost`,
     BUY_LEAD: `${host}/user/balance/buy-lead`,
+    REVERT_BUY_LEAD: `${host}/user/balance/revert-buy-lead`,
     LIST_USER: `${host}/user`,
     LIST_USER_INFO: `${host}/user/info-by-ids`,
     LIST_USER_FOR_NOTIFY: `${host}/user/for-notifies`,
@@ -29,7 +30,9 @@ module.exports = {
     UPDATE_BALANCE: `${host}/user/balance`,
     LIST_ADMIN: `${host}/user/admin`,
     REGISTER_ADMIN: `${host}/user/register-admin`,
-    UPDATE_STATUS_ADMIN: `${host}/user/admin-status/:adminId`
+    UPDATE_STATUS_ADMIN: `${host}/user/admin-status/:adminId`,
+    USER_INFO_BY_ID: `${host}/user/admin-get-user-info/:id`,
+    PURCHASE_BY_VIEW_SALE: `${host}/user/balance/purchase-by-view-sale`
   },
   RELATION_SHIP: {
     REQUEST_LIST: `${host}/user-relationship/request`,

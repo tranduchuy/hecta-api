@@ -11,10 +11,14 @@ const Validator = require('../../../utils/Validator');
 const HTTP_CODE = require('../../../config/http-code');
 const LEAD_VALIDATE_SCHEMA = require('./validator-schemas');
 const AJV = require('../../../services/AJV');
-const { extractPaginationCondition } = require('../../../utils/RequestUtil');
-const { post, get, del, put } = require('../../../utils/Request');
+const {extractPaginationCondition} = require('../../../utils/RequestUtil');
+const {post, get, del, put} = require('../../../utils/Request');
 const CDP_APIS = require('../../../config/cdp-url-api.constant');
-
+const NotifyController = require('../NotifyController');
+const NotifyTypes = require('../../../config/notify-type');
+const SocketEvents = require('../../../config/socket-event');
+const Socket = require('../../../utils/Socket');
+const NotificationService = require('../../../services/NotificationService');
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
 
@@ -43,7 +47,7 @@ const createLead = async (req, res, next) => {
       return next(new Error('Không xác định được chiến dịch'));
     }
 
-    let campaign = await CampaignModel.findOne({ _id: campaignId });
+    let campaign = await CampaignModel.findOne({_id: campaignId});
     if (!campaign) {
       return next(new Error('Không xác định được chiến dịch'));
     }
@@ -101,9 +105,14 @@ const createLead = async (req, res, next) => {
     await lead.save();
     logger.info('LeadController::createLead::success');
 
-    // create schedule down lead price
-    if (!campaign.isPrivate && isCreatingNewLead === true) {
-      LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+    if (campaign.isPrivate) {
+      NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
+    } else {
+      if (isCreatingNewLead) {
+        LeadService.createScheduleDownLeadPrice(lead._id, campaign);
+        NotificationService.notifyNewLeadByCampaign(campaignId);
+        logger.info('LeadController::notifyLead::success');
+      }
     }
 
     return res.json({
@@ -136,7 +145,7 @@ const getListLead = async (req, res, next) => {
       return next(new Error(errors.join('\n')));
     }
 
-    let { status } = req.query;
+    let {status} = req.query;
     if (!status) {
       queryObj.status = global.STATUS.LEAD_NEW;
     } else {
@@ -206,22 +215,23 @@ const getListLead = async (req, res, next) => {
 
 const buyLead = async (req, res, next) => {
   logger.info('LeadController::buyLead::called');
-  // TODO
   /* Step - This code trust demo how implement transaction in mongoose
   * 1. Check balance info (call to CDP apis)
   * 2. Commit buy lead
   * 3. Charge balance by buying lead (call to CDP apis)
   * */
- let session = null;
+  let session = null;
   try {
     // get user balance
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
     const balance = userInfo.balance;
     // start session
-    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session = await LeadModel.createCollection()
+      .then(() => LeadModel.startSession());
+
     session.startTransaction();
     // step 1 get lead
-    const lead = await LeadModel.findOne({ _id: req.body.leadId }).session(session);
+    const lead = await LeadModel.findOne({_id: req.body.leadId}).session(session);
     lead.$session();
     if (!lead) throw new Error('Không tìm thấy thông tin');
 
@@ -232,7 +242,7 @@ const buyLead = async (req, res, next) => {
     if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
 
     // step 3 buy lead, change balance of user + update lead
-    await LeadService.chargeBalanceByBuyingLead(JSON.stringify(lead), currentPrice, req.user.token);
+    await LeadService.chargeBalanceByBuyingLead(lead._id, currentPrice, req.user.token);
     lead.user = req.user.id;
     lead.price = currentPrice;
     lead.boughtAt = new Date();
@@ -254,6 +264,68 @@ const buyLead = async (req, res, next) => {
   }
 };
 
+const refundLead = async (req, res, next) => {
+  logger.info('LeadController::refundLead::called');
+  let session = null;
+  try {
+    // start session
+    session = await LeadModel.createCollection().then(() => LeadModel.startSession());
+    session.startTransaction();
+
+    const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
+
+    const lead = await LeadModel.findOne({_id: req.body.leadId}).session(session);
+    lead.$session();
+    if (!lead) throw new Error('Không tìm thấy lead');
+    if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
+    if (!_.isEqual(lead.user, userInfo.id)) throw new Error('Lead không thuộc sở hữu của bạn');
+    if (_.isEqual(lead.status, global.STATUS.LEAD_SOLD)) {
+      // Update lead status
+      lead.status = global.STATUS.LEAD_RETURNING;
+      await lead.save();
+
+      // create notiry
+      const leadHistory = await LeadHistoryModel.find({lead: lead._id}).sort({createdAt: 1}).session(session);
+      const notifyParams = {
+        fromUserId: userInfo.id,
+        toUserId: null,
+        title: `<${userInfo.email}> muốn trả lead <${lead.phone}>`,
+        content: req.body.reason,
+        type: NotifyTypes.USER_WANT_TO_RETURN_LEAD,
+        params: {
+          lead: {
+            id: lead._id,
+            phone: lead.phone,
+            email: leadHistory.email,
+            name: leadHistory[0].name
+          }
+        }
+      };
+      await NotifyController.createNotifySession(notifyParams, session);
+
+      session.commitTransaction();
+
+      // send socket
+      notifyParams.toUserIds = [notifyParams.toUserId];
+      delete notifyParams.toUserId;
+      Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
+      logger.info('SaleController::add::success. Create post sale successfully');
+
+      return res.json({
+        status: HTTP_CODE.SUCCESS,
+        message: 'Đã nhận yêu cầu trả lead',
+        data: {}
+      });
+    }
+
+    throw new Error('Lead này không trả được');
+  } catch (e) {
+    session.abortTransaction();
+    logger.error('LeadController::refundLead::error', e);
+    return next(e);
+  }
+};
+
 const getDetailLead = async (req, res, next) => {
   logger.info('LeadController::getDetailLead::called');
   try {
@@ -262,14 +334,14 @@ const getDetailLead = async (req, res, next) => {
       return next(new Error('Id lead không hợp lệ'));
     }
 
-    let lead = await LeadModel.findOne({ _id: id }).lean();
+    let lead = await LeadModel.findOne({_id: id}).lean();
     if (!lead) {
       return next(new Error('Không tìm thấy lead'));
     }
 
-    const campaignOfLead = await CampaignModel.findOne({ _id: lead.campaign }).lean();
-    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({ lead: id }).lean();
-    const leadHistory = await LeadHistoryModel.find({ lead: id }).sort({ createdAt: 1 });
+    const campaignOfLead = await CampaignModel.findOne({_id: lead.campaign}).lean();
+    const leadPriceSchedule = await LeadPriceScheduleModel.findOne({lead: id}).lean();
+    const leadHistory = await LeadHistoryModel.find({lead: id}).sort({createdAt: 1});
     const newestLeadHistory = leadHistory[0];
 
     let result = {
@@ -283,7 +355,7 @@ const getDetailLead = async (req, res, next) => {
       street: newestLeadHistory.street,
       direction: newestLeadHistory.direction,
       location: LeadService.getLeadLocation(campaignOfLead),
-      leadPrice: lead.price,
+      leadPrice: leadPriceSchedule.price,
       status: lead.status,
       timeToDownPrice: leadPriceSchedule.downPriceAt,
       type: LeadService.getTypeOfLead(campaignOfLead),
@@ -315,5 +387,6 @@ module.exports = {
   createLead,
   getListLead,
   buyLead,
+  refundLead,
   getDetailLead
 };

@@ -13,7 +13,6 @@ const AdminCategoryController = require('../controller/admin/CategoryController'
 const AdminTagController = require('../controller/admin/TagController');
 const AdminCampaignController = require('../controller/admin/campaign/CampaignController');
 const AdminLeadController = require('../controller/admin/lead/LeadController');
-const AdminNotifyController = require('../controller/admin/notify/NotifyController');
 const CheckAdminMiddleware = require('../middlewares/CheckRoleAdmin');
 
 router.get('/projects/types', AdminProjectController.typeList);
@@ -72,8 +71,5 @@ router.get('/leads/:id', AdminLeadController.getDetail);
 router.post('/leads', AdminLeadController.create);
 router.put('/leads/:id', AdminLeadController.updateInfo);
 router.put('/leads/:id/status', AdminLeadController.updateStatus);
-
-
-router.get('/notifies/return-lead', AdminNotifyController.getListReturnLeadNotifies);
 
 module.exports = router;

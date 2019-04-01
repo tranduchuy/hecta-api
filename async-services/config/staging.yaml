@@ -1,0 +1,21 @@
+rabbitmq:
+  host: 178.128.105.93
+  port: 5672
+  username: admin
+  password: admin123
+
+accountLogin:
+  username: master
+  password: 123456
+
+cdp:
+  host: http://178.128.127.23
+  port: 2901
+
+mongo:
+  username: admin
+  password: xyz1233VF8YLwUWjegMwyxzLv3bFu2
+
+adminAccount:
+  username: master
+  password: 123456

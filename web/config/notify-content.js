@@ -27,6 +27,10 @@ module.exports = {
         Title: 'Chia sẻ tài khoản cho bạn',
         Content: 'Chia sẻ tài khoản cho bạn'
     },
+    NewLead: {
+        Title: 'Có thông tin khách hàng mới cho bạn',
+        Content: 'Có thông tin khách hàng mới cho bạn\''
+    },
     UpNew: {
         Title: 'UpNew',
         Content: 'UpNew'

@@ -47,5 +47,6 @@ app.use(function (err, req, res, next) {
 });
 
 // require('./hotfix')();
+require('./database/dump/create-lead-history-and-schedule');
 
 module.exports = app;

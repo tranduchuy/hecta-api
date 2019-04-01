@@ -5,6 +5,7 @@ const httpCode = require('../../config/http-code');
 const requestUtil = require('../../utils/RequestUtil');
 const NotifyType = require('../../config/notify-type');
 const {post, del, put, get, convertObjectToQueryString} = require('../../utils/Request');
+const {extractPaginationCondition} = require('../../utils/RequestUtil');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 /**
  *
@@ -43,6 +44,27 @@ const createNotify = async (_params) => {
   newNotify.type = params.type;
   newNotify.params = params.params;
   await newNotify.save();
+
+  return newNotify;
+};
+
+const createNotifySession = async (_params, session) => {
+  const params = {..._params};
+  logger.info('NotifyController::createNotify is called', params);
+  // const newNotify = await NotifyModel(); 
+  const newNotify = await NotifyModel.create([{
+    fromUser: params.fromUserId || null,
+    toUser: params.toUserId || null,
+    status: global.STATUS.NOTIFY_NONE,
+    title: params.title.toString().trim(),
+    content: params.content.toString().trim(),
+    createdTime: new Date(),
+    updatedTime: new Date(),
+    type: params.type,
+    params: params.params,
+  }], {session});
+  // newNotify.$session();
+  // await newNotify.save();
 
   return newNotify;
 };
@@ -237,9 +259,76 @@ const countUnRead = async (req, res, next) => {
   }
 };
 
+const returnLead = async (req, res, next) => {
+  logger.info('NotifyController::returnLead::called');
+  try {
+    const paginationCond = extractPaginationCondition(req);
+    let type = req.query.type;
+    if (!type || isNaN(type)) {
+      return next(new Error('Thông số không hợp lệ'));
+    }
+
+    type = parseInt(type, 0);
+    if ([NotifyType.RETURN_LEAD_SUCCESSFULLY, NotifyType.RETURN_LEAD_FAIL].indexOf(type) === -1) {
+      return next(new Error('Thông số không hợp lệ'));
+    }
+
+    const stages = generateStageGetNotifyLeadWhenReturn(req.user.id, paginationCond, type);
+    logger.info('NotifyController::returnLead::stages', JSON.stringify(stages));
+    const result = await NotifyModel.aggregate(stages);
+    const totalItems = result[0].meta.length > 0 ? result[0].meta[0].totalItems : 0;
+    logger.info('NotifyController::returnLead::success');
+
+    return res.json({
+      status: httpCode.SUCCESS,
+      message: 'Success',
+      data: {
+        meta: {
+          totalItems,
+          current: result[0].data.entries,
+          ...paginationCond
+        },
+        entries: result[0].data.entries
+      }
+    })
+  } catch (e) {
+    logger.error('NotifyController::returnLead::error', e);
+    return next(e);
+  }
+};
+
+/**
+ * @param {number} userId
+ * @param {{page: number, limit: number}} paginationCond
+ * @param {number} notifyType
+ */
+const generateStageGetNotifyLeadWhenReturn = (userId, paginationCond, notifyType) => {
+  return [
+    {
+      $match: {
+        type: notifyType,
+        toUser: userId,
+      },
+    },
+    {
+      $facet: {
+        entries: [
+          {$skip: (paginationCond.page - 1) * paginationCond.limit},
+          {$limit: paginationCond.limit}
+        ],
+        meta: [
+          {$group: {_id: null, totalItems: {$sum: 1}}},
+        ],
+      }
+    }
+  ];
+};
+
 module.exports = {
   createNotify,
+  createNotifySession,
   updateNotify,
   getListNotifies,
-  countUnRead
+  countUnRead,
+  returnLead
 };
