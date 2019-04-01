@@ -310,9 +310,10 @@ const getDetail = async (req, res, next) => {
  */
 const refundLead = async (req, res, next) => {
   logger.info('LeadController::refundLead::called');
+  let session;
   try {
     // start session
-    let session = await LeadModel.createCollection()
+    session = await LeadModel.createCollection()
       .then(() => LeadModel.startSession());
     session.startTransaction();
 
@@ -342,7 +343,7 @@ const refundLead = async (req, res, next) => {
 
     const notify2UserParams = {
       fromUserId: null,
-      toUserId: [notify.fromUserId],
+      toUserId: notify.fromUserId,
       params: notify.params
     };
 
@@ -353,14 +354,16 @@ const refundLead = async (req, res, next) => {
       lead.boughtAt = null;
       await LeadService.revertFinishScheduleDownPrice(lead._id, session);
       notify.params.approve = true;
+      notify.type = NotifyTypes.RETURN_LEAD_SUCCESSFULLY;
       notify2UserParams.title = `Chấp nhận trả lead`;
-      notify2UserParams.content = `Yêu cầu trả lead ${notify.params.lead.email} được chấp nhận`;
+      notify2UserParams.content = `Yêu cầu trả lead ${notify.params.lead.phone} - ${notify.params.lead.name} được chấp nhận`;
       notify2UserParams.type = NotifyTypes.RETURN_LEAD_SUCCESSFULLY;
     }
 
     if (req.params.event === "reject") {
       lead.status = global.STATUS.LEAD_SOLD;
       notify.params.approve = false;
+      notify.type = NotifyTypes.RETURN_LEAD_FAIL;
       notify2UserParams.title = `Từ chối trả lead`;
       notify2UserParams.content = `Yêu cầu trả lead bị từ chối`;
       notify2UserParams.type = NotifyTypes.RETURN_LEAD_FAIL;

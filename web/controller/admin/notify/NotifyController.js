@@ -29,7 +29,8 @@ const getListReturnLeadNotifies = async (req, res, next) => {
   try {
     const {page, limit} = requestUtil.extractPaginationCondition(req);
     const query = {
-        status: NotifyType.USER_WANT_TO_RETURN_LEAD
+      type: NotifyType.USER_WANT_TO_RETURN_LEAD,
+      'params.lead.approve': undefined
     };
 
     const total = await NotifyModel.countDocuments(query);
@@ -39,22 +40,6 @@ const getListReturnLeadNotifies = async (req, res, next) => {
       .sort({createdTime: -1})
       .skip((page - 1) * limit)
       .limit(limit);
-
-    if(notifies.length === 0){
-        return res.json({
-            status: httpCode.SUCCESS,
-            message: [],
-            data: {
-                meta: {
-                    totalItems: total,
-                    page: page,
-                    limit: limit,
-                    sortBy: 'createdTime'
-                },
-                entries: notifies
-            }
-        })
-    }
 
     const userIds = notifies
       .filter(n => n.fromUser)
@@ -69,65 +54,24 @@ const getListReturnLeadNotifies = async (req, res, next) => {
           userObj[u.id] = u;
         });
 
-        const requestTypes = [
-          NotifyType.PARENT_CHILD.REQUEST,
-          NotifyType.PARENT_CHILD.RESPONSE,
-          NotifyType.PARENT_CHILD.REMOVE,
-        ];
         notifies = JSON.parse(JSON.stringify(notifies));
         notifies.forEach(n => {
           n.fromUser = userObj[n.fromUser] || null;
         });
-        let results = [];
 
-        // get relation detail
-        const requestIdsNeedRelationInfo = notifies
-          .filter(n => requestTypes.indexOf(n.type) !== -1)
-          .map(n => n.params.requestId);
-
-        const urlGetRelationDetail = `${CDP_APIS.RELATION_SHIP.DETAIL_BY_IDS}?ids=${requestIdsNeedRelationInfo.join(',')}`;
-        get(urlGetRelationDetail, req.user.token)
-          .then(response => {
-            const relationDetailObj = {};
-            response.data.entries.forEach(re => {
-              relationDetailObj[re.id] = re;
-            });
-
-            notifies.forEach((n) => {
-              if (requestTypes.indexOf(n.type) !== -1) {
-                n.params.request = relationDetailObj[n.params.requestId];
-              }
-
-              results.push(n);
-            });
-
-            results = results.map(noti =>{
-              return {
-                id: noti._id,
-                  user: noti.fromUser,
-                  lead: noti.params.lead,
-                  reason: noti.reason || ''
-              }
-            });
-
-            return res.json({
-              status: httpCode.SUCCESS,
-              message: [],
-              data: {
-                meta: {
-                    totalItems: total,
-                    page: page,
-                    limit: limit,
-                    sortBy: 'createdTime'
-                },
-                entries: results
-              }
-            })
-          })
-          .catch(e => {
-            logger.error('NotifyController::getListReturnLeadNotifies::error', e);
-            return next(e);
-          });
+        return res.json({
+          status: httpCode.SUCCESS,
+          message: [],
+          data: {
+            meta: {
+              totalItems: total,
+              page: page,
+              limit: limit,
+              sortBy: 'createdTime'
+            },
+            entries: notifies
+          }
+        })
       })
       .catch(e => {
         logger.error('NotifyController::getListReturnLeadNotifies::error', e);
@@ -177,5 +121,5 @@ const countUnRead = async (req, res, next) => {
 
 module.exports = {
   countUnRead,
-    getListReturnLeadNotifies
+  getListReturnLeadNotifies
 };
