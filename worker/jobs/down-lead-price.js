@@ -14,7 +14,7 @@ const findLeadScheduleNeedToBeUpdate = async () => {
 
 const processDecreaseLeadPrice = async (leadPriceSchedules) => {
   await Promise.all(leadPriceSchedules.map(async (ls) => {
-    if (moment().isBefore(moment(ls.downPriceAt))) {
+    if (moment().isAfter(moment(ls.downPriceAt))) {
       logger.info(`WORKER::DownLeadPrice::processDecreaseLeadPrice. Update lead id ${ls.lead}. Before price ${ls.price}, isFinished ${ls.isFinished}`);
 
       ls.price -= ls.downPriceStep;
