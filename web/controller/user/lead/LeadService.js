@@ -107,6 +107,12 @@ const generateStageGetLeads = (queryObj, paginationCond) => {
     }
   });
 
+  stages.push({
+    $sort: {
+      updatedAt: -1
+    }
+  });
+
   // map history
   // stages.push({"$lookup": {"from": "LeadHistory", "localField": "lead", "foreignField": "_id", "as": "histories"}});
 
@@ -149,7 +155,7 @@ const getBalanceInfo = (token) => {
 };
 
 const getCurrentLeadPrice = async (leadId) => {
-  const schedule = await LeadPriceScheduleModel.findOne({lead: leadId, isFinished: false});
+  const schedule = await LeadPriceScheduleModel.findOne({lead: leadId});
   if (!schedule) {
     throw new Error('Schedule not found, so can not detect current lead\'s value');
   }
@@ -181,12 +187,8 @@ const chargeBalanceByBuyingLead = (leadId, price, token) => {
  */
 const finishScheduleDownPrice = async (leadId, session) => {
   const schedule = await LeadPriceScheduleModel
-    .findOne({lead: leadId, isFinished: false})
+    .findOne({lead: leadId})
     .session(session);
-
-  if (!schedule) {
-    throw new Error('Schedule not found, so can not detect current lead\'s value');
-  }
 
   schedule.$session();
   schedule.isFinished = true;

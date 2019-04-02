@@ -166,9 +166,11 @@ const getListLead = async (req, res, next) => {
       if (item.priceSchedule.length !== 0) {
         item.leadPrice = item.priceSchedule[0].price;
         item.timeToDownPrice = item.priceSchedule[0].downPriceAt;
+        item.isFinishDownPrice = item.priceSchedule[0].isFinished;
       } else {
         item.leadPrice = item.campaignInfo.leadMaxPrice;
         item.timeToDownPrice = moment().add(item.campaignInfo.downTime, 'minutes');
+        item.isFinishDownPrice = false;
       }
 
       item.location = LeadService.getLeadLocation(item.campaignInfo);
@@ -238,7 +240,8 @@ const buyLead = async (req, res, next) => {
 
     // step 2 get current price and check with balance
     const currentPrice = await LeadService.getCurrentLeadPrice(lead._id);
-    if (balance.main1 < currentPrice) throw new Error("Số dư tài khoản không đủ");
+    const totalBalance = balance.main1 + balance.main2 + balance.promo + balance.credit;
+    if (totalBalance < currentPrice) throw new Error("Số dư tài khoản không đủ");
 
     // step 3 buy lead, change balance of user + update lead
     await LeadService.chargeBalanceByBuyingLead(lead._id, currentPrice, req.user.token);
@@ -281,10 +284,16 @@ const refundLead = async (req, res, next) => {
     if (_.isEqual(lead.status, global.STATUS.LEAD_SOLD)) {
       // Update lead status
       lead.status = global.STATUS.LEAD_RETURNING;
+      lead.updatedAt = new Date();
       await lead.save();
 
       // create notiry
       const leadHistory = await LeadHistoryModel.find({lead: lead._id}).sort({createdAt: 1}).session(session);
+      if (leadHistory.length === 0) {
+        logger.warn('LeadController::refundLead::lead history not found. lead id', lead._id);
+      }
+
+      const newestHistory = leadHistory[0] || {};
       const notifyParams = {
         fromUserId: userInfo.id,
         toUserId: null,
@@ -295,8 +304,8 @@ const refundLead = async (req, res, next) => {
           lead: {
             id: lead._id,
             phone: lead.phone,
-            email: leadHistory.email,
-            name: leadHistory[0].name
+            email: newestHistory.email || '',
+            name: newestHistory.name || ''
           }
         }
       };
@@ -341,7 +350,10 @@ const getDetailLead = async (req, res, next) => {
     const campaignOfLead = await CampaignModel.findOne({_id: lead.campaign}).lean();
     const leadPriceSchedule = await LeadPriceScheduleModel.findOne({lead: id}).lean();
     const leadHistory = await LeadHistoryModel.find({lead: id}).sort({createdAt: 1});
-    const newestLeadHistory = leadHistory[0];
+    if (leadHistory.length === 0) {
+      logger.warn('LeadController::refundLead::lead history not found. lead id', id);
+    }
+    const newestLeadHistory = leadHistory[0] || {};
 
     let result = {
       _id: lead._id,

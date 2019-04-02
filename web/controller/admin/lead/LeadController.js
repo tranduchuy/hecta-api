@@ -343,7 +343,7 @@ const refundLead = async (req, res, next) => {
 
     const notify2UserParams = {
       fromUserId: null,
-      toUserId: notify.fromUserId,
+      toUserId: notify.fromUser,
       params: notify.params
     };
 
@@ -352,6 +352,7 @@ const refundLead = async (req, res, next) => {
       lead.status = global.STATUS.LEAD_NEW;
       lead.user = null;
       lead.boughtAt = null;
+      lead.price = null;
       await LeadService.revertFinishScheduleDownPrice(lead._id, session);
       notify.params.approve = true;
       notify.type = NotifyTypes.RETURN_LEAD_SUCCESSFULLY;

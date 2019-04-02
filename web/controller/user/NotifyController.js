@@ -311,6 +311,11 @@ const generateStageGetNotifyLeadWhenReturn = (userId, paginationCond, notifyType
       },
     },
     {
+      $sort: {
+        createdTime: -1
+      }
+    },
+    {
       $facet: {
         entries: [
           {$skip: (paginationCond.page - 1) * paginationCond.limit},
