@@ -9,7 +9,7 @@ const ChangeLeadStatusWorkerConfig = config.get('changeLeadStatus');
 const findValidLeads = async () => {
   try {
     let query = {
-      query: global.STATUS.LEAD_SOLD
+      status: global.STATUS.LEAD_SOLD
     };
     let leads = await LeadModel.find(query);
 
@@ -22,7 +22,7 @@ const findValidLeads = async () => {
         return false;
       }
 
-      return !moment(searchDate).isBefore(lead.boughtAt);
+      return moment(searchDate).isAfter(lead.boughtAt);
     });
   } catch (e) {
     logger.error('WORKER::ChangeLeadStatus::findValidLeads::Error', e);
