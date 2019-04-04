@@ -3,6 +3,8 @@ const Socket = require('../utils/Socket');
 const NotifyContent = require('../config/notify-content');
 const CampaignModel = require('../models/CampaignModel');
 const ProjectModel = require('../models/ProjectModel');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Services');
 
 const notifyNewLeadByCampaign = async (campaignId) => {
   try {
@@ -49,12 +51,12 @@ const notifyNewLeadByCampaign = async (campaignId) => {
       Socket.pushToUser(userId, NotifyContent.NewLead);
     });
   } catch (e) {
-    console.log(e);
+    logger.error('NotificationService::notifyNewLeadByCampaign::error', e);
   }
 };
 
 const notifyNewLeadOfPrivateCampaign = async (userId) => {
-  // TODO
+  Socket.pushToUser(userId, NotifyContent.NewLead);
 };
 
 module.exports = {

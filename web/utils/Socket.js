@@ -11,7 +11,7 @@ const onConnectFn = (socket) => {
   socket.on(SocketEvents.JOIN, (data) => {
     console.log(data);
     socket.join(data.userId);//using room of socket io
-    pushToUser(data.userId, {title: "Hello"});
+    pushToUser(data.userId, JSON.stringify({title: "Hello"}));
   });
 
   socket.on('disconnection', () => {
@@ -32,7 +32,7 @@ const pushToUser = (userId, content) => {
     return;
   }
 
-  io.in(userId).emit(SocketEvents.NOTIFY, content);
+  io.in(userId).emit(SocketEvents.NOTIFY, JSON.stringify(content));
 };
 
 const broadcast = (type, content) => {

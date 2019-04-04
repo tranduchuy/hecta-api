@@ -55,10 +55,9 @@ const list = async (req, res, next) => {
           'as': 'projectInfo'
         }
       },
-      {'$unwind': {'path': '$projectInfo'}},
       {
         $sort: {
-          updatedAt: 1
+          updatedAt: -1
         }
       },
       {
@@ -76,7 +75,8 @@ const list = async (req, res, next) => {
 
     const result = await RuleAlertLeadModel.aggregate(stages);
     const entries = result[0].entries.map(item => {
-      return {
+      const projectInfo = item.projectInfo.length > 0 ? item.projectInfo[0] : null;
+      const _item = {
         _id: item._id,
         updatedAt: item.updatedAt,
         createdAt: item.createdAt,
@@ -85,11 +85,17 @@ const list = async (req, res, next) => {
         formality: item.formality || null,
         type: item.type || null,
         district: item.district || null,
-        project: {
-          _id: item.projectInfo._id,
-          title: item.projectInfo.title
-        }
+        project: null
+      };
+
+      if (projectInfo) {
+        _item.project = {
+          _id: projectInfo._id,
+          title: projectInfo.title
+        };
       }
+
+      return _item;
     });
 
     return res.json({

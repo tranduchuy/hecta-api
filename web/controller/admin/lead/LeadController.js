@@ -253,14 +253,17 @@ const create = async (req, res, next) => {
     await lead.save();
     logger.info('LeadController::createLead::success');
 
-    if (campaign.isPrivate) {
-      NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
-    } else {
-      if (isCreatingNewLead) {
+    if (isCreatingNewLead) {
+      if (campaign.isPrivate) {
+        lead.status = global.STATUS.LEAD_FINISHED;
+        await lead.save();
+        await NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
+      } else {
         LeadService.createScheduleDownLeadPrice(lead._id, campaign);
-        NotificationService.notifyNewLeadByCampaign(campaignId);
-        logger.info('LeadController::notifyLead::success');
+        await NotificationService.notifyNewLeadByCampaign(campaignId);
       }
+
+      logger.info('LeadController::notifyLead::success');
     }
 
     return res.json({
