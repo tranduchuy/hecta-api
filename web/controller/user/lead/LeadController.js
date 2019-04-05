@@ -177,6 +177,18 @@ const getListLead = async (req, res, next) => {
       item.type = LeadService.getTypeOfLead(item.campaignInfo);
       item.createdAt = item.createdAt || new Date(2019, 1, 1);
 
+      if (queryObj.status === global.STATUS.LEAD_FINISHED) {
+        item.isPrivate = item.campaignInfo.isPrivate;
+        item.boughtAt = item.createdAt;
+
+        if (item.isPrivate) {
+          delete item.leadPrice;
+          delete item.timeToDownPrice;
+          delete item.isFinishDownPrice;
+          delete item.price;
+        }
+      }
+
       delete item.histories;
       delete item.deleteFlag;
       delete item.user;
