@@ -296,12 +296,24 @@ const refundLead = async (req, res, next) => {
     session.startTransaction();
 
     const userInfo = (await get(CDP_APIS.USER.INFO, req.user.token)).data.entries[0];
-
     const lead = await LeadModel.findOne({_id: req.body.leadId}).session(session);
     lead.$session();
+
     if (!lead) throw new Error('Không tìm thấy lead');
     if (_.isNil(lead.boughtAt)) throw new Error('Lead chưa được mua');
     if (!_.isEqual(lead.user, userInfo.id)) throw new Error('Lead không thuộc sở hữu của bạn');
+
+    const campaign = await CampaignModel.findOne({_id: lead.campaign});
+    if (!campaign) {
+      logger.error(`LeadController::refundLead::error. Campaign not found. lead id ${lead._id}, campaign id ${lead.campaign}`);
+      throw new Error('Thao tác không hợp lệ');
+    }
+
+    if (campaign.isPrivate) {
+      logger.error(`LeadController::refundLead::error. Campaign is private so cannot return lead of this campaign. lead id ${lead._id}, campaign id ${lead.campaign}`);
+      throw new Error('Thao tác không hợp lệ');
+    }
+
     if (_.isEqual(lead.status, global.STATUS.LEAD_SOLD)) {
       // Update lead status
       lead.status = global.STATUS.LEAD_RETURNING;
