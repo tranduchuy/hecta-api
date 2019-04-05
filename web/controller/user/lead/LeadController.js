@@ -248,6 +248,15 @@ const buyLead = async (req, res, next) => {
     lead.$session();
     if (!lead) throw new Error('Không tìm thấy thông tin');
 
+    const campaign = await CampaignModel.findOne({_id: lead.campaign});
+    if (!campaign) {
+      throw new Error('Không tìm thấy thông tin');
+    }
+
+    if (campaign.isPrivate) {
+      throw new Error('Thao tác không hợp lệ');
+    }
+
     if (!_.isNil(lead.user)) throw new Error('Thông tin này đã được mua');
 
     // step 2 get current price and check with balance
