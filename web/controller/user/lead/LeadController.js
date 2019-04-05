@@ -19,6 +19,7 @@ const NotifyTypes = require('../../../config/notify-type');
 const SocketEvents = require('../../../config/socket-event');
 const Socket = require('../../../utils/Socket');
 const NotificationService = require('../../../services/NotificationService');
+
 const createLead = async (req, res, next) => {
   logger.info('LeadController::createLead::called');
 
@@ -102,14 +103,17 @@ const createLead = async (req, res, next) => {
     await lead.save();
     logger.info('LeadController::createLead::success');
 
-    if (campaign.isPrivate) {
-      NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
-    } else {
-      if (isCreatingNewLead) {
+    if (isCreatingNewLead) {
+      if (campaign.isPrivate) {
+        lead.status = global.STATUS.LEAD_FINISHED;
+        await lead.save();
+        await NotificationService.notifyNewLeadOfPrivateCampaign(campaign.user);
+      } else {
         LeadService.createScheduleDownLeadPrice(lead._id, campaign);
-        NotificationService.notifyNewLeadByCampaign(campaignId);
-        logger.info('LeadController::notifyLead::success');
+        await NotificationService.notifyNewLeadByCampaign(campaignId);
       }
+
+      logger.info('LeadController::notifyLead::success');
     }
 
     return res.json({
