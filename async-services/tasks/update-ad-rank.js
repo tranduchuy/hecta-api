@@ -56,10 +56,10 @@ const runProcessForOneSale = async (saleId, updateField) => {
 
     // update sale ad info
     switch (updateField) {
-      case 'IMPRESSION':
+      case global.AD_STAT_IMPRESSION:
         sale.impression++;
         break;
-      case 'CLICK':
+      case global.AD_STAT_CLICK:
         sale.click++;
         break;
     }
