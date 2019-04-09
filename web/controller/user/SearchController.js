@@ -517,7 +517,7 @@ const handleSearchCaseCategory = async (req, param) => {
         if (viewItems.length !== 0) {
           data = tmpResults[0].entries.concat(viewItems);
           const saleIds = viewItems.map(item => item._id);
-          saveAdStatHistory(req, saleIds, "IMPRESSION");
+          saveAdStatHistory(req, saleIds, global.AD_STAT_IMPRESSION);
           updateAdRankBySearch(saleIds);
         }
         break;
@@ -749,7 +749,7 @@ const search = async (req, res, next) => {
       result = await handleSearchCaseNotCategory(param, slug, next);
       if (result && result.type === global.POST_TYPE_SALE) {
         // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
-        saveAdStatHistory(req, [result.data.contentId], "VIEW");
+        saveAdStatHistory(req, [result.data.contentId], global.AD_STAT_VIEW);
       }
 
       if (result.status === HttpCode.SUCCESS) {
@@ -913,7 +913,7 @@ const searchCache = (req, res, next) => {
     try {
       const result = JSON.parse(cachedData);
       if (result.type === global.POST_TYPE_SALE) {
-        saveAdStatHistory(req, [result.data.contentId], "VIEW");
+        saveAdStatHistory(req, [result.data.contentId], global.AD_STAT_VIEW);
       }
 
       return res.json(result);
