@@ -6,7 +6,7 @@ const viewStateSchema = new mongoose.Schema({
     default: null
   },
   type: {
-    type: String,
+    type: Number,
     default: 'VIEW' // VIEW | CLICK
   },
   utmSource: String,
