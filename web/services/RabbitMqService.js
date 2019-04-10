@@ -34,7 +34,7 @@ const connectRabbitMQ = (queueName, cb) => {
 /**
  *
  * @param {string[]} saleIds
- * @param {string} updateField
+ * @param {number} updateField
  */
 const updateAdRank = (saleIds, updateField) => {
   // updateField should be CLICK or IMPRESSION

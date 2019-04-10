@@ -75,6 +75,7 @@ const isValidSlugCategorySearch = (slug) => {
 const isValidSlugTag = (slug) => {
   return slug === global.SLUG_TAG;
 };
+
 /**
  *
  * @param saleOrBuyList
@@ -112,14 +113,14 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
     SaleModel;
 
   try {
-    const project = await ProjectModel.findOne({_id: buyOrSaleObj.project});
+    const project = await ProjectModel.findOne({ _id: buyOrSaleObj.project });
     let buyOrSales = [];
 
     if (project) {
       buyOrSales = await model
         .find({
           project: buyOrSaleObj.project,
-          _id: {$ne: buyOrSaleObj._id}
+          _id: { $ne: buyOrSaleObj._id }
         })
         .limit(limit)
         .lean();
@@ -143,7 +144,7 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
       buyOrSales = await model
         .find({
           ...queryObject,
-          _id: {$ne: buyOrSaleObj._id}
+          _id: { $ne: buyOrSaleObj._id }
         })
         .limit(limit)
         .lean();
@@ -195,8 +196,8 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
   let post = await PostModel.findOne({
     status: global.STATUS.ACTIVE,
     $or: [
-      {url: param},
-      {customUrl: param}
+      { url: param },
+      { customUrl: param }
     ]
   });
 
@@ -224,7 +225,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
       return next(new Error('News not found'));
     }
 
-    Object.assign(data, news.toObject(), post.toObject(), {id: post._id});
+    Object.assign(data, news.toObject(), post.toObject(), { id: post._id });
 
     const stages = [
       {
@@ -291,7 +292,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
         project: project._id
       })
       .limit(10)
-      .sort({title: 1})
+      .sort({ title: 1 })
       .lean();
   }
 
@@ -373,7 +374,7 @@ const mapBuyOrSaleItemToResultCaseCategory = (post, buyOrSale) => {
   return Object.assign({},
     buyOrSale,
     post,
-    {id: post._id, keywordList});
+    { id: post._id, keywordList });
 };
 
 const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
@@ -407,16 +408,16 @@ const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
     };
   }
 
-  stages.push({$sort: sortObj});
+  stages.push({ $sort: sortObj });
 
   stages.push({
     $facet: {
       entries: [
-        {$skip: (paginationCond.page - 1) * paginationCond.limit},
-        {$limit: paginationCond.limit},
+        { $skip: (paginationCond.page - 1) * paginationCond.limit },
+        { $limit: paginationCond.limit },
       ],
       meta: [
-        {$group: {_id: null, totalItems: {$sum: 1}}},
+        { $group: { _id: null, totalItems: { $sum: 1 } } },
       ],
     }
   });
@@ -457,16 +458,16 @@ const generateStageQuerySaleByViewCaseCategory = (req, query, paginationCond) =>
       };
   }*/
 
-  stages.push({$sort: {adRank: -1}});
+  stages.push({ $sort: { adRank: -1 } });
 
   stages.push({
     $facet: {
       entries: [
-        {$skip: (paginationCond.page - 1) * global.SEARCH_PARAMS.numberOfSaleByView},
-        {$limit: global.SEARCH_PARAMS.numberOfSaleByView},
+        { $skip: (paginationCond.page - 1) * global.SEARCH_PARAMS.numberOfSaleByView },
+        { $limit: global.SEARCH_PARAMS.numberOfSaleByView },
       ],
       meta: [
-        {$group: {_id: null, totalItems: {$sum: 1}}},
+        { $group: { _id: null, totalItems: { $sum: 1 } } },
       ],
     }
   });
@@ -476,15 +477,15 @@ const generateStageQuerySaleByViewCaseCategory = (req, query, paginationCond) =>
 
 const handleSearchCaseCategory = async (req, param) => {
   let page = req.query.page || 0;
-  const query = {status: global.STATUS.ACTIVE};
+  const query = { status: global.STATUS.ACTIVE };
   let results = [];
   let relatedCates = [];
   let relatedTags = [];
   let count = 0;
   let cat = await UrlParamModel.findOne({
     $or: [
-      {param},
-      {customParam: param}
+      { param },
+      { customParam: param }
     ]
   });
 
@@ -516,6 +517,7 @@ const handleSearchCaseCategory = async (req, param) => {
         if (viewItems.length !== 0) {
           data = tmpResults[0].entries.concat(viewItems);
           const saleIds = viewItems.map(item => item._id);
+          saveAdStatHistory(req, saleIds, global.AD_STAT_IMPRESSION);
           updateAdRankBySearch(saleIds);
         }
         break;
@@ -524,7 +526,7 @@ const handleSearchCaseCategory = async (req, param) => {
         if (req.query.sortBy && ['price', 'area', 'date'].indexOf(req.query.sortBy) !== -1) {
           sortObj[req.query.sortBy] = req.query['sortDirection'] === 'ASC' ? 1 : -1;
         } else {
-          sortObj = {date: -1};
+          sortObj = { date: -1 };
         }
 
         data = await model.find(query)
@@ -540,14 +542,14 @@ const handleSearchCaseCategory = async (req, param) => {
         count = await model.countDocuments(query);
 
         data = await model.find(query)
-          .sort({date: -1})
+          .sort({ date: -1 })
           .skip((paginationCond.page - 1) * paginationCond.limit)
           .limit(paginationCond.limit);
         break;
     }
 
     results = await Promise.all(data.map(async (item) => {
-      const post = await PostModel.findOne({contentId: item._id});
+      const post = await PostModel.findOne({ contentId: item._id });
       if (!post) {
         return null;
       }
@@ -558,7 +560,7 @@ const handleSearchCaseCategory = async (req, param) => {
           return mapBuyOrSaleItemToResultCaseCategory(post.toObject(), item);
         case global.POST_TYPE_PROJECT:
         case global.POST_TYPE_NEWS:
-          return Object.assign({}, post.toObject(), item.toObject(), {id: post._id});
+          return Object.assign({}, post.toObject(), item.toObject(), { id: post._id });
       }
     }));
 
@@ -660,7 +662,7 @@ const filter = async (req, res, next) => {
       return res.json({
         status: HttpCode.SUCCESS,
         // TODO return data list post
-        data: {url: cat.param},
+        data: { url: cat.param },
         message: 'Success'
       });
     }
@@ -677,7 +679,7 @@ const filter = async (req, res, next) => {
       url = urlSlug(url.trim());
     }
 
-    let countDuplicate = await UrlParamModel.countDocuments({param: url});
+    let countDuplicate = await UrlParamModel.countDocuments({ param: url });
     if (countDuplicate > 0) url = url + "-" + countDuplicate;
 
     cat = new UrlParamModel({
@@ -700,7 +702,7 @@ const filter = async (req, res, next) => {
 
     return res.json({
       status: HttpCode.SUCCESS,
-      data: {url},
+      data: { url },
       message: 'Success'
     });
   } catch (e) {
@@ -747,12 +749,7 @@ const search = async (req, res, next) => {
       result = await handleSearchCaseNotCategory(param, slug, next);
       if (result && result.type === global.POST_TYPE_SALE) {
         // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
-        saveAdStatHistory(req, result.data.contentId, {
-          utmCampaign: req.query.utmCampaign || '',
-          utmSource: req.query.utmSource || '',
-          utmMedium: req.query.utmMedium || '',
-          referrer: req.query.referrer || '',
-        });
+        saveAdStatHistory(req, [result.data.contentId], global.AD_STAT_VIEW);
       }
 
       if (result.status === HttpCode.SUCCESS) {
@@ -808,8 +805,8 @@ const getUrlToRedirect = async (req, res, next) => {
       let post = await PostModel.findOne({
         status: global.STATUS.ACTIVE,
         $or: [
-          {url: param},
-          {customUrl: param}
+          { url: param },
+          { customUrl: param }
         ]
       });
 
@@ -840,8 +837,8 @@ const getUrlToRedirect = async (req, res, next) => {
     if (isValidSlugCategorySearch(slug)) {
       let cat = await UrlParamModel.findOne({
         $or: [
-          {param},
-          {customParam: param}
+          { param },
+          { customParam: param }
         ]
       });
 
@@ -872,8 +869,8 @@ const getUrlToRedirect = async (req, res, next) => {
     if (isValidSlugTag(slug)) {
       const tag = await TagModel.findOne({
         $or: [
-          {slug: param},
-          {customSlug: param}
+          { slug: param },
+          { customSlug: param }
         ]
       });
 
@@ -916,12 +913,7 @@ const searchCache = (req, res, next) => {
     try {
       const result = JSON.parse(cachedData);
       if (result.type === global.POST_TYPE_SALE) {
-        saveAdStatHistory(req, result.data.contentId, {
-          utmCampaign: req.query.utmCampaign || '',
-          utmSource: req.query.utmSource || '',
-          utmMedium: req.query.utmMedium || '',
-          referrer: req.query.referrer || '',
-        });
+        saveAdStatHistory(req, [result.data.contentId], global.AD_STAT_VIEW);
       }
 
       return res.json(result);
@@ -933,26 +925,26 @@ const searchCache = (req, res, next) => {
   next();
 };
 
-const saveAdStatHistory = (req, saleId, extraData) => {
+const saveAdStatHistory = (req, saleIds, type) => {
   const agentObj = EU.parse(req.get('User-Agent'));
   const logData = {
-    utmSource: extraData.utmSource,
-    utmCampaign: extraData.utmCampaign,
-    utmMedium: extraData.utmMedium,
+    utmSource: req.query.utmSource,
+    utmCampaign: req.query.utmCampaign,
+    utmMedium: req.query.utmMedium,
+    referrer: req.query.referrer,
     browser: agentObj.browser,
-    referrer: extraData.referrer,
     version: agentObj.version,
     device: agentObj.platform,
     os: agentObj.os
   };
 
   logger.info('SearchController::saveAdStatHistory::Call function send rabbit mq insertAdStatHistory');
-  RabbitMQService.insertAdStatHistory([saleId], logData, 'VIEW');
+  RabbitMQService.insertAdStatHistory(saleIds, logData, type);
 };
 
 const updateAdRankBySearch = (saleIds) => {
   logger.info('SearchController::updateAdRankBySearch::Call function send rabbit mq updateAdRank');
-  RabbitMQService.updateAdRank(saleIds, 'IMPRESSION');
+  RabbitMQService.updateAdRank(saleIds, global.AD_STAT_IMPRESSION);
 };
 
 module.exports = {

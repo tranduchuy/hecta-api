@@ -30,7 +30,7 @@ const runProcess = async (params) => {
 /**
  *
  * @param {string} saleId
- * @param {string} updateField
+ * @param {number} updateField
  * @returns {Promise<void>}
  */
 const runProcessForOneSale = async (saleId, updateField) => {
@@ -56,10 +56,10 @@ const runProcessForOneSale = async (saleId, updateField) => {
 
     // update sale ad info
     switch (updateField) {
-      case 'IMPRESSION':
+      case global.AD_STAT_IMPRESSION:
         sale.impression++;
         break;
-      case 'CLICK':
+      case global.AD_STAT_CLICK:
         sale.click++;
         break;
     }
@@ -121,7 +121,7 @@ module.exports = () => {
     /*
     * {
     *   salesIds: [],
-    *   updateField: CLICK | IMPRESSION // TODO
+    *   updateField: 1 | 2 | 3
     * }
     *
     * */
