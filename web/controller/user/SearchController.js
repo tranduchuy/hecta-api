@@ -944,7 +944,7 @@ const saveAdStatHistory = (req, saleIds, type) => {
 
 const updateAdRankBySearch = (saleIds) => {
   logger.info('SearchController::updateAdRankBySearch::Call function send rabbit mq updateAdRank');
-  RabbitMQService.updateAdRank(saleIds, 'IMPRESSION');
+  RabbitMQService.updateAdRank(saleIds, global.AD_STAT_IMPRESSION);
 };
 
 module.exports = {

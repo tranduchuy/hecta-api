@@ -722,7 +722,7 @@ var PostController = {
       return next(new Error('Invalid id'));
     }
   
-    RabbitMQService.updateAdRank([id], 'CLICK');
+    RabbitMQService.updateAdRank([id], global.AD_STAT_CLICK);
   
     const agentObj = EU.parse(req.get('User-Agent'));
     const logData = {
@@ -736,7 +736,7 @@ var PostController = {
       os: agentObj.os
     };
     
-    RabbitMQService.insertAdStatHistory([id],logData, 'CLICK');
+    RabbitMQService.insertAdStatHistory([id],logData, global.AD_STAT_CLICK);
     
   
     return res.json({

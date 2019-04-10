@@ -103,7 +103,8 @@ const purchase = async (userId, saleId, adStatId, cost) => {
 const isValidViewType = (type) => {
   return [
     global.AD_STAT_VIEW,
-    global.AD_STAT_CLICK
+    global.AD_STAT_CLICK,
+    global.AD_STAT_IMPRESSION
   ].indexOf(type.toUpperCase()) !== -1;
 };
 

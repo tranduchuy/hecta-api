@@ -30,7 +30,7 @@ const runProcess = async (params) => {
 /**
  *
  * @param {string} saleId
- * @param {string} updateField
+ * @param {number} updateField
  * @returns {Promise<void>}
  */
 const runProcessForOneSale = async (saleId, updateField) => {
@@ -121,7 +121,7 @@ module.exports = () => {
     /*
     * {
     *   salesIds: [],
-    *   updateField: CLICK | IMPRESSION // TODO
+    *   updateField: 1 | 2 | 3
     * }
     *
     * */
