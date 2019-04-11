@@ -82,9 +82,43 @@ const getStatByReferrerType = async (req, res, next) => {
 
 }
 
-const getStatByTimeRange = (req, res, next) => {
+const getStatByTimeRange = async (req, res, next) => {
   try {
-    return res.json({});
+    const start_date = req.query.start_date;
+    const end_date = req.query.end_date;
+    const sale_id = req.query.sale_id;
+
+    const adStats = await AdStatModel.find({
+      sale: sale_id,
+      createdAt: {
+        $gt: start_date,
+        $lt: end_date
+      }
+    });
+
+    const result = {
+      status: HttpCode.SUCCESS,
+      message: "Success",
+      data: {
+        statistic: {}
+      }
+    }
+
+    adStats.map(($) => {
+      let logType = "other";
+      if ($.type == global.AD_STAT_VIEW || $.type == "VIEW") logType = "view";
+      if ($.type == global.AD_STAT_IMPRESSION || $.type == "IMPRESSION") logType = "impression";
+      if ($.type == global.AD_STAT_CLICK || $.type == "CLICK") logType = "click";
+      const date = $.createdAt.toISOString().split('T')[0];
+
+      if (!_.isNil(result.data.statistic[date])) result.data.statistic[date][logType]++;
+      else {
+        result.data.statistic[date] = {};
+        result.data.statistic[date][logType] = 1;
+      }
+    })
+
+    return res.json(result);
   } catch (error) {
     logger.info('UserController::getStatByTimeRange::error', error);
     return next(error);
