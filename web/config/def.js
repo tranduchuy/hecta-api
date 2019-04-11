@@ -105,8 +105,11 @@ global.SEARCH_PARAMS = {
   numberOfSaleByView: 3
 };
 
-
-
-
-
-
+global.REFERRER_TYPE = {
+  GOOGLE_ORGANIC: 1,
+  GOOGLE_ADS: 2,
+  FACEBOOK_ORGANIC: 3,
+  FACEBOOK_ADS: 4,
+  HECTA: 5,
+  OTHER: 6
+}

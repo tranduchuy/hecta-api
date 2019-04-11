@@ -7,7 +7,7 @@ const viewStateSchema = new mongoose.Schema({
   },
   type: {
     type: Number,
-    default: 1 // VIEW | CLICK | IMPRESSION
+    default: global.AD_STAT_VIEW // VIEW | CLICK
   },
   utmSource: String,
   utmCampaign: String,
