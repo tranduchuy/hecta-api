@@ -649,7 +649,7 @@ var PostController = {
             paymentStatus: post.paymentStatus,
             
             refresh: post.refresh,
-            viewCount: await AdStatModel.countDocuments({type: 'VIEW', sale: post.contentId})
+            viewCount: await AdStatModel.countDocuments({type: global.AD_STAT_VIEW, sale: post.contentId})
           }
             ;
         } else {
