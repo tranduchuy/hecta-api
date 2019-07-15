@@ -32,8 +32,8 @@ const cache = new LRU({
  */
 const getModelByCatPostType = (cat) => {
   switch (cat.postType) {
-    case global.POST_TYPE_SALE:
-      return SaleModel;
+    // case global.POST_TYPE_SALE:
+    //     //   return SaleModel;
     case global.POST_TYPE_BUY:
       return BuyModel;
     case global.POST_TYPE_PROJECT:
@@ -500,27 +500,27 @@ const handleSearchCaseCategory = async (req, param) => {
     let sortObj = {};
 
     switch (cat.postType) {
-      case global.POST_TYPE_SALE:
-        // get list sale by day
-        const stages = generateStageQuerySaleCaseCategory(req, query, paginationCond);
-        logger.info('SearchController::handleSearchCaseCategory stages of sale by day: ', JSON.stringify(stages));
-        const tmpResults = await SaleModel.aggregate(stages);
-        data = tmpResults[0].entries;
-        count = tmpResults[0].entries.length > 0 ? tmpResults[0].meta[0].totalItems : 0;
-
-        // get list sale by view
-        const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
-        logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
-        const tmpResults2 = await SaleModel.aggregate(stages2);
-        const viewItems = tmpResults2[0].entries;
-
-        if (viewItems.length !== 0) {
-          data = tmpResults[0].entries.concat(viewItems);
-          const saleIds = viewItems.map(item => item._id);
-          saveAdStatHistory(req, saleIds, global.AD_STAT_IMPRESSION);
-          updateAdRankBySearch(saleIds);
-        }
-        break;
+      // case global.POST_TYPE_SALE:
+      //   // get list sale by day
+      //   const stages = generateStageQuerySaleCaseCategory(req, query, paginationCond);
+      //   logger.info('SearchController::handleSearchCaseCategory stages of sale by day: ', JSON.stringify(stages));
+      //   const tmpResults = await SaleModel.aggregate(stages);
+      //   data = tmpResults[0].entries;
+      //   count = tmpResults[0].entries.length > 0 ? tmpResults[0].meta[0].totalItems : 0;
+      //
+      //   // get list sale by view
+      //   const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
+      //   logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
+      //   const tmpResults2 = await SaleModel.aggregate(stages2);
+      //   const viewItems = tmpResults2[0].entries;
+      //
+      //   if (viewItems.length !== 0) {
+      //     data = tmpResults[0].entries.concat(viewItems);
+      //     const saleIds = viewItems.map(item => item._id);
+      //     saveAdStatHistory(req, saleIds, global.AD_STAT_IMPRESSION);
+      //     updateAdRankBySearch(saleIds);
+      //   }
+      //   break;
       case global.POST_TYPE_BUY:
         sortObj = {};
         if (req.query.sortBy && ['price', 'area', 'date'].indexOf(req.query.sortBy) !== -1) {
@@ -625,22 +625,22 @@ const filter = async (req, res, next) => {
     let {
       formality, type, city, district, ward,
       street, project, direction, bedroomCount,
-      area, price
+      area, price, postType
     } = req.body;
 
-    formality = formality ? formality.value : null;
-    type = type ? type.value : null;
-    city = city ? city.value : null;
-    district = district ? district.value : null;
-    ward = ward ? ward.value : null;
-    street = street ? street.value : null;
-    project = project ? project.value : null;
-    direction = (direction && (direction.value !== '0')) ? direction.value : null;
-    bedroomCount = (bedroomCount && (bedroomCount.value !== '0')) ? bedroomCount.value : null;
-    area = area ? area.value : null;
-    price = price ? price.value : null;
+    formality = formality || null;
+    type = type || null;
+    city = city || null;
+    district = district || null;
+    ward = ward || null;
+    street = street || null;
+    project = project || null;
+    direction = (direction && (direction !== '0')) ? direction : null;
+    bedroomCount = (bedroomCount && (bedroomCount !== '0')) ? bedroomCount : null;
+    area = area || null;
+    price = price || null;
 
-    const postType = TitleService.getPostType(formality);
+    // const postType = TitleService.getPostType(formality);
     const query = {
       postType,
       formality,
@@ -657,6 +657,7 @@ const filter = async (req, res, next) => {
     };
 
     let cat = await UrlParamModel.findOne(query);
+
 
     if (cat) {
       return res.json({

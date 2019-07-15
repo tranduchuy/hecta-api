@@ -29,41 +29,18 @@ const priceLevelValue = [
 // Formality list for buy
 module.exports.cateListBuy = [
     {
-        'id': 400,
-        'name': 'Nhà đất cần mua',
+        'id': 1,
+        'name': 'Cho thuê nhà đất',
+        'text': 'Cho thuê nhà đất',
         'children': [
-            {'id': 402, 'name': 'Mua căn hộ chung cư'},
-            {'id': 403, 'name': 'Mua nhà riêng'},
-            {'id': 404, 'name': 'Mua nhà biệt thự, liền kề'},
-            {'id': 405, 'name': 'Mua nhà mặt phố'},
-            {'id': 406, 'name': 'Mua đất nền dự án'},
-            {'id': 407, 'name': 'Mua đất'},
-            {'id': 408, 'name': 'Mua trang trại, khu nghỉ dưỡng'},
-            {'id': 409, 'name': 'Mua kho, nhà xưởng'},
-            {'id': 410, 'name': 'Mua loại bất động sản khác'}
-        ],
-        'prices': [
-            {'name': 'Thỏa thuận', 'id': '-1'},
-            {'name': 'Trăm nghìn/tháng', 'id': '1'},
-            {'name': 'Triệu/tháng', 'id': '2'},
-            {'name': 'Trăm nghìn/m2/tháng', 'id': '5'},
-            {'name': 'Triệu/m2/tháng', 'id': '6'},
-            {'name': 'Nghìn/m2/tháng', 'id': '7'}
-        ],
-        'priceLevelValue': priceLevelValue[0],
-        'brokerdomain': null
-    },
-    {
-        'id': 401, 'name': 'Nhà đất cần thuê',
-        'children': [
-            {'id': 411, 'name': 'Cần thuê căn hộ chung cư'},
-            {'id': 412, 'name': 'Cần thuê nhà riêng'},
-            {'id': 413, 'name': 'Cần thuê nhà mặt phố'},
-            {'id': 414, 'name': 'Cần thuê nhà trọ, phòng trọ'},
-            {'id': 415, 'name': 'Cần thuê văn phòng'},
-            {'id': 416, 'name': 'Cần thuê cửa hàng, ki ốt'},
-            {'id': 417, 'name': 'Cần thuê kho, nhà xưởng, đất'},
-            {'id': 418, 'name': 'Cần thuê loại bất động sản khác'}
+            {'id': 100, 'name': 'Cho thuê căn hộ chung cư'},
+            {'id': 101, 'name': 'Cho thuê nhà riêng'},
+            {'id': 102, 'name': 'Cho thuê nhà mặt phố'},
+            {'id': 103, 'name': 'Cho thuê nhà trọ, phòng trọ'},
+            {'id': 104, 'name': 'Cho thuê văn phòng'},
+            {'id': 105, 'name': 'Cho thuê cửa hàng, ki ốt'},
+            {'id': 106, 'name': 'Cho thuê kho, nhà xưởng, đất'},
+            {'id': 107, 'name': 'Cho thuê loại bất động sản khác'}
         ],
         'prices': [
             {'name': 'Thỏa thuận', 'id': '-1'},
@@ -72,10 +49,53 @@ module.exports.cateListBuy = [
             {'name': 'Trăm nghìn/m2', 'id': '6'},
             {'name': 'Triệu/m2', 'id': '7'}
         ],
-        'priceLevelValue': priceLevelValue[1],
-        'brokerdomain': null
-    }];
-
+        'priceLevel': priceLevelValue[1]
+    },
+    {
+        'id': 2,
+        'name': 'Sang nhượng',
+        'text': 'Sang nhượng',
+        'children': [
+            {'id': 200, 'name': 'Ki ốt, sạp chợ'},
+            {'id': 201, 'name': 'Quán ăn, nhà hàng, khách sạn'},
+            {'id': 202, 'name': 'Quán cafe đồ uống'},
+            {'id': 203, 'name': 'Shop thời trang, Tiệm tóc, Spa'},
+            {'id': 204, 'name': 'ShopHouse'},
+            {'id': 205, 'name': 'Sang nhượng khác'}
+        ],
+        'prices': [
+            {'name': 'Thỏa thuận', 'id': '-1'},
+            {'name': 'Triệu', 'id': '1'},
+            {'name': 'Tỷ', 'id': '2'},
+            {'name': 'Trăm nghìn/m2', 'id': '6'},
+            {'name': 'Triệu/m2', 'id': '7'}
+        ],
+        'priceLevel': priceLevelValue[1]
+    },
+    {
+        'id': 3,
+        'name': 'Cần thuê nhà đất',
+        'text': 'Cần thuê nhà đất',
+        'children': [
+            {'id': 300, 'name': 'Cần thuê căn hộ chung cư'},
+            {'id': 301, 'name': 'Cần thuê nhà riêng'},
+            {'id': 302, 'name': 'Cần thuê nhà mặt phố'},
+            {'id': 303, 'name': 'Cần thuê nhà trọ, phòng trọ'},
+            {'id': 304, 'name': 'Cần thuê văn phòng'},
+            {'id': 305, 'name': 'Cần thuê cửa hàng, ki ốt'},
+            {'id': 306, 'name': 'Cần thuê kho, nhà xưởng, đất'},
+            {'id': 307, 'name': 'Cần thuê loại bất động sản khác'}
+        ],
+        'prices': [
+            {'name': 'Thỏa thuận', 'id': '-1'},
+            {'name': 'Triệu', 'id': '1'},
+            {'name': 'Tỷ', 'id': '2'},
+            {'name': 'Trăm nghìn/m2', 'id': '6'},
+            {'name': 'Triệu/m2', 'id': '7'}
+        ],
+        'priceLevel': priceLevelValue[1]
+    },
+];
 
 // Formality list for sale
 module.exports.cateList = [
