@@ -89,7 +89,7 @@ const getOrderTitle = (data) => {
     let formality = getFormalityBuyByValue(data.formality);
 
     if (formality) {
-      const price = getPriceByValue(data.price, formality.priceLevelValue);
+      const price = getPriceByValue(parseInt(data.price), formality.priceLevel);
       if (price)
         orderTitle = orderTitle + " " + price.text;
     }
@@ -134,10 +134,10 @@ const getAreaByValue = (value) => {
     return null;
   }
 
-  if (value < 0) return null;
+  if (parseInt(value, 0) < 0) return null;
 
   return selector.areaListValue.find(d => {
-    return d.value === value;
+    return d.value.toString() === value.toString();
   });
 };
 
@@ -165,31 +165,31 @@ const getTypeByValue = (formality, value) => {
 
 const getCityByCode = (cd) => {
   return CityList.find(city => {
-    return city.code === cd;
+    return city.code === cd.toString();
   });
 };
 
 const getDistrictByValue = (city, value) => {
   return city.district.find(d => {
-    return d.id === value;
+    return d.id.toString() === value.toString();
   });
 };
 
 const getProjectByValue = (district, value) => {
   return district.project.find(w => {
-    return w._id.toString() === value;
+    return w._id.toString() === value.toString();
   });
 };
 
 const getWardByValue = (district, value) => {
   return district.ward.find(w => {
-    return w.id === value;
+    return w.id.toString() === value.toString();
   });
 };
 
 const getStreetByValue = (district, value) => {
   return district.street.find(w => {
-    return w.id === value;
+    return w.id.toString() === value.toString();
   });
 };
 
