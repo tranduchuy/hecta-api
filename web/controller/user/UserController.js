@@ -9,12 +9,12 @@ const Socket = require('../../utils/Socket');
 const SocketEvents = require('../../config/socket-event');
 const NotifyTypes = require('../../config/notify-type');
 const ImageService = require('../../services/ImageService');
-const {get, post, put, del} = require('../../utils/Request');
+const { get, post, put, del } = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 
 const forgetPassword = async (req, res, next) => {
   logger.info('UserController::forgetPassword is called');
-  
+
   try {
     get(`${CDP_APIS.USER.FORGET_PASSWORD}?email=${req.body.email || ''}&type=${req.body.type}`)
       .then((r) => {
@@ -35,8 +35,8 @@ const forgetPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   logger.info('UserController::resetPassword is called');
-  const {resetToken, password, confirmedPassword, type} = req.body;
-  
+  const { resetToken, password, confirmedPassword, type } = req.body;
+
   try {
     post(CDP_APIS.USER.RESET_PASSWORD, {
       token: resetToken,
@@ -64,39 +64,39 @@ const balance = async (req, res, next) => {
   logger.info('UserController::balance is called');
   try {
     const user = req.user;
-    let account = await AccountModel.findOne({owner: user._id});
-    
+    let account = await AccountModel.findOne({ owner: user._id });
+
     if (!account) {
-      account = new AccountModel({owner: user._id});
+      account = new AccountModel({ owner: user._id });
       account = await account.save();
     }
-    
+
     const accountInfo = {
       main: account.main,
       promo: account.promo
     };
-    
+
     if (user.type === global.USER_TYPE_COMPANY) {
       let creditTransferred = 0;
-      const children = await ChildModel.find({companyId: user._id});
-      
+      const children = await ChildModel.find({ companyId: user._id });
+
       if (children && children.length > 0) {
         children.forEach(child => {
           creditTransferred += (child.credit - child.creditUsed);
         });
       }
-      
+
       accountInfo.creditTransferred = creditTransferred;
     }
-    
+
     if (user.type === global.USER_TYPE_PERSONAL) {
-      const child = await ChildModel.find({personalId: user._id, status: global.STATUS.CHILD_ACCEPTED});
+      const child = await ChildModel.find({ personalId: user._id, status: global.STATUS.CHILD_ACCEPTED });
       if (child) {
         accountInfo.credit = child.credit;
         accountInfo.creditUsed = child.creditUsed;
       }
     }
-    
+
     return res.json({
       status: HTTP_CODE.SUCCESS,
       data: accountInfo,
@@ -133,18 +133,18 @@ const childDetail = async (req, res, next) => {
 
 const registerChild = async (req, res, next) => {
   logger.info('UserController::registerChild is called');
-  
+
   try {
     const {
       username, email, password, phone, name, confirmedPassword,
       birthday, gender, city, district, ward, type
     } = req.body;
-    
+
     const postData = {
       username, email, password, phone, name, confirmedPassword,
       birthday, gender, city, district, ward, type
     };
-    
+
     post(CDP_APIS.RELATION_SHIP.ADD_NEW_CHILD, postData, req.user.token)
       .then(async r => {
         const newRelation = r.data.entries[0];
@@ -159,15 +159,15 @@ const registerChild = async (req, res, next) => {
             requestId: newRelation.id
           }
         };
-        
+
         await NotifyController.createNotify(notifyParam);
-        
+
         // send Socket
-        const socketContents = {...notifyParam, toUserIds: [newRelation.childId]};
+        const socketContents = { ...notifyParam, toUserIds: [newRelation.childId] };
         delete socketContents.toUserId;
         Socket.broadcast(SocketEvents.NOTIFY, socketContents);
         logger.info(`UserController::registerChild::success. relation id ${newRelation.id}`);
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: newRelation,
@@ -186,10 +186,10 @@ const registerChild = async (req, res, next) => {
 
 const confirm = async (req, res, next) => {
   logger.info('UserController::confirm is called');
-  const token = req.body.token;
-  
+  const {phone, otpCode} = req.body;
+
   try {
-    get(`${CDP_APIS.USER.CONFIRM_EMAIL}?token=${token}`)
+    post(`${CDP_APIS.USER.CONFIRM_PHONE}`, {phone, otpCode}, '')
       .then(r => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
@@ -208,27 +208,13 @@ const confirm = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   logger.info('UserController::register is called');
-  
-  let {
-    username, email, password, phone, name,
-    birth, gender, city, district, ward, type,
-    retypePassword
-  } = req.body;
-  
-  let birthday = birth;
-  
-  if (birthday) {
-    birthday = new Date(birthday);
-  }
-  
+  let { password, phone, name, confirmedPassword } = req.body;
   const data = {
-    username, email, password, phone, name,
-    birthday, gender, city, district, ward, type,
-    confirmedPassword: retypePassword
+    password, phone, name, confirmedPassword
   };
-  
+
   try {
-    post(CDP_APIS.USER.REGISTER, data)
+    post(CDP_APIS.USER.REGISTER, data, '')
       .then(() => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
@@ -248,10 +234,10 @@ const register = async (req, res, next) => {
 const creditShare = async (req, res, next) => {
   logger.info('UserController::creditShare is called');
   try {
-    let {amount, note} = req.body;
+    let { amount, note } = req.body;
     const id = req.params.id;
-    
-    post(CDP_APIS.USER.SHARE_CREDIT, {amount, childId: parseInt(id)}, req.user.token)
+
+    post(CDP_APIS.USER.SHARE_CREDIT, { amount, childId: parseInt(id) }, req.user.token)
       .then(response => {
         const data = response.data.entries[0];
         // notify
@@ -267,13 +253,13 @@ const creditShare = async (req, res, next) => {
           }
         };
         NotifyController.createNotify(notifyParams);
-        
+
         // send Socket
         notifyParams.toUserIds = [notifyParams.toUserId];
         delete notifyParams.toUserId;
         Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
-        
-        
+
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: {},
@@ -310,13 +296,13 @@ const childRemove = async (req, res, next) => {
           }
         };
         NotifyController.createNotify(notifyParams);
-        
+
         // send socket
         notifyParams.toUserIds = [notifyParams.toUserId];
         delete notifyParams.toUserId;
         Socket.broadcast(SocketEvents.NOTIFY, notifyParams);
         logger.info('UserController::childRemove::success');
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: relation,
@@ -340,14 +326,14 @@ const childResponse = async (req, res, next) => {
       relationId: parseInt(req.params.id),
       status: req.body.status
     };
-    
+
     post(CDP_APIS.RELATION_SHIP.CHILD_REPLY_REQUEST, postData, req.user.token)
       .then(async r => {
         const relation = r.data.entries[0];
-        const {Title, Content} = req.body.status === global.STATUS.CHILD_ACCEPTED ?
+        const { Title, Content } = req.body.status === global.STATUS.CHILD_ACCEPTED ?
           NotifyContent.ResponseChildStatusAccepted :
           NotifyContent.ResponseChildStatusRejected;
-        
+
         const notifyParam = {
           fromUserId: relation.childId,
           toUserId: relation.parentId,
@@ -359,12 +345,12 @@ const childResponse = async (req, res, next) => {
           }
         };
         await NotifyController.createNotify(notifyParam);
-        
-        const socketContents = {...notifyParam, toUserIds: [relation.parentId]};
+
+        const socketContents = { ...notifyParam, toUserIds: [relation.parentId] };
         delete socketContents.toUserId;
         Socket.broadcast(SocketEvents.NOTIFY, socketContents);
         logger.info(`UserController::childResponse::success. relation id ${relation.id}, status ${relation.status}`);
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: relation,
@@ -384,22 +370,22 @@ const childResponse = async (req, res, next) => {
 const login = async (req, res, next) => {
   logger.info('UserController::login is called');
   try {
-    const {username, password} = req.body;
+    const { username, password } = req.body;
     if (!username || !password) {
       return next(new Error('Username and password are required'));
     }
-    
-    const data = {password};
+
+    const data = { password };
     if (username.indexOf('@') !== -1) {
       data.email = username;
     } else {
       data.username = username;
     }
-    
+
     post(CDP_APIS.USER.LOGIN, data)
       .then((r) => {
-        const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
-        
+        const user = Object.assign(r.data.entries[0], { token: r.data.meta.token });
+
         user._id = user.id;
         user.gender = user.gender || null;
         user.city = user.city || null;
@@ -408,7 +394,7 @@ const login = async (req, res, next) => {
         user.birthday = user.birthday || null;
         user.balance.main = user.balance.main1;
         delete user.balance.main1;
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           message: 'Success',
@@ -427,11 +413,11 @@ const login = async (req, res, next) => {
 
 const resendConfirm = async (req, res, next) => {
   logger.info('UserController::resendConfirm is called');
-  
+
   try {
-    const email = req.body.email;
-    
-    get(`${CDP_APIS.USER.RESEND_CONFIRM_EMAIL}?email=${email}`)
+    const phone = req.body.phone;
+
+    get(`${CDP_APIS.USER.RESEND_CONFIRM_PHONE}?phone=${phone}`)
       .then((r) => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
@@ -450,15 +436,28 @@ const resendConfirm = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   logger.info('UserController::update::called');
-  
+
   try {
     const user = req.user;
-    let {password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword, confirmedPassword} = req.body;
-    const postData = {password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword, confirmedPassword};
-    
+    let { password, name, phone, birthday, gender, city, district, ward, type, avatar, oldPassword, confirmedPassword } = req.body;
+    const postData = {
+      password,
+      name,
+      phone,
+      birthday,
+      gender,
+      city,
+      district,
+      ward,
+      type,
+      avatar,
+      oldPassword,
+      confirmedPassword
+    };
+
     if (avatar)
       ImageService.postConfirmImage([avatar]);
-    
+
     const apiUrl = CDP_APIS.USER.UPDATE_USER_INFO.replace(':id', req.user.id);
     put(apiUrl, postData, req.user.token)
       .then((r) => {
@@ -480,17 +479,17 @@ const update = async (req, res, next) => {
 
 const childRequest = async (req, res, next) => {
   logger.info(`UserController::childRequest::called`);
-  
+
   try {
     let id = req.params.id;
     const postData = {
       userId: parseInt(id)
     };
     logger.info(`UserController::childRequest call CDP api with user id: ${id}`);
-    
+
     post(CDP_APIS.RELATION_SHIP.ADD_REGISTERED_CHILD, postData, req.user.token)
       .then(async r => {
-        
+
         const notifyParam = {
           fromUserId: req.user.id,
           toUserId: parseInt(id),
@@ -502,12 +501,12 @@ const childRequest = async (req, res, next) => {
           }
         };
         await NotifyController.createNotify(notifyParam);
-        
-        const socketContents = {...notifyParam, toUserIds: [parseInt(id)]};
+
+        const socketContents = { ...notifyParam, toUserIds: [parseInt(id)] };
         delete socketContents.toUserId;
         Socket.broadcast(SocketEvents.NOTIFY, socketContents);
         logger.info('UserController::childRequest::success', JSON.stringify(r.data.entries[0]));
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           message: 'Success',
@@ -526,7 +525,7 @@ const childRequest = async (req, res, next) => {
 
 const requestList = async (req, res, next) => {
   logger.info('UserController::requestList::called');
-  
+
   try {
     get(CDP_APIS.RELATION_SHIP.REQUEST_LIST, req.user.token)
       .then((r) => {
@@ -535,7 +534,7 @@ const requestList = async (req, res, next) => {
           delete r.parentInfo;
           return r;
         });
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           message: 'Success',
@@ -544,19 +543,19 @@ const requestList = async (req, res, next) => {
       })
       .catch(err => {
         logger.error('UserController::requestList::error', err);
-        
+
         return next(err);
       });
   } catch (e) {
     logger.error('UserController::requestList::error', err);
-    
+
     return next(e);
   }
 };
 
 const childList = async (req, res, next) => {
   logger.info('UserController::childList::called');
-  
+
   try {
     get(CDP_APIS.RELATION_SHIP.LIST_CHILD, req.user.token)
       .then((r) => {
@@ -565,7 +564,7 @@ const childList = async (req, res, next) => {
             credit: child.credit,
             creditUsed: child.usedCredit
           };
-          
+
           return {
             id: child.childId,
             username: child.childInfo.username,
@@ -575,7 +574,7 @@ const childList = async (req, res, next) => {
             balance: accountInfo
           };
         });
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: childs,
@@ -585,7 +584,7 @@ const childList = async (req, res, next) => {
       .catch((err) => {
         return next(err)
       });
-    
+
   } catch (e) {
     logger.error('UserController::childList::error', e);
     return next(e);
@@ -594,10 +593,10 @@ const childList = async (req, res, next) => {
 
 const findUserByEmail = async (req, res, next) => {
   logger.info('UserController::findUserByEmail::called');
-  
+
   try {
     const email = req.params.email;
-    
+
     get(`${CDP_APIS.USER.FIND_USER_BY_EMAIL}?email=${email}`, req.user.token)
       .then(r => {
         return res.json({
@@ -617,7 +616,7 @@ const findUserByEmail = async (req, res, next) => {
 
 const highlight = async (req, res, next) => {
   logger.info('UserController::highlight::called');
-  
+
   try {
     get(CDP_APIS.USER.HIGHLIGHT)
       .then((body) => {
@@ -637,14 +636,14 @@ const highlight = async (req, res, next) => {
       message: 'unknown error : ' + e.message
     });
   }
-  
+
 };
 
 const check = async (req, res, next) => {
   logger.info('UserController::check::called');
   const username = req.body.username || '';
   const email = req.body.email || '';
-  
+
   try {
     get(`${CDP_APIS.USER.CHECK_DUP_USERNAME_EMAIL}?email=${email}&username=${username}`)
       .then(r => {
@@ -655,7 +654,7 @@ const check = async (req, res, next) => {
             message: (username ? 'username' : 'email') + ' duplicated'
           });
         }
-        
+
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: true,
