@@ -186,10 +186,10 @@ const registerChild = async (req, res, next) => {
 
 const confirm = async (req, res, next) => {
   logger.info('UserController::confirm is called');
-  const {phone, otpCode} = req.body;
+  const { phone, otpCode } = req.body;
 
   try {
-    post(`${CDP_APIS.USER.CONFIRM_PHONE}`, {phone, otpCode}, '')
+    post(`${CDP_APIS.USER.CONFIRM_PHONE}`, { phone, otpCode }, '')
       .then(r => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
@@ -370,18 +370,12 @@ const childResponse = async (req, res, next) => {
 const login = async (req, res, next) => {
   logger.info('UserController::login is called');
   try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      return next(new Error('Username and password are required'));
+    const { phone, email, password } = req.body;
+    if ((!phone && !email) || !password) {
+      return next(new Error('Phone and password are required'));
     }
 
-    const data = { password };
-    if (username.indexOf('@') !== -1) {
-      data.email = username;
-    } else {
-      data.username = username;
-    }
-
+    const data = { password, phone, email };
     post(CDP_APIS.USER.LOGIN, data)
       .then((r) => {
         const user = Object.assign(r.data.entries[0], { token: r.data.meta.token });
