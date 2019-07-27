@@ -14,8 +14,8 @@ const urlToPassCheckingToken = [
   '/api/v1/users/forget-password',
   '/api/v1/users/reset-password',
 
-  '/api/v1/sales/add',
-  '/api/v1/buys/add',
+  // '/api/v1/sales/add',
+  // '/api/v1/buys/add',
 
   '/api/v1/images/upload',
   '/api/v1/images/get', // /api/v1/images/get/{id}

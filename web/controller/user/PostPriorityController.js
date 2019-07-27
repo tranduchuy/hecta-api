@@ -389,28 +389,16 @@ const PostPriorityController = {
   //
   // },
 
-  list: async function (req, res, next) {
-
+  list: async (req, res, next) => {
     try {
-
-      var vips = await PostPriorityModel.find({status: global.STATUS.ACTIVE});
-
       return res.json({
         status: 1,
-        data: vips,
+        data: await PostPriorityModel.find({status: global.STATUS.ACTIVE}),
         message: 'success'
       });
-
-
+    } catch (e) {
+      return next(e);
     }
-    catch (e) {
-      return res.json({
-        status: 0,
-        data: {},
-        message: 'unknown error : ' + e.message
-      });
-    }
-
   },
   listAdmin: async function (req, res, next) {
     try {
