@@ -239,6 +239,8 @@ const add = async (req, res, next) => {
       cost: dateCount * priorityObj.costByDay
     };
 
+    logger.info('SaleController::add::call cdp purchase', {postData, dateCount, costPerDay: priorityObj.costByDay});
+
     Request.post(CDP_APIS.USER.SALE_COST, postData, req.user ? req.user.token : '')
       .then(async r => {
         post.paymentStatus = global.STATUS.PAYMENT_PAID;
@@ -266,7 +268,7 @@ const add = async (req, res, next) => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: post,
-          message: 'request post sale paid form for date success !'
+          message: 'Đăng tin thành công. Vui lòng chờ admin kiểm duyệt'
         });
       })
       .catch(e => {
