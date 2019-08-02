@@ -52,15 +52,35 @@ module.exports.cateListBuy = [
         'priceLevel': priceLevelValue[1]
     },
     {
+        id: 4,
+        name: 'Homestay',
+        text: 'Homestay',
+        children: [
+          {id: 400, name: 'Cho thuê Căn hộ homestay'},
+          {id: 401, name: 'Cho thuê Nhà riêng homestay'},
+          {id: 402, name: 'Cho thuê Biệt thự homestay'},
+          {id: 403, name: 'Cho thuê Studio homestay'},
+          {id: 404, name: 'Cho thuê loại Homestay khá'}
+        ],
+        'prices': [
+          {'name': 'Thỏa thuận', 'id': '-1'},
+          {'name': 'Triệu', 'id': '1'},
+          {'name': 'Tỷ', 'id': '2'},
+          {'name': 'Trăm nghìn/m2', 'id': '6'},
+          {'name': 'Triệu/m2', 'id': '7'}
+        ],
+        'priceLevel': priceLevelValue[1]
+    },
+    {
         'id': 2,
         'name': 'Sang nhượng',
         'text': 'Sang nhượng',
         'children': [
-            {'id': 200, 'name': 'Ki ốt, sạp chợ'},
-            {'id': 201, 'name': 'Quán ăn, nhà hàng, khách sạn'},
-            {'id': 202, 'name': 'Quán cafe đồ uống'},
-            {'id': 203, 'name': 'Shop thời trang, Tiệm tóc, Spa'},
-            {'id': 204, 'name': 'ShopHouse'},
+            {'id': 200, 'name': 'Sang nhượng ki ốt, sạp chợ'},
+            {'id': 201, 'name': 'Sang nhượng quán ăn, nhà hàng, khách sạn'},
+            {'id': 202, 'name': 'Sang nhượng quán cafe đồ uống'},
+            {'id': 203, 'name': 'Sang nhượng shop thời trang, Tiệm tóc, Spa'},
+            {'id': 204, 'name': 'Sang nhượng shop house'},
             {'id': 205, 'name': 'Sang nhượng khác'}
         ],
         'prices': [

@@ -10,28 +10,23 @@ const HTTP_CODE = require('../../config/http-code');
 const _ = require('lodash');
 const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
-const {post, get, del, put, convertObjectToQueryString} = require('../../utils/Request');
+const { post, get, del, put, convertObjectToQueryString } = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
 
 const AdminController = {
   login: async function (req, res, next) {
     logger.info('AdminController::login is called');
     try {
-      const {username, password} = req.body;
-      if (!username || !password) {
-        return next(new Error('Username and password are required'));
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return next(new Error('Email and password are required'));
       }
 
-      const data = {password};
-      if (username.indexOf('@') !== -1) {
-        data.email = username;
-      } else {
-        data.username = username;
-      }
+      const data = { password, email };
 
       post(CDP_APIS.USER.LOGIN, data)
         .then((r) => {
-          const user = Object.assign(r.data.entries[0], {token: r.data.meta.token});
+          const user = Object.assign(r.data.entries[0], { token: r.data.meta.token });
 
           if (![global.USER_ROLE_MASTER, global.USER_ROLE_ADMIN].some(r => r === user.role)) {
             logger.error('Admin/AdminController::login::error. Permission denied');
@@ -163,7 +158,7 @@ const AdminController = {
       const {
         username, email, password, confirmedPassword, phone, name
       } = req.body;
-      const postData = {username, email, password, confirmedPassword, phone, name};
+      const postData = { username, email, password, confirmedPassword, phone, name };
 
       post(CDP_APIS.ADMIN.REGISTER_ADMIN, postData, req.user.token)
         .then((response) => {
@@ -189,7 +184,7 @@ const AdminController = {
     try {
       const id = req.params.id;
       const url = CDP_APIS.ADMIN.UPDATE_STATUS_ADMIN.replace(':adminId', id);
-      put(url, {status: req.body.status}, req.user.token)
+      put(url, { status: req.body.status }, req.user.token)
         .then(response => {
           return res.json({
             status: HTTP_CODE.SUCCESS,
@@ -243,23 +238,23 @@ const AdminController = {
   },
 
   removePost: async function (req, res) {
-    let {type} = req.query;
+    let { type } = req.query;
 
     try {
       type = parseInt(type);
 
       switch (type) {
         case global.POST_TYPE_SALE:
-          await SaleModel.remove({createdByType: global.CREATED_BY.CRAWL});
+          await SaleModel.remove({ createdByType: global.CREATED_BY.CRAWL });
           break;
         case global.POST_TYPE_BUY:
-          await BuyModel.remove({createdByType: global.CREATED_BY.CRAWL});
+          await BuyModel.remove({ createdByType: global.CREATED_BY.CRAWL });
           break;
         case global.POST_TYPE_PROJECT:
-          await ProjectModel.remove({createdByType: global.CREATED_BY.CRAWL});
+          await ProjectModel.remove({ createdByType: global.CREATED_BY.CRAWL });
           break;
         case global.POST_TYPE_NEWS:
-          await NewsModel.remove({createdByType: global.CREATED_BY.CRAWL});
+          await NewsModel.remove({ createdByType: global.CREATED_BY.CRAWL });
           break;
       }
 

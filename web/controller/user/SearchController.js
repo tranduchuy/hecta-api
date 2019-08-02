@@ -392,8 +392,7 @@ const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
     },
     {
       $match: {
-        ...query,
-        paidForm: global.PAID_FORM.DAY
+        ...query
       }
     }
   ];
@@ -403,7 +402,7 @@ const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
     sortObj[`postInfo.${req.query.sortBy}`] = req.query['sortDirection'] === 'ASC' ? 1 : -1;
   } else {
     sortObj = {
-      'postInfo.priority': -1,
+      'postInfo.priority': 1, // priority tăng dần
       date: -1
     };
   }
@@ -500,27 +499,27 @@ const handleSearchCaseCategory = async (req, param) => {
     let sortObj = {};
 
     switch (cat.postType) {
-      // case global.POST_TYPE_SALE:
-      //   // get list sale by day
-      //   const stages = generateStageQuerySaleCaseCategory(req, query, paginationCond);
-      //   logger.info('SearchController::handleSearchCaseCategory stages of sale by day: ', JSON.stringify(stages));
-      //   const tmpResults = await SaleModel.aggregate(stages);
-      //   data = tmpResults[0].entries;
-      //   count = tmpResults[0].entries.length > 0 ? tmpResults[0].meta[0].totalItems : 0;
-      //
-      //   // get list sale by view
-      //   const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
-      //   logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
-      //   const tmpResults2 = await SaleModel.aggregate(stages2);
-      //   const viewItems = tmpResults2[0].entries;
-      //
-      //   if (viewItems.length !== 0) {
-      //     data = tmpResults[0].entries.concat(viewItems);
-      //     const saleIds = viewItems.map(item => item._id);
-      //     saveAdStatHistory(req, saleIds, global.AD_STAT_IMPRESSION);
-      //     updateAdRankBySearch(saleIds);
-      //   }
-      //   break;
+      case global.POST_TYPE_SALE:
+        // get list sale by day
+        const stages = generateStageQuerySaleCaseCategory(req, query, paginationCond);
+        logger.info('SearchController::handleSearchCaseCategory stages of sale by day: ', JSON.stringify(stages));
+        const tmpResults = await SaleModel.aggregate(stages);
+        data = tmpResults[0].entries;
+        count = tmpResults[0].entries.length > 0 ? tmpResults[0].meta[0].totalItems : 0;
+      
+        // get list sale by view
+        // const stages2 = generateStageQuerySaleByViewCaseCategory(req, query, paginationCond);
+        // logger.info('SearchController::handleSearchCaseCategory stages of sale by view: ', JSON.stringify(stages2));
+        // const tmpResults2 = await SaleModel.aggregate(stages2);
+        // const viewItems = tmpResults2[0].entries;
+      
+        // if (viewItems.length !== 0) {
+        //   data = tmpResults[0].entries.concat(viewItems);
+        //   const saleIds = viewItems.map(item => item._id);
+        //   saveAdStatHistory(req, saleIds, global.AD_STAT_IMPRESSION);
+        //   updateAdRankBySearch(saleIds);
+        // }
+        break;
       case global.POST_TYPE_BUY:
         sortObj = {};
         if (req.query.sortBy && ['price', 'area', 'date'].indexOf(req.query.sortBy) !== -1) {
@@ -748,10 +747,10 @@ const search = async (req, res, next) => {
     let result = {};
     if (isValidSlugDetail(slug)) {
       result = await handleSearchCaseNotCategory(param, slug, next);
-      if (result && result.type === global.POST_TYPE_SALE) {
-        // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
-        saveAdStatHistory(req, [result.data.contentId], global.AD_STAT_VIEW);
-      }
+      // if (result && result.type === global.POST_TYPE_SALE) {
+      //   // Note Task insert ad stat history will call api purchase by view detail sale. No need to call here
+      //   saveAdStatHistory(req, [result.data.contentId], global.AD_STAT_VIEW);
+      // }
 
       if (result.status === HttpCode.SUCCESS) {
         cache.set(req.originalUrl, JSON.stringify(result));

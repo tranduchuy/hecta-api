@@ -29,7 +29,7 @@ const add = async (req, res, next) => {
     toiletCount, furniture, images, contactName,
     contactAddress, contactPhone, contactMobile,
     contactEmail, priority, from, to, captchaToken,
-    createdByType, cpv, paidForm, budgetPerDay
+    createdByType, cpv, paidForm, budgetPerDay, googleAddress
   } = req.body;
 
   try {
@@ -156,7 +156,7 @@ const add = async (req, res, next) => {
     sale.address = address;
 
     sale.keywordList = keywordList;
-
+    sale.googleAddress = googleAddress;
     sale.description = description;
 
     sale.frontSize = frontSize;

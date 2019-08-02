@@ -85,7 +85,8 @@ const saleSchema = new Schema({
   updatedAt: {
     type: Date,
     default: new Date()
-  }
+  },
+  googleAddress: String
 });
 
 const SaleModel = mongoose.model('Sale', saleSchema, 'Sales');

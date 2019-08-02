@@ -102,6 +102,7 @@ const PostController = {
             logger.info('Admin/PostController::list2. Aggregate stages: ', JSON.stringify(stages));
 
             const results = await PostModel.aggregate(stages);
+            const items = results[0].entries;
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: {

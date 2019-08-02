@@ -393,7 +393,7 @@ const PostPriorityController = {
     try {
       return res.json({
         status: 1,
-        data: await PostPriorityModel.find({status: global.STATUS.ACTIVE}),
+        data: await PostPriorityModel.find({status: global.STATUS.ACTIVE}).sort('priority'),
         message: 'success'
       });
     } catch (e) {
