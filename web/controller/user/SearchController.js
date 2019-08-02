@@ -402,8 +402,8 @@ const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
     sortObj[`postInfo.${req.query.sortBy}`] = req.query['sortDirection'] === 'ASC' ? 1 : -1;
   } else {
     sortObj = {
-      'postInfo.priority': 1, // priority tăng dần
-      date: -1
+      date: -1,
+      'postInfo.priority': 1 // priority tăng dần
     };
   }
 
