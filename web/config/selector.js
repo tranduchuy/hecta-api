@@ -45,6 +45,8 @@ module.exports.cateListBuy = [
       { id: 104, name: "Cho thuê văn phòng" },
       { id: 105, name: "Cho thuê cửa hàng, ki ốt" },
       { id: 106, name: "Cho thuê kho, nhà xưởng, đất" },
+      { id: 108, name: 'Cho thuê mặt bằng'},
+      { id: 109, name: 'Cho thuê kho xưởng'},
       { id: 107, name: "Cho thuê loại bất động sản khác" }
     ],
     prices: [
@@ -64,10 +66,10 @@ module.exports.cateListBuy = [
     name: "Homestay",
     text: "Homestay",
     children: [
-      { id: 400, name: "Cho thuê Căn hộ homestay" },
-      { id: 401, name: "Cho thuê Nhà riêng homestay" },
-      { id: 402, name: "Cho thuê Biệt thự homestay" },
-      { id: 403, name: "Cho thuê Studio homestay" },
+      { id: 400, name: "Cho thuê căn hộ homestay" },
+      { id: 401, name: "Cho thuê nhà riêng homestay" },
+      { id: 402, name: "Cho thuê biệt thự homestay" },
+      { id: 403, name: "Cho thuê studio homestay" },
       { id: 404, name: "Cho thuê loại Homestay khá" }
     ],
     prices: [

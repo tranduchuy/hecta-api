@@ -346,296 +346,295 @@ const upNew = async (req, res, next) => {
   }
 };
 
+const update = async function (req, res, next) {
+  try {
+
+    //TODO: implement check token user
+    // var token = req.user.token;
+    // var accessToken = await TokenModel.findOne({token: token});
+
+    let id = req.params.id;
+
+    if (!id || id.length == 0) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        data: {},
+        message: 'id invalid '
+      });
+    }
+
+
+    let post = await PostModel.findOne({ _id: id });
+
+    if (!post || post.postType != global.POST_TYPE_SALE) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        data: {},
+        message: 'Không tìm thấy tin đăng'
+      });
+    }
+
+    if (post.user != req.user.id) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        data: {},
+        message: 'Không có quyền'
+      });
+    }
+
+
+    var sale = await SaleModel.findOne({ _id: post.contentId });
+    if (!sale) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        data: {},
+        message: 'sale not exist '
+      });
+    }
+    var title = req.body.title;
+    var formality = req.body.formality;
+    var type = req.body.type;
+    var city = req.body.city;
+    var district = req.body.district;
+    var ward = req.body.ward;
+    var street = req.body.street;
+    var project = req.body.project;
+    var area = req.body.area;
+    var price = req.body.price;
+    var unit = req.body.unit;
+    var address = req.body.address;
+
+    var keywordList = req.body.keywordList;
+
+    var description = req.body.description;
+
+    var streetWidth = req.body.streetWidth;
+    var frontSize = req.body.frontSize;
+    var direction = req.body.direction;
+    var balconyDirection = req.body.balconyDirection;
+    var floorCount = req.body.floorCount;
+    var bedroomCount = req.body.bedroomCount;
+    var toiletCount = req.body.toiletCount;
+    var furniture = req.body.furniture;
+
+    var images = req.body.images;
+    console.log(sale.images || [], images || []);
+    ImageService.putUpdateImage(sale.images || [], images || []);
+
+    var contactName = req.body.contactName;
+    var contactAddress = req.body.contactAddress;
+    var contactPhone = req.body.contactPhone;
+    var contactMobile = req.body.contactMobile;
+    var contactEmail = req.body.contactEmail;
+
+    var priority = req.body.priority;
+
+    var status = req.body.status;
+
+    var from = req.body.from;
+    var to = req.body.to;
+
+    var cpv = req.body.cpv;
+    var paidForm = req.body.paidForm;
+    var budgetPerDay = req.body.budgetPerDay;
+
+    if (paidForm && paidForm != sale.paidForm) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        data: {},
+        message: 'not update paidForm post '
+      });
+    }
+
+    if (title && (sale.title != title)) {
+      sale.title = title;
+
+      var url = urlSlug(title);
+
+      let countDuplicate = await PostModel.countDocuments({ url: url });
+      if (countDuplicate > 0) url = url + "-" + countDuplicate;
+
+      post.url = url;
+    }
+
+    if (formality) {
+      sale.formality = formality;
+    }
+    if (type) {
+      sale.type = type;
+    }
+    if (city) {
+      sale.city = city;
+    }
+    if (district) {
+      sale.district = district;
+    }
+    if (ward) {
+      sale.ward = ward;
+    }
+    if (street) {
+      sale.street = street;
+    }
+    if (project) {
+      sale.project = project;
+    }
+    if (area) {
+      sale.areaData = area;
+      sale.area = postService.convertValueAreaToID(area);
+    }
+    if (price) {
+      sale.priceData = price;
+      sale.price = postService.convertValueSalePriceToID(price, formality);
+    }
+    if (unit) {
+      sale.unit = unit;
+    }
+    if (address) {
+      sale.address = address;
+    }
+
+    if (keywordList) {
+      sale.keywordList = keywordList;
+    }
+
+    if (description) {
+      sale.description = description;
+    }
+
+    if (streetWidth) {
+      sale.streetWidth = streetWidth;
+    }
+    if (frontSize) {
+      sale.frontSize = frontSize;
+    }
+    if (direction) {
+      sale.direction = direction;
+    }
+    if (balconyDirection) {
+      sale.balconyDirection = balconyDirection;
+    }
+    if (floorCount) {
+      sale.floorCount = floorCount;
+    }
+    if (bedroomCount) {
+      sale.bedroomCount = bedroomCount;
+    }
+    if (toiletCount) {
+      sale.toiletCount = toiletCount;
+    }
+    if (furniture) {
+      sale.furniture = furniture;
+    }
+
+    if (images) {
+      sale.images = images;
+    }
+
+    if (contactName) {
+      sale.contactName = contactName;
+    }
+    if (contactAddress) {
+      sale.contactAddress = contactAddress;
+    }
+    if (contactPhone) {
+      sale.contactPhone = contactPhone;
+    }
+    if (contactMobile) {
+      sale.contactMobile = contactMobile;
+    }
+    if (contactEmail) {
+      sale.contactEmail = contactEmail;
+    }
+    if (status == global.STATUS.DELETE) {
+      sale.status = status;
+      post.status = status;
+    }
+
+    sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+
+    if (sale.paidForm == global.PAID_FORM.VIEW) {
+      if (cpv)
+        sale.cpv = cpv;
+      if (budgetPerDay)
+        sale.budgetPerDay = budgetPerDay;
+    }
+
+    sale = await sale.save();
+
+    post.type = sale.type;
+    post.priority = sale.priority;
+
+    if (from) {
+      post.from = from;
+      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+      post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
+      post.refresh = Date.now();
+
+    }
+
+    if (to) {
+      post.to = to;
+      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+      post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
+    }
+
+    if (status == global.STATUS.DELETE) {
+      post.status = status;
+    }
+
+    if (priority) {
+      post.priority = priority;
+      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+      post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
+    }
+
+    if (keywordList && keywordList.length > 0) {
+      for (var i = 0; i < keywordList.length; i++) {
+        var key = keywordList[i];
+
+        var slug = urlSlug(key);
+
+        if (!slug) {
+          continue;
+        }
+
+        var tag = await TagModel.findOne({ status: global.STATUS.ACTIVE, slug: slug });
+
+        if (!tag) {
+          tag = new TagModel({
+            slug: slug,
+            keyword: key,
+          });
+          tag = await tag.save();
+
+        }
+
+        post.tags.push(tag._id);
+      }
+    }
+
+    await post.save();
+    return res.json({
+      status: 1,
+      data: sale,
+      message: 'update success'
+    });
+  } catch (e) {
+    return res.json({
+      status: HTTP_CODE.ERROR,
+      data: {},
+      message: 'unknown error : ' + e.message
+    });
+  }
+};
+
 
 const SaleController = {
   add,
 
   upNew,
 
-  update: async function (req, res, next) {
-    try {
-
-      //TODO: implement check token user
-      // var token = req.user.token;
-      // var accessToken = await TokenModel.findOne({token: token});
-
-      let id = req.params.id;
-
-      if (!id || id.length == 0) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'id invalid '
-        });
-      }
-
-
-      let post = await PostModel.findOne({ _id: id });
-
-      if (!post || post.postType != global.POST_TYPE_SALE) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'post not exist '
-        });
-      }
-
-      if (post.user != req.user.id) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'user does not have permission !'
-        });
-      }
-
-
-      var sale = await SaleModel.findOne({ _id: post.contentId });
-
-
-      if (!sale) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'sale not exist '
-        });
-      }
-
-
-      var title = req.body.title;
-
-      var formality = req.body.formality;
-      var type = req.body.type;
-      var city = req.body.city;
-      var district = req.body.district;
-      var ward = req.body.ward;
-      var street = req.body.street;
-      var project = req.body.project;
-      var area = req.body.area;
-      var price = req.body.price;
-      var unit = req.body.unit;
-      var address = req.body.address;
-
-      var keywordList = req.body.keywordList;
-
-      var description = req.body.description;
-
-      var streetWidth = req.body.streetWidth;
-      var frontSize = req.body.frontSize;
-      var direction = req.body.direction;
-      var balconyDirection = req.body.balconyDirection;
-      var floorCount = req.body.floorCount;
-      var bedroomCount = req.body.bedroomCount;
-      var toiletCount = req.body.toiletCount;
-      var furniture = req.body.furniture;
-
-      var images = req.body.images;
-      ImageService.putUpdateImage(sale.images, images);
-
-      var contactName = req.body.contactName;
-      var contactAddress = req.body.contactAddress;
-      var contactPhone = req.body.contactPhone;
-      var contactMobile = req.body.contactMobile;
-      var contactEmail = req.body.contactEmail;
-
-      var priority = req.body.priority;
-
-      var status = req.body.status;
-
-      var from = req.body.from;
-      var to = req.body.to;
-
-      var cpv = req.body.cpv;
-      var paidForm = req.body.paidForm;
-      var budgetPerDay = req.body.budgetPerDay;
-
-      if (paidForm && paidForm != sale.paidForm) {
-        return res.json({
-          status: HTTP_CODE.ERROR,
-          data: {},
-          message: 'not update paidForm post '
-        });
-      }
-
-      if (title && (sale.title != title)) {
-        sale.title = title;
-
-        var url = urlSlug(title);
-
-        let countDuplicate = await PostModel.countDocuments({ url: url });
-        if (countDuplicate > 0) url = url + "-" + countDuplicate;
-
-        post.url = url;
-      }
-
-      if (formality) {
-        sale.formality = formality;
-      }
-      if (type) {
-        sale.type = type;
-      }
-      if (city) {
-        sale.city = city;
-      }
-      if (district) {
-        sale.district = district;
-      }
-      if (ward) {
-        sale.ward = ward;
-      }
-      if (street) {
-        sale.street = street;
-      }
-      if (project) {
-        sale.project = project;
-      }
-      if (area) {
-        sale.areaData = area;
-        sale.area = postService.convertValueAreaToID(area);
-      }
-      if (price) {
-        sale.priceData = price;
-        sale.price = postService.convertValueSalePriceToID(price, formality);
-      }
-      if (unit) {
-        sale.unit = unit;
-      }
-      if (address) {
-        sale.address = address;
-      }
-
-      if (keywordList) {
-        sale.keywordList = keywordList;
-      }
-
-      if (description) {
-        sale.description = description;
-      }
-
-      if (streetWidth) {
-        sale.streetWidth = streetWidth;
-      }
-      if (frontSize) {
-        sale.frontSize = frontSize;
-      }
-      if (direction) {
-        sale.direction = direction;
-      }
-      if (balconyDirection) {
-        sale.balconyDirection = balconyDirection;
-      }
-      if (floorCount) {
-        sale.floorCount = floorCount;
-      }
-      if (bedroomCount) {
-        sale.bedroomCount = bedroomCount;
-      }
-      if (toiletCount) {
-        sale.toiletCount = toiletCount;
-      }
-      if (furniture) {
-        sale.furniture = furniture;
-      }
-
-      if (images) {
-        sale.images = images;
-      }
-
-      if (contactName) {
-        sale.contactName = contactName;
-      }
-      if (contactAddress) {
-        sale.contactAddress = contactAddress;
-      }
-      if (contactPhone) {
-        sale.contactPhone = contactPhone;
-      }
-      if (contactMobile) {
-        sale.contactMobile = contactMobile;
-      }
-      if (contactEmail) {
-        sale.contactEmail = contactEmail;
-      }
-      if (status == global.STATUS.DELETE) {
-        sale.status = status;
-      }
-
-      sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-
-      if (sale.paidForm == global.PAID_FORM.VIEW) {
-        if (cpv)
-          sale.cpv = cpv;
-        if (budgetPerDay)
-          sale.budgetPerDay = budgetPerDay;
-      }
-
-      sale = await sale.save();
-
-      post.type = sale.type;
-      post.priority = sale.priority;
-
-      if (from) {
-        post.from = from;
-        post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-        post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
-        post.refresh = Date.now();
-
-      }
-
-      if (to) {
-        post.to = to;
-        post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-        post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
-      }
-
-      if (status == global.STATUS.DELETE) {
-        post.status = status;
-      }
-
-      if (priority) {
-        post.priority = priority;
-        post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-        post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
-      }
-
-      if (keywordList && keywordList.length > 0) {
-        for (var i = 0; i < keywordList.length; i++) {
-          var key = keywordList[i];
-
-          var slug = urlSlug(key);
-
-          if (!slug) {
-            continue;
-          }
-
-          var tag = await TagModel.findOne({ status: global.STATUS.ACTIVE, slug: slug });
-
-          if (!tag) {
-            tag = new TagModel({
-              slug: slug,
-              keyword: key,
-            });
-            tag = await tag.save();
-
-          }
-
-          post.tags.push(tag._id);
-        }
-      }
-
-      await post.save();
-      return res.json({
-        status: 1,
-        data: sale,
-        message: 'update success'
-      });
-    } catch (e) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        data: {},
-        message: 'unknown error : ' + e.message
-      });
-    }
-  },
+  update,
 
   updateAdStatus: async function (req, res, next) {
     try {

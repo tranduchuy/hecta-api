@@ -5,6 +5,7 @@ const PostStatisticController = require('../controller/user/PostStatisticControl
 
 router.get('/child/:id', PostController.child);
 router.get('/latest', PostController.latest);
+router.get('/top-view', PostController.getTopViewedPosts);
 router.get('/top/city', PostController.topCity);
 router.get('/detail/:id', PostController.detail);
 router.get('/list', PostController.list);

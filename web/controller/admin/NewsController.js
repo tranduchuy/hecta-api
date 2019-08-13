@@ -164,8 +164,8 @@ const NewsController = {
             if (createdByType) {
                 const duplicateTitle = await NewsModel.findOne({title: req.body.title});
                 if (duplicateTitle) {
-                    logger.warn('Admin/NewsController::add::error. Crawling duplicate title');
-                    return next('Crawling duplicate title');
+                    logger.warn('Admin/NewsController::add::error. Crawling duplicate title', req.body.title);
+                    return next('Crawling duplicate title: ' + req.body.title);
                 }
             }
 

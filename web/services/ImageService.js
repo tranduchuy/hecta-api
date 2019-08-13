@@ -27,7 +27,7 @@ const postConfirmImage = function (paths) {
 
 const putUpdateImage = (oldImages, newImages) => {
     
-    if (oldImages.constructor !== Array || newImages.constructor !== Array) {
+    if (!Array.isArray(oldImages)|| !Array.isArray(newImages)) {
         logger.error('oldImages or newImages is not Array', oldImages, newImages);
         throw new Error('oldImages or newImages is not Array');
     }
