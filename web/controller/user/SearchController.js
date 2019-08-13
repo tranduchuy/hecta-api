@@ -324,13 +324,15 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
     if (post.postType === global.POST_TYPE_SALE) {
       let sale = await SaleModel.findOne({
         _id: post.contentId
-      }).lean();
+      });
 
       if (!sale) {
         logger.error('SearchController::handleSearchCaseNotCategory::error. Sale not found');
         return next(new Error('Sale not found'));
       }
 
+      sale.view++;
+      await sale.save();
       data = mapBuyOrSaleItemToResultCaseCategory(post.toObject(), sale);
 
       const rootQuery = UrlParamService.getQueryObject(sale);
