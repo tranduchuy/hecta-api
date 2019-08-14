@@ -120,6 +120,7 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
       buyOrSales = await model
         .find({
           project: buyOrSaleObj.project,
+          status: global.STATUS.ACTIVE,
           _id: { $ne: buyOrSaleObj._id }
         })
         .limit(limit)
@@ -144,6 +145,7 @@ const getRelatedPostsOfSaleOrBuy = async (buyOrSaleObj, buyOrSale, limit) => {
       buyOrSales = await model
         .find({
           ...queryObject,
+          status: global.STATUS.ACTIVE,
           _id: { $ne: buyOrSaleObj._id }
         })
         .limit(limit)
@@ -333,7 +335,7 @@ const handleSearchCaseNotCategory = async (param, slug, next) => {
 
       sale.view++;
       await sale.save();
-      data = mapBuyOrSaleItemToResultCaseCategory(post.toObject(), sale);
+      data = mapBuyOrSaleItemToResultCaseCategory(post.toObject(), sale.toObject());
 
       const rootQuery = UrlParamService.getQueryObject(sale);
       relatedCates = await UrlParamService.getRelatedUrlParams(rootQuery);
@@ -395,6 +397,19 @@ const generateStageQuerySaleCaseCategory = (req, query, paginationCond) => {
     {
       $match: {
         ...query
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        images: 1,
+        priority: 1,
+        price: 1,
+        area: 1,
+        date: 1,
+        keywordList: 1,
+        unit: 1
       }
     }
   ];
@@ -493,6 +508,10 @@ const handleSearchCaseCategory = async (req, param) => {
   const paginationCond = RequestUtils.extractPaginationCondition(req);
 
   if (cat) {
+    cat.view = cat.view || 0;
+    cat.view++;
+    await cat.save();
+
     mapCategoryToQuery(cat, query);
 
     // model maybe: SaleModel, BuyModel, ProjectModel, NewsModel
@@ -611,7 +630,7 @@ const handleSearchCaseCategory = async (req, param) => {
     data: {
       itemCount: count,
       items: results,
-      page: page,
+      page: page || 1,
       total: _.ceil(count / global.PAGE_SIZE)
     },
     message: 'Success',

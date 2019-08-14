@@ -73,7 +73,8 @@ const urlParamSchema = new Schema({
         default: global.STATUS.ACTIVE,
         index: true,
     },
-    updatedBy: {type: Array, default: []}
+    updatedBy: {type: Array, default: []},
+    view: {type: Number, default: 0}
 });
 
 const UrlParamModel = mongoose.model('UrlParam', urlParamSchema, 'UrlParams');
