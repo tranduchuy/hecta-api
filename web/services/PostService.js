@@ -1,6 +1,7 @@
 const RequestUtils = require('../utils/RequestUtil');
 const moment = require('moment');
 const selector = require('../config/selector.js');
+const SaleModel = require('../models')['SaleModel'];
 
 const convertValueAreaToID = (value) => {
   for (let i = 0; i < selector.areaListValue.length; i++) {
@@ -517,6 +518,57 @@ const generateStageQueryPost = (req) => {
   return stages;
 };
 
+/**
+ * 
+ * @param {Date?} baseDate 
+ */
+const generateSaleCode = async (baseDate) => {
+    const date = baseDate || new Date();
+    const mm = date.getMonth() + 1;
+    const dd = date.getDate();
+    const yyyy = date.getFullYear();
+    const yyyymmdd = [yyyy,
+      (mm > 9 ? '' : '0') + mm,
+      (dd > 9 ? '' : '0') + dd
+    ].join('');
+    const yymmdd = yyyymmdd.slice(2);
+
+
+    const todayString = new Date([yyyy,
+      (mm > 9 ? '' : '0') + mm,
+      (dd > 9 ? '' : '0') + dd
+    ].join('-'));
+    const yesterday = (new Date(todayString)).setDate((new Date(todayString)).getDate() - 1);
+    const tomorrow = (new Date(todayString)).setDate((new Date(todayString)).getDate() + 1);
+    const saleCount = await SaleModel.count({
+      createdAt: {
+        '$gt': yesterday,
+        '$lt': tomorrow
+      }
+    });
+
+    let count = saleCount + 1;
+    let countString = count.toString();
+    let splitChar = 'A';
+    if (count > 9999) {
+      const index = count / 10000;
+      count = (count + 1) % 10000;
+      splitChar = String.fromCharCode(65 + index);
+    }
+
+    if (count > 999) {
+      countString = count.toString();
+    } else if (count > 99) {
+      countString = '0' + count;
+    } else if (count > 9) {
+      countString = '00' + count;
+    } else {
+      countString = '000' + count;
+    }
+
+    return (yymmdd + splitChar + countString).toString();
+}
+
 module.exports = {
   generateStageQueryPostNews,
   generateStageQueryPostProject,
@@ -524,5 +576,6 @@ module.exports = {
   generateStageQueryPostSale,
   generateStageQueryPost,
   convertValueAreaToID,
-  convertValueSalePriceToID
+  convertValueSalePriceToID,
+  generateSaleCode
 };

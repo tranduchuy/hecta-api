@@ -146,6 +146,7 @@ const add = async (req, res, next) => {
     sale.ward = ward;
     sale.street = street;
     sale.project = project;
+    sale.code = postService.generateSaleCode();
 
     sale.areaData = area;
     sale.priceData = price;

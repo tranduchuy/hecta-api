@@ -86,7 +86,12 @@ const saleSchema = new Schema({
     type: Date,
     default: new Date()
   },
-  googleAddress: String
+  googleAddress: String,
+  code: {
+    type: String,
+    unique: true,
+    required: true
+  }
 });
 
 const SaleModel = mongoose.model('Sale', saleSchema, 'Sales');
