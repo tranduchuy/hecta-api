@@ -608,6 +608,29 @@ const findUserByEmail = async (req, res, next) => {
   }
 };
 
+const findUserByPhone = async (req, res, next) => {
+  logger.info('UserController::findUserByPhone::called');
+
+  try {
+    const phone = req.params.phone;
+
+    get(`${CDP_APIS.USER.FIND_USER_BY_EMAIL}?phone=${phone}`, req.user.token)
+      .then(r => {
+        return res.json({
+          status: 1,
+          data: r.data.entries[0],
+          message: 'request success'
+        });
+      })
+      .catch(err => {
+        return next(err);
+      });
+  } catch (e) {
+    logger.error('UserController::findUserByPhone::error', e);
+    return next(e);
+  }
+};
+
 const highlight = async (req, res, next) => {
   logger.info('UserController::highlight::called');
 
@@ -704,6 +727,7 @@ module.exports = {
   requestList,
   childList,
   findUserByEmail,
+  findUserByPhone,
   highlight,
   check,
   resendConfirm,

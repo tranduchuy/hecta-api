@@ -25,6 +25,7 @@ router.get('/children', UserController.childList);
 router.get('/request/list', UserController.requestList);
 router.get('/child/detail/:id', UserController.childDetail);
 router.get('/find/:email', UserController.findUserByEmail);
+router.get('/find-phone/:phone', UserController.findUserByPhone);
 router.get('/balance', UserController.balance);
 
 router.get('/transaction/history', TransactionController.list);
