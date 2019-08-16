@@ -1,9 +1,9 @@
-const RequestUtils = require('../utils/RequestUtil');
-const moment = require('moment');
-const selector = require('../config/selector.js');
-const SaleModel = require('../models')['SaleModel'];
+const RequestUtils = require("../utils/RequestUtil");
+const moment = require("moment");
+const selector = require("../config/selector.js");
+const SaleModel = require("../models")["SaleModel"];
 
-const convertValueAreaToID = (value) => {
+const convertValueAreaToID = value => {
   for (let i = 0; i < selector.areaListValue.length; i++) {
     const areaConfig = selector.areaListValue[i];
     if (areaConfig.min === null && areaConfig.max === null) {
@@ -29,7 +29,9 @@ const convertValueAreaToID = (value) => {
 };
 
 const convertValueSalePriceToID = (value, formality) => {
-  const formalityDetail = selector.cateList.find(f => f.id.toString() === formality.toString());
+  const formalityDetail = selector.cateList.find(
+    f => f.id.toString() === formality.toString()
+  );
   if (!formalityDetail) {
     return -1;
   }
@@ -60,17 +62,23 @@ const convertValueSalePriceToID = (value, formality) => {
   return -1; // Default: Thỏa thuận
 };
 
-const generateStageQueryPostNews = (req) => {
+const generateStageQueryPostNews = req => {
   const {
-    createdByType, status, id, dateFrom, dateTo, title,
-    sortBy, sortDirection
+    createdByType,
+    status,
+    id,
+    dateFrom,
+    dateTo,
+    title,
+    sortBy,
+    sortDirection
   } = req.query;
   const pageCond = RequestUtils.extractPaginationCondition(req);
 
   const stages = [
     {
       $match: {
-        "postType": global.POST_TYPE_NEWS,
+        postType: global.POST_TYPE_NEWS
       }
     },
     {
@@ -89,7 +97,7 @@ const generateStageQueryPostNews = (req) => {
   // filter
   const stageFilter = {};
 
-  if (createdByType && createdByType !== '0') {
+  if (createdByType && createdByType !== "0") {
     stageFilter["newsInfo.createdByType"] = parseInt(createdByType);
   }
 
@@ -102,10 +110,10 @@ const generateStageQueryPostNews = (req) => {
   }
 
   if (title) {
-    stageFilter['newsInfo.title'] = {
+    stageFilter["newsInfo.title"] = {
       $regex: title,
-      $options: 'i'
-    }
+      $options: "i"
+    };
   }
 
   // filter date by query dateFrom and dateTo
@@ -113,17 +121,17 @@ const generateStageQueryPostNews = (req) => {
     const dateFilterObj = {};
 
     if (dateFrom && dateFrom.toString().length === 10) {
-      const fromObj = moment(dateFrom, 'YYYY-MM-DD').toDate();
-      dateFilterObj['$gte'] = fromObj.getTime()
+      const fromObj = moment(dateFrom, "YYYY-MM-DD").toDate();
+      dateFilterObj["$gte"] = fromObj.getTime();
     }
 
     if (dateTo && dateTo.toString().length === 10) {
-      const toObj = moment(dateTo, 'YYYY-MM-DD').toDate();
-      dateFilterObj['$lte'] = toObj.getTime();
+      const toObj = moment(dateTo, "YYYY-MM-DD").toDate();
+      dateFilterObj["$lte"] = toObj.getTime();
     }
 
     if (Object.keys(dateFilterObj).length !== 0) {
-      stageFilter['date'] = dateFilterObj;
+      stageFilter["date"] = dateFilterObj;
     }
   }
 
@@ -139,9 +147,9 @@ const generateStageQueryPostNews = (req) => {
   };
 
   if (sortBy) {
-    stageSort.$sort[sortBy] = sortDirection === 'ASC' ? 1 : -1
+    stageSort.$sort[sortBy] = sortDirection === "ASC" ? 1 : -1;
   } else {
-    stageSort.$sort['date'] = -1; // default sort by date descending
+    stageSort.$sort["date"] = -1; // default sort by date descending
   }
 
   stages.push(stageSort);
@@ -151,25 +159,23 @@ const generateStageQueryPostNews = (req) => {
     $facet: {
       entries: [
         { $skip: (pageCond.page - 1) * pageCond.limit },
-        { $limit: pageCond.limit },
+        { $limit: pageCond.limit }
       ],
-      meta: [
-        { $group: { _id: null, totalItems: { $sum: 1 } } },
-      ],
-    },
+      meta: [{ $group: { _id: null, totalItems: { $sum: 1 } } }]
+    }
   });
 
   return stages;
 };
 
-const generateStageQueryPostProject = (req) => {
+const generateStageQueryPostProject = req => {
   const { createdByType, status, id, title, city, type } = req.query;
   const pageCond = RequestUtils.extractPaginationCondition(req);
 
   const stages = [
     {
       $match: {
-        "postType": global.POST_TYPE_PROJECT,
+        postType: global.POST_TYPE_PROJECT
       }
     },
     {
@@ -188,7 +194,7 @@ const generateStageQueryPostProject = (req) => {
   // filter
   const stageFilter = {};
 
-  if (createdByType && createdByType !== '0') {
+  if (createdByType && createdByType !== "0") {
     stageFilter["projectInfo.createdByType"] = parseInt(createdByType);
   }
 
@@ -209,10 +215,10 @@ const generateStageQueryPostProject = (req) => {
   }
 
   if (title) {
-    stageFilter['projectInfo.title'] = {
+    stageFilter["projectInfo.title"] = {
       $regex: title,
-      $options: 'i'
-    }
+      $options: "i"
+    };
   }
 
   if (Object.keys(stageFilter).length !== 0) {
@@ -226,25 +232,32 @@ const generateStageQueryPostProject = (req) => {
     $facet: {
       entries: [
         { $skip: (pageCond.page - 1) * pageCond.limit },
-        { $limit: pageCond.limit },
+        { $limit: pageCond.limit }
       ],
-      meta: [
-        { $group: { _id: null, totalItems: { $sum: 1 } } },
-      ],
-    },
+      meta: [{ $group: { _id: null, totalItems: { $sum: 1 } } }]
+    }
   });
 
   return stages;
 };
 
-const generateStageQueryPostBuy = (req) => {
-  const { createdByType, status, id, title, sortBy, sortDirection, dateFrom, dateTo } = req.query;
+const generateStageQueryPostBuy = req => {
+  const {
+    createdByType,
+    status,
+    id,
+    title,
+    sortBy,
+    sortDirection,
+    dateFrom,
+    dateTo
+  } = req.query;
   const pageCond = RequestUtils.extractPaginationCondition(req);
 
   const stages = [
     {
       $match: {
-        "postType": global.POST_TYPE_BUY,
+        postType: global.POST_TYPE_BUY
       }
     },
     {
@@ -263,7 +276,7 @@ const generateStageQueryPostBuy = (req) => {
   // filter
   const stageFilter = {};
 
-  if (createdByType && createdByType !== '0') {
+  if (createdByType && createdByType !== "0") {
     stageFilter["buyInfo.createdByType"] = parseInt(createdByType);
   }
 
@@ -276,10 +289,10 @@ const generateStageQueryPostBuy = (req) => {
   }
 
   if (title) {
-    stageFilter['saleInfo.title'] = {
+    stageFilter["saleInfo.title"] = {
       $regex: title,
-      $options: 'i'
-    }
+      $options: "i"
+    };
   }
 
   // filter date by query dateFrom and dateTo
@@ -287,17 +300,17 @@ const generateStageQueryPostBuy = (req) => {
     const dateFilterObj = {};
 
     if (dateFrom && dateFrom.toString().length === 10) {
-      const fromObj = moment(dateFrom, 'YYYY-MM-DD').toDate();
-      dateFilterObj['$gte'] = fromObj.getTime()
+      const fromObj = moment(dateFrom, "YYYY-MM-DD").toDate();
+      dateFilterObj["$gte"] = fromObj.getTime();
     }
 
     if (dateTo && dateTo.toString().length === 10) {
-      const toObj = moment(dateTo, 'YYYY-MM-DD').toDate();
-      dateFilterObj['$lte'] = toObj.getTime();
+      const toObj = moment(dateTo, "YYYY-MM-DD").toDate();
+      dateFilterObj["$lte"] = toObj.getTime();
     }
 
     if (Object.keys(dateFilterObj).length !== 0) {
-      stageFilter['date'] = dateFilterObj;
+      stageFilter["date"] = dateFilterObj;
     }
   }
 
@@ -313,9 +326,9 @@ const generateStageQueryPostBuy = (req) => {
   };
 
   if (sortBy) {
-    stageSort.$sort[sortBy] = sortDirection === 'ASC' ? 1 : -1
+    stageSort.$sort[sortBy] = sortDirection === "ASC" ? 1 : -1;
   } else {
-    stageSort.$sort['date'] = -1; // default sort by date descending
+    stageSort.$sort["date"] = -1; // default sort by date descending
   }
 
   stages.push(stageSort);
@@ -325,25 +338,33 @@ const generateStageQueryPostBuy = (req) => {
     $facet: {
       entries: [
         { $skip: (pageCond.page - 1) * pageCond.limit },
-        { $limit: pageCond.limit },
+        { $limit: pageCond.limit }
       ],
-      meta: [
-        { $group: { _id: null, totalItems: { $sum: 1 } } },
-      ],
-    },
+      meta: [{ $group: { _id: null, totalItems: { $sum: 1 } } }]
+    }
   });
 
   return stages;
 };
 
-const generateStageQueryPostSale = (req) => {
-  const { formality, createdByType, status, id, title, sortBy, sortDirection, dateFrom, dateTo } = req.query;
+const generateStageQueryPostSale = req => {
+  const {
+    formality,
+    createdByType,
+    status,
+    id,
+    title,
+    sortBy,
+    sortDirection,
+    dateFrom,
+    dateTo
+  } = req.query;
   const pageCond = RequestUtils.extractPaginationCondition(req);
 
   const stages = [
     {
       $match: {
-        "postType": global.POST_TYPE_SALE,
+        postType: global.POST_TYPE_SALE
       }
     },
     {
@@ -362,11 +383,11 @@ const generateStageQueryPostSale = (req) => {
   // filter
   const stageFilter = {};
 
-  if (formality && formality !== '-1') {
+  if (formality && formality !== "-1") {
     stageFilter["saleInfo.formality"] = parseInt(formality);
   }
 
-  if (createdByType && createdByType !== '0') {
+  if (createdByType && createdByType !== "0") {
     stageFilter["saleInfo.createdByType"] = parseInt(createdByType);
   }
 
@@ -379,10 +400,10 @@ const generateStageQueryPostSale = (req) => {
   }
 
   if (title) {
-    stageFilter['saleInfo.title'] = {
+    stageFilter["saleInfo.title"] = {
       $regex: title,
-      $options: 'i'
-    }
+      $options: "i"
+    };
   }
 
   // filter date by query dateFrom and dateTo
@@ -390,17 +411,17 @@ const generateStageQueryPostSale = (req) => {
     const dateFilterObj = {};
 
     if (dateFrom && dateFrom.toString().length === 10) {
-      const fromObj = moment(dateFrom, 'YYYY-MM-DD').toDate();
-      dateFilterObj['$gte'] = fromObj.getTime()
+      const fromObj = moment(dateFrom, "YYYY-MM-DD").toDate();
+      dateFilterObj["$gte"] = fromObj.getTime();
     }
 
     if (dateTo && dateTo.toString().length === 10) {
-      const toObj = moment(dateTo, 'YYYY-MM-DD').toDate();
-      dateFilterObj['$lte'] = toObj.getTime();
+      const toObj = moment(dateTo, "YYYY-MM-DD").toDate();
+      dateFilterObj["$lte"] = toObj.getTime();
     }
 
     if (Object.keys(dateFilterObj).length !== 0) {
-      stageFilter['date'] = dateFilterObj;
+      stageFilter["date"] = dateFilterObj;
     }
   }
 
@@ -416,9 +437,9 @@ const generateStageQueryPostSale = (req) => {
   };
 
   if (sortBy) {
-    stageSort.$sort[sortBy] = sortDirection === 'ASC' ? 1 : -1
+    stageSort.$sort[sortBy] = sortDirection === "ASC" ? 1 : -1;
   } else {
-    stageSort.$sort['date'] = -1; // default sort by date descending
+    stageSort.$sort["date"] = -1; // default sort by date descending
   }
 
   stages.push(stageSort);
@@ -428,12 +449,10 @@ const generateStageQueryPostSale = (req) => {
     $facet: {
       entries: [
         { $skip: (pageCond.page - 1) * pageCond.limit },
-        { $limit: pageCond.limit },
+        { $limit: pageCond.limit }
       ],
-      meta: [
-        { $group: { _id: null, totalItems: { $sum: 1 } } },
-      ],
-    },
+      meta: [{ $group: { _id: null, totalItems: { $sum: 1 } } }]
+    }
   });
 
   return stages;
@@ -449,7 +468,7 @@ const generateStageQueryPostSale = (req) => {
  * ++ from: string date -> should convert to number by getTime()
  * ++ to: string date -> should convert to number by getTime()
  */
-const generateStageQueryPost = (req) => {
+const generateStageQueryPost = req => {
   const { status, formality, type, url, customUrl, from, to } = req.query;
   const pageCond = RequestUtils.extractPaginationCondition(req);
   const stages = [];
@@ -457,43 +476,43 @@ const generateStageQueryPost = (req) => {
   // filter
   const stageFilter = {};
   if (status && !isNaN(status)) {
-    stageFilter['status'] = parseInt(status);
+    stageFilter["status"] = parseInt(status);
   }
 
   if (formality && !isNaN(formality)) {
-    stageFilter['formality'] = parseInt(formality);
+    stageFilter["formality"] = parseInt(formality);
   }
 
   if (type && !isNaN(type)) {
-    stageFilter['type'] = parseInt(type);
+    stageFilter["type"] = parseInt(type);
   }
 
-  if (url && url.toString().trim() !== '') {
-    stageFilter['url'] = {
+  if (url && url.toString().trim() !== "") {
+    stageFilter["url"] = {
       $regex: url,
-      $options: 'i'
-    }
+      $options: "i"
+    };
   }
 
-  if (customUrl && customUrl.toString().trim() !== '') {
-    stageFilter['customUrl'] = {
+  if (customUrl && customUrl.toString().trim() !== "") {
+    stageFilter["customUrl"] = {
       $regex: customUrl,
-      $options: 'i'
-    }
+      $options: "i"
+    };
   }
 
   if (from && from.length === 10) {
-    const fromObj = moment(from, 'YYYY-MM-DD').toDate();
-    stageFilter['from'] = {
+    const fromObj = moment(from, "YYYY-MM-DD").toDate();
+    stageFilter["from"] = {
       $gte: fromObj.getTime()
-    }
+    };
   }
 
   if (to && to.length === 10) {
-    const toObj = moment(to, 'YYYY-MM-DD').toDate();
-    stageFilter['to'] = {
+    const toObj = moment(to, "YYYY-MM-DD").toDate();
+    stageFilter["to"] = {
       $lte: toObj.getTime()
-    }
+    };
   }
 
   if (Object.keys(stageFilter).length !== 0) {
@@ -507,67 +526,104 @@ const generateStageQueryPost = (req) => {
     $facet: {
       entries: [
         { $skip: (pageCond.page - 1) * pageCond.limit },
-        { $limit: pageCond.limit },
+        { $limit: pageCond.limit }
       ],
-      meta: [
-        { $group: { _id: null, totalItems: { $sum: 1 } } },
-      ],
-    },
+      meta: [{ $group: { _id: null, totalItems: { $sum: 1 } } }]
+    }
   });
 
   return stages;
 };
 
 /**
- * 
- * @param {Date?} baseDate 
+ *
+ * @param {Date?} baseDate
  */
-const generateSaleCode = async (baseDate) => {
-    const date = baseDate || new Date();
-    const mm = date.getMonth() + 1;
-    const dd = date.getDate();
-    const yyyy = date.getFullYear();
-    const yyyymmdd = [yyyy,
-      (mm > 9 ? '' : '0') + mm,
-      (dd > 9 ? '' : '0') + dd
-    ].join('');
-    const yymmdd = yyyymmdd.slice(2);
+const generateSaleCode = async baseDate => {
+  const date = baseDate || new Date();
+  const mm = date.getMonth() + 1;
+  const dd = date.getDate();
+  const yyyy = date.getFullYear();
+  const yyyymmdd = [
+    yyyy,
+    (mm > 9 ? "" : "0") + mm,
+    (dd > 9 ? "" : "0") + dd
+  ].join("");
+  const yymmdd = yyyymmdd.slice(2);
 
+  const todayString = new Date(
+    [yyyy, (mm > 9 ? "" : "0") + mm, (dd > 9 ? "" : "0") + dd].join("-")
+  );
+  const yesterday = new Date(todayString).setDate(
+    new Date(todayString).getDate() - 1
+  );
+  const tomorrow = new Date(todayString).setDate(
+    new Date(todayString).getDate() + 1
+  );
+  const saleCount = await SaleModel.count({
+    createdAt: {
+      $gt: yesterday,
+      $lt: tomorrow
+    }
+  });
 
-    const todayString = new Date([yyyy,
-      (mm > 9 ? '' : '0') + mm,
-      (dd > 9 ? '' : '0') + dd
-    ].join('-'));
-    const yesterday = (new Date(todayString)).setDate((new Date(todayString)).getDate() - 1);
-    const tomorrow = (new Date(todayString)).setDate((new Date(todayString)).getDate() + 1);
-    const saleCount = await SaleModel.count({
-      createdAt: {
-        '$gt': yesterday,
-        '$lt': tomorrow
+  let count = saleCount + 1;
+  let countString = count.toString();
+  let splitChar = "A";
+  if (count > 9999) {
+    const index = count / 10000;
+    count = (count + 1) % 10000;
+    splitChar = String.fromCharCode(65 + index);
+  }
+
+  if (count > 999) {
+    countString = count.toString();
+  } else if (count > 99) {
+    countString = "0" + count;
+  } else if (count > 9) {
+    countString = "00" + count;
+  } else {
+    countString = "000" + count;
+  }
+
+  return (yymmdd + splitChar + countString).toString();
+};
+
+const generateStageQueryAllActiveSales = () => {
+  return [
+    {
+      $lookup: {
+        from: "Posts",
+        localField: "_id",
+        foreignField: "contentId",
+        as: "postInfo"
       }
-    });
-
-    let count = saleCount + 1;
-    let countString = count.toString();
-    let splitChar = 'A';
-    if (count > 9999) {
-      const index = count / 10000;
-      count = (count + 1) % 10000;
-      splitChar = String.fromCharCode(65 + index);
+    },
+    {
+      $unwind: {
+        path: "$postInfo"
+      }
+    },
+    {
+      $match: {
+        "postInfo.status": 1
+      }
+    },
+    {
+      $project: {
+        url: "$postInfo.url",
+        title: 1,
+        images: 1,
+        geo: 1,
+        formality: 1,
+        priority: 1,
+        address: 1,
+        view: 1,
+        unit: 1
+      }
     }
-
-    if (count > 999) {
-      countString = count.toString();
-    } else if (count > 99) {
-      countString = '0' + count;
-    } else if (count > 9) {
-      countString = '00' + count;
-    } else {
-      countString = '000' + count;
-    }
-
-    return (yymmdd + splitChar + countString).toString();
-}
+  ];
+};
 
 module.exports = {
   generateStageQueryPostNews,
@@ -577,5 +633,6 @@ module.exports = {
   generateStageQueryPost,
   convertValueAreaToID,
   convertValueSalePriceToID,
-  generateSaleCode
+  generateSaleCode,
+  generateStageQueryAllActiveSales
 };

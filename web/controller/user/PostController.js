@@ -12,6 +12,29 @@ const CDP_APIS = require("../../config/cdp-url-api.constant");
 const HTTP_CODE = require("../../config/http-code");
 const EU = require("express-useragent");
 const AdStatModel = require("../../models/ad-stat-history");
+const PostService = require('../../services/PostService');
+
+function distance(lat1, lon1, lat2, lon2, unit) {
+	if ((lat1 == lat2) && (lon1 == lon2)) {
+		return 0;
+	}
+	else {
+		var radlat1 = Math.PI * lat1/180;
+		var radlat2 = Math.PI * lat2/180;
+		var theta = lon1-lon2;
+		var radtheta = Math.PI * theta/180;
+		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		if (dist > 1) {
+			dist = 1;
+		}
+		dist = Math.acos(dist);
+		dist = dist * 180/Math.PI;
+		dist = dist * 60 * 1.1515;
+		if (unit=="K") { dist = dist * 1.609344 }
+		if (unit=="N") { dist = dist * 0.8684 }
+		return dist;
+	}
+}
 
 //service
 const RabbitMQService = require("../../services/RabbitMqService");
@@ -64,6 +87,38 @@ const getTopViewedPosts = async (req, res, next) => {
       message: "Get top views"
     });
   } catch (e) {
+    return next(e);
+  }
+};
+
+const getNearestPost = async (req, res, next) => {
+  try {
+    const sales = await SaleModel.aggregate(PostService.generateStageQueryAllActiveSales());
+    const max = parseInt(req.query.radius);
+    const latitude = parseFloat(req.query.latitude);
+    const longitude = parseFloat(req.query.longitude);
+
+    const results = sales
+      .map(s => {
+        s.__distance = distance(latitude, longitude, s.geo.latitude, s.geo.longitude, 'K');
+        return s;
+      })
+      .filter(s => {
+        return s.__distance <= max;
+      })
+      .sort((a, b) => {
+        return a.__distance < b.__distance;
+      })
+
+    console.log(results.length);
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: results
+    })
+  } catch (e) {
+    logger.error('PostController::getNearestPost::error', e);
     return next(e);
   }
 };
@@ -772,7 +827,8 @@ var PostController = {
     });
   },
 
-  getTopViewedPosts
+  getTopViewedPosts,
+  getNearestPost
 };
 
 module.exports = PostController;

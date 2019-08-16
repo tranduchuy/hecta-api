@@ -31,6 +31,7 @@ const urlToPassCheckingToken = [
 
   '/api/v1/news/highlight',
   '/api/v1/posts/latest',
+  '/api/v1/posts/nearest',
   '/api/v1/posts/top-view',
   '/api/v1/posts/top/city',
   '/api/v1/news/latest',

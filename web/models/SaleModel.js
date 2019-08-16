@@ -91,6 +91,10 @@ const saleSchema = new Schema({
     type: String,
     unique: true,
     required: true
+  },
+  geo: {
+    latitude: Number,
+    longitude: Number
   }
 });
 

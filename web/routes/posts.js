@@ -10,6 +10,7 @@ router.get('/top/city', PostController.topCity);
 router.get('/detail/:id', PostController.detail);
 router.get('/list', PostController.list);
 router.get('/stat', PostStatisticController.getPostStat);
+router.get('/nearest', PostController.getNearestPost);
 
 router.post('/click-post-sale/:id', PostController.clickPostSale);
 
