@@ -11,6 +11,8 @@ const NotifyTypes = require('../../config/notify-type');
 const ImageService = require('../../services/ImageService');
 const { get, post, put, del } = require('../../utils/Request');
 const CDP_APIS = require('../../config/cdp-url-api.constant');
+const {convertObjectToQueryString} = require('../../utils/Request');
+const moment = require('moment');
 
 const forgetPassword = async (req, res, next) => {
   logger.info('UserController::forgetPassword is called');
@@ -136,13 +138,13 @@ const registerChild = async (req, res, next) => {
 
   try {
     const {
-      username, email, password, phone, name, confirmedPassword,
+      password, phone, name, retypePassword,
       birthday, gender, city, district, ward, type
     } = req.body;
 
     const postData = {
-      username, email, password, phone, name, confirmedPassword,
-      birthday, gender, city, district, ward, type
+      password, phone, name, confirmedPassword: retypePassword,
+      birthday: moment(birthday).format('YYYY-MM-DD'), gender, city, district, ward, type
     };
 
     post(CDP_APIS.RELATION_SHIP.ADD_NEW_CHILD, postData, req.user.token)
@@ -171,7 +173,7 @@ const registerChild = async (req, res, next) => {
         return res.json({
           status: HTTP_CODE.SUCCESS,
           data: newRelation,
-          message: 'Success'
+          message: r.data.message
         });
       })
       .catch(e => {
@@ -551,7 +553,14 @@ const childList = async (req, res, next) => {
   logger.info('UserController::childList::called');
 
   try {
-    get(CDP_APIS.RELATION_SHIP.LIST_CHILD, req.user.token)
+    const {phone} = req.query;
+    const queryParams = {};
+    if (phone !== undefined) {
+      queryParams.phone = phone;
+    }
+
+    const url = CDP_APIS.RELATION_SHIP.LIST_CHILD + '?' + convertObjectToQueryString(queryParams);
+    get(url, req.user.token)
       .then((r) => {
         const childs = r.data.entries.map(child => {
           const accountInfo = {
@@ -565,7 +574,8 @@ const childList = async (req, res, next) => {
             email: child.childInfo.email,
             name: child.childInfo.name,
             status: child.status,
-            balance: accountInfo
+            balance: accountInfo,
+            phone: child.childInfo.phone
           };
         });
 

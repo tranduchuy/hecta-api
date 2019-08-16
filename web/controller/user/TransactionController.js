@@ -133,7 +133,7 @@ const addPromo = async (req, res, next) => {
   }
 };
 
-const childList = async (req, res) => {
+const childList = async (req, res, next) => {
   
   logger.info('TransactionController::childList is called');
   try {
