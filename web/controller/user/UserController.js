@@ -210,9 +210,9 @@ const confirm = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   logger.info('UserController::register is called');
-  let { password, phone, name, confirmedPassword } = req.body;
+  let { password, phone, name, confirmedPassword, type } = req.body;
   const data = {
-    password, phone, name, confirmedPassword
+    password, phone, name, confirmedPassword, type
   };
 
   try {
@@ -388,8 +388,6 @@ const login = async (req, res, next) => {
         user.district = user.district || null;
         user.ward = user.ward || null;
         user.birthday = user.birthday || null;
-        user.balance.main = user.balance.main1;
-        delete user.balance.main1;
 
         return res.json({
           status: HTTP_CODE.SUCCESS,

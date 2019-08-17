@@ -589,8 +589,20 @@ const generateSaleCode = async baseDate => {
   return (yymmdd + splitChar + countString).toString();
 };
 
-const generateStageQueryAllActiveSales = () => {
+const generateStageQueryAllActiveSales = (loc, maxDistance) => {
   return [
+    {
+      $geoNear: {
+        near: {
+          type: "2d",
+          coordinates: [loc.longitude, loc.latitude]
+        },
+        distanceField: "__dist",
+        maxDistance: maxDistance * 1000,
+        spherical: true,
+        limit: 1000
+      }
+    },
     {
       $lookup: {
         from: "Posts",

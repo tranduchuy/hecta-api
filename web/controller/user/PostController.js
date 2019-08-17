@@ -93,29 +93,17 @@ const getTopViewedPosts = async (req, res, next) => {
 
 const getNearestPost = async (req, res, next) => {
   try {
-    const sales = await SaleModel.aggregate(PostService.generateStageQueryAllActiveSales());
-    const max = parseInt(req.query.radius);
     const latitude = parseFloat(req.query.latitude);
     const longitude = parseFloat(req.query.longitude);
-
-    const results = sales
-      .map(s => {
-        s.__distance = distance(latitude, longitude, s.geo.latitude, s.geo.longitude, 'K');
-        return s;
-      })
-      .filter(s => {
-        return s.__distance <= max;
-      })
-      .sort((a, b) => {
-        return a.__distance < b.__distance;
-      })
-
-    console.log(results.length);
+    const max = parseInt(req.query.radius);
+    const stages = PostService.generateStageQueryAllActiveSales({longitude, latitude}, max);
+    logger.info('PostController::getNearestPost::stages', JSON.stringify(stages));
+    const sales = await SaleModel.aggregate(stages);
 
     return res.json({
       status: HTTP_CODE.SUCCESS,
       message: 'Success',
-      data: results
+      data: sales
     })
   } catch (e) {
     logger.error('PostController::getNearestPost::error', e);
