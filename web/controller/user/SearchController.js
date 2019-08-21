@@ -968,9 +968,98 @@ const updateAdRankBySearch = (saleIds) => {
   RabbitMQService.updateAdRank(saleIds, global.AD_STAT_IMPRESSION);
 };
 
+const getListSaleByText = async (req, res, next) => {
+  try {
+    const q = req.query.q;
+    const paginationCond = RequestUtils.extractPaginationCondition(req);
+
+    const queryStages = [
+      {
+        $match: {
+          $text: {
+            $search: q
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "Posts",
+          localField: "_id",
+          foreignField: "contentId",
+          as: "postInfo"
+        }
+      },
+      {
+        $unwind: {
+          path: "$postInfo"
+        }
+      },
+      {
+        $match: {
+          "postInfo.postType": 1
+        }
+      },
+      {
+        $sort: {
+          "postInfo.priority": 1, // ASC priority
+          score: { $meta: "textScore" } // DESC score
+        }
+
+      },
+      {
+        $project: {
+          title: 1,
+          _id: 1,
+          priority: "$postInfo.priority",
+          url: "$postInfo.url",
+          price: 1,
+          unit: 1,
+          date: 1,
+          formality: 1,
+          type: 1,
+          city: 1,
+          district: 1,
+          address: 1,
+          score: { $meta: "textScore" },
+          images: 1
+        }
+      },
+      {
+        $facet: {
+          entries: [
+            { $skip: (paginationCond.page - 1) * paginationCond.limit },
+            { $limit: paginationCond.limit },
+          ],
+          meta: [
+            { $group: { _id: null, totalItems: { $sum: 1 } } },
+          ],
+        }
+      }
+    ];
+    logger.info('SearchController::getListSaleByText::query stages:', JSON.stringify(queryStages));
+
+    const result = await SaleModel.aggregate(queryStages);
+    const items = result[0].entries;
+    const totalItems = result[0].entries.length > 0 ? result[0].meta[0].totalItems : 0;
+    logger.info('SearchController::getListSaleByText::success');
+
+    return res.json({
+      status: HttpCode.SUCCESS,
+      data: {
+        totalItems,
+        items
+      }
+    });
+  } catch (e) {
+    logger.error('SearchController::getListSaleByText::error', e);
+    return next(e);
+  }
+};
+
 module.exports = {
   filter,
   search,
   searchCache,
-  getUrlToRedirect
+  getUrlToRedirect,
+  getListSaleByText
 };

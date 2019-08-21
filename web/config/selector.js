@@ -45,8 +45,8 @@ module.exports.cateListBuy = [
       { id: 104, name: "Cho thuê văn phòng" },
       { id: 105, name: "Cho thuê cửa hàng, ki ốt" },
       { id: 106, name: "Cho thuê kho, nhà xưởng, đất" },
-      { id: 108, name: 'Cho thuê mặt bằng'},
-      { id: 109, name: 'Cho thuê kho xưởng'},
+      { id: 108, name: 'Cho thuê mặt bằng' },
+      { id: 19, name: 'Cho thuê khách sạn, nhà nghỉ' },
       { id: 107, name: "Cho thuê loại bất động sản khác" }
     ],
     prices: [
