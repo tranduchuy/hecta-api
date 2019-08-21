@@ -589,20 +589,32 @@ const generateSaleCode = async baseDate => {
   return (yymmdd + splitChar + countString).toString();
 };
 
-const generateStageQueryAllActiveSales = (loc, maxDistance) => {
-  return [
-    {
-      $geoNear: {
-        near: {
-          type: "2d",
-          coordinates: [loc.longitude, loc.latitude]
-        },
-        distanceField: "__dist",
-        maxDistance: maxDistance * 1000,
-        spherical: true,
-        limit: 1000
+const generateStageQueryAllActiveSales = (loc, maxDistance, formality) => {
+  const stages = [];
+
+  const stageFindGeoNear = {
+    $geoNear: {
+      near: {
+        type: "2d",
+        coordinates: [loc.longitude, loc.latitude]
+      },
+      distanceField: "__dist",
+      maxDistance: maxDistance * 1000,
+      spherical: true,
+      limit: 5000
+    }
+  };
+  stages.push(stageFindGeoNear);
+
+  if (formality) {
+    stages.push({
+      $match: {
+        formality: parseInt(formality, 0)
       }
-    },
+    });
+  }
+
+  return stages.concat([
     {
       $lookup: {
         from: "Posts",
@@ -634,7 +646,7 @@ const generateStageQueryAllActiveSales = (loc, maxDistance) => {
         unit: 1
       }
     }
-  ];
+  ]);
 };
 
 module.exports = {
