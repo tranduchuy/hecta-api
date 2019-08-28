@@ -11,7 +11,7 @@ const _handleResponse = (resolve, reject, body) => {
     }
 
     if (body.status === HttpCode.ERROR) {
-      return reject(new Error(body.messages[0]));
+      return reject(body.messages[0]);
     } else {
       return resolve(body);
     }

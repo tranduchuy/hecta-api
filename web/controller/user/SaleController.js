@@ -273,6 +273,20 @@ const add = async (req, res, next) => {
         });
       })
       .catch(e => {
+        if (e === 'Balance expired') {
+          logger.info('SaleController::add::error. Balance expired when create post id: ', post._id);
+          return res.json({
+            status: HTTP_CODE.ERROR,
+            message: 'Tạo tin thành công tuy nhiên ví tiền của bạn hết hạn sử dụng. Vui lòng vào phần quản lý tin đăng để thanh toán sau này'
+          });
+        } else if (e === 'Not enough money') {
+          logger.info('SaleController::add::error. Not enough money when create post id: ', post._id);
+          return res.json({
+            status: HTTP_CODE.ERROR,
+            message: 'Tạo tin thành công tuy nhiên bạn không đủ tiền thanh toán. Vui lòng vào phần quản lý tin đăng để thanh toán sau này'
+          });
+        }
+
         logger.error('SaleController::add::error', e);
         return next(e);
       });
@@ -338,6 +352,20 @@ const upNew = async (req, res, next) => {
         });
       })
       .catch(e => {
+        if (e === 'Balance expired') {
+          logger.info('SaleController::upNew::error. Balance expired when upNew post id: ', post._id);
+          return res.json({
+            status: HTTP_CODE.ERROR,
+            message: 'Up tin không thành công vì ví tiền của bạn hết hạn sử dụng'
+          });
+        } else if (e === 'Not enough money') {
+          logger.info('SaleController::upNew::error. Not enough money when create post id: ', post._id);
+          return res.json({
+            status: HTTP_CODE.ERROR,
+            message: 'Up tin không thành công vì bạn không đủ tiền thanh toán'
+          });
+        }
+
         logger.error('UserController::upNew::error', e);
         return next(e);
       });
