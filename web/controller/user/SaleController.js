@@ -449,9 +449,10 @@ const update = async function (req, res, next) {
     var bedroomCount = req.body.bedroomCount;
     var toiletCount = req.body.toiletCount;
     var furniture = req.body.furniture;
+    const googleAddress = req.body.googleAddress;
+    console.log('googleAddress', JSON.stringify(googleAddress));
 
     var images = req.body.images;
-    console.log(sale.images || [], images || []);
     ImageService.putUpdateImage(sale.images || [], images || []);
 
     var contactName = req.body.contactName;
@@ -467,19 +468,19 @@ const update = async function (req, res, next) {
     var from = req.body.from;
     var to = req.body.to;
 
-    var cpv = req.body.cpv;
-    var paidForm = req.body.paidForm;
-    var budgetPerDay = req.body.budgetPerDay;
+    // var cpv = req.body.cpv;
+    // var paidForm = req.body.paidForm;
+    // var budgetPerDay = req.body.budgetPerDay;
 
-    if (paidForm && paidForm != sale.paidForm) {
-      return res.json({
-        status: HTTP_CODE.ERROR,
-        data: {},
-        message: 'not update paidForm post '
-      });
-    }
+    // if (paidForm && paidForm != sale.paidForm) {
+    //   return res.json({
+    //     status: HTTP_CODE.ERROR,
+    //     data: {},
+    //     message: 'not update paidForm post '
+    //   });
+    // }
 
-    if (title && (sale.title != title)) {
+    if (title && (sale.title !== title)) {
       sale.title = title;
 
       var url = urlSlug(title);
@@ -559,6 +560,14 @@ const update = async function (req, res, next) {
       sale.furniture = furniture;
     }
 
+    if (googleAddress) {
+      sale.googleAddress = googleAddress.text;
+      sale.geo = {
+        latitude: googleAddress.latitude,
+        longitude: googleAddress.longitude
+      };
+    }
+
     if (images) {
       sale.images = images;
     }
@@ -581,16 +590,17 @@ const update = async function (req, res, next) {
     if (status == global.STATUS.DELETE) {
       sale.status = status;
       post.status = status;
+    } else {
+      sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
+      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
     }
 
-    sale.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-
-    if (sale.paidForm == global.PAID_FORM.VIEW) {
-      if (cpv)
-        sale.cpv = cpv;
-      if (budgetPerDay)
-        sale.budgetPerDay = budgetPerDay;
-    }
+    // if (sale.paidForm == global.PAID_FORM.VIEW) {
+    //   if (cpv)
+    //     sale.cpv = cpv;
+    //   if (budgetPerDay)
+    //     sale.budgetPerDay = budgetPerDay;
+    // }
 
     sale = await sale.save();
 
@@ -599,26 +609,19 @@ const update = async function (req, res, next) {
 
     if (from) {
       post.from = from;
-      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-      post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
+      // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
       post.refresh = Date.now();
 
     }
 
     if (to) {
       post.to = to;
-      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-      post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
-    }
-
-    if (status == global.STATUS.DELETE) {
-      post.status = status;
+      // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
     }
 
     if (priority) {
       post.priority = priority;
-      post.status = global.STATUS.PENDING_OR_WAIT_COMFIRM;
-      post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
+      // post.paymentStatus = global.STATUS.PAYMENT_UNPAID;
     }
 
     if (keywordList && keywordList.length > 0) {
@@ -648,7 +651,7 @@ const update = async function (req, res, next) {
 
     await post.save();
     return res.json({
-      status: 1,
+      status: HTTP_CODE.SUCCESS,
       data: sale,
       message: 'update success'
     });

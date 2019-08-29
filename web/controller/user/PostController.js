@@ -502,6 +502,7 @@ var PostController = {
             priceData: content.priceData,
             unit: content.unit,
             address: content.address,
+            googleAddress: content.googleAddress,
             keywordList: keys,
             description: content.description,
             streetWidth: content.streetWidth,
@@ -519,6 +520,7 @@ var PostController = {
             contactMobile: content.contactMobile,
             contactEmail: content.contactEmail,
             date: content.date,
+            geo: content.geo || {},
 
             id: post._id,
             url: post.url,
