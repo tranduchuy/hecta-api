@@ -29,7 +29,7 @@ const convertValueAreaToID = value => {
 };
 
 const convertValueSalePriceToID = (value, formality) => {
-  const formalityDetail = selector.cateList.find(
+  const formalityDetail = selector.cateListBuy.find(
     f => f.id.toString() === formality.toString()
   );
   if (!formalityDetail) {

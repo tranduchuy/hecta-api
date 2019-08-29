@@ -40,7 +40,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'priority not found'
+        message: 'Không tìm thấy loại tin vip'
       });
     }
 
@@ -48,7 +48,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'post day count <  min day '
+        message: `Tổng số ngày nhỏ hơn số ngày tối thiểu của loại tin. Ít nhất ${priorityObj.minDay}`
       });
     }
 
@@ -56,7 +56,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'title : "' + title + '" is invalid'
+        message: 'Tiêu đề không hợp lệ'
       });
     }
 
@@ -64,7 +64,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'formality : "' + formality + '" is invalid'
+        message: 'Loại hình bất động sản không hợp lệ'
       });
     }
 
@@ -72,7 +72,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'type : "' + type + '" is invalid'
+        message: 'Loại bất động sản không hợp lệ'
       });
     }
 
@@ -80,7 +80,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'city : "' + city + '" is invalid'
+        message: 'Tỉnh / thành phố là thông tin bắt buộc'
       });
     }
 
@@ -88,7 +88,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'district : "' + district + '" is invalid'
+        message: 'Quận/huyện là thông tin bắt buộc'
       });
     }
 
@@ -96,7 +96,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'description : "' + description + '" is invalid'
+        message: 'Mô tả không hợp lệ'
       });
     }
 
@@ -104,7 +104,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'contactMobile : "' + contactMobile + '" is invalid'
+        message: 'Số điện thoại liên hệ : "' + contactMobile + '" không hợp lệ'
       });
     }
 
@@ -112,7 +112,7 @@ const add = async (req, res, next) => {
       return res.json({
         status: HTTP_CODE.ERROR,
         data: {},
-        message: 'captchaToken : "' + captchaToken + '" is invalid'
+        message: 'Captcha : "' + captchaToken + '" không hợp lệ'
       });
     }
 
@@ -157,7 +157,11 @@ const add = async (req, res, next) => {
     sale.address = address;
 
     sale.keywordList = keywordList;
-    sale.googleAddress = googleAddress;
+    sale.googleAddress = googleAddress.text;
+    sale.geo = {
+      latitude: googleAddress.latitude,
+      longitude: googleAddress.longitude
+    };
     sale.description = description;
 
     sale.frontSize = frontSize;

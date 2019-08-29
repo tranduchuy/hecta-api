@@ -1,4 +1,4 @@
-global.API_COMFIRM_IMAGE = 'http://static.thuebatdongsan.com.vn/images/confirmation';
+global.API_COMFIRM_IMAGE = 'https://static.thuebatdongsan.com.vn/images/confirmation';
 
 global.STATUS = {
   ACTIVE: 1,
