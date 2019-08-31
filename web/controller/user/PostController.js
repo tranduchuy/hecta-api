@@ -333,6 +333,7 @@ var PostController = {
     try {
       var query = {
         status: global.STATUS.ACTIVE,
+        paymentStatus: global.STATUS.PAYMENT_PAID,
         postType: { $in: [global.POST_TYPE_BUY, global.POST_TYPE_SALE] }
       };
 
@@ -367,6 +368,8 @@ var PostController = {
               // description: sale.description,
               images: sale.images.slice(0, 1),
               date: sale.date,
+              paymentStatus: post.paymentStatus,
+              status: post.status,
 
               id: post._id,
               url: post.url,

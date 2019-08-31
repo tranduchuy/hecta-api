@@ -42,12 +42,13 @@ const extractSearchCondition = function (req, childId) {
 const addMain = async (req, res, next) => {
   logger.info('TransactionController::addMain is called');
   const userId = req.params.id;
-  const {amount, note, info} = req.body;
+  const {amount, increaseBalance, note, info} = req.body;
   
   try {
     const postData = {
       userId: parseInt(userId),
-      main1: amount
+      main1: Math.abs(amount),
+      increaseBalance: !!increaseBalance
     };
     
     post(CDP_APIS.ADMIN.UPDATE_BALANCE, postData, req.user.token)
@@ -89,12 +90,13 @@ const addMain = async (req, res, next) => {
 const addPromo = async (req, res, next) => {
   logger.info('TransactionController::addPromo::called');
   const userId = req.params.id;
-  const {amount, note, info} = req.body;
+  const {amount, increaseBalance, note, info} = req.body;
   
   try {
     const postData = {
       userId: parseInt(userId),
-      promo: amount
+      promo: amount,
+      increaseBalance: !!increaseBalance
     };
     
     post(CDP_APIS.ADMIN.UPDATE_BALANCE, postData, req.user.token)
