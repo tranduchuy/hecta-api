@@ -10,7 +10,7 @@ router['get']('/statistic', SystemController.getStatisticInfo);
 router['put']('/', [CheckToken, CheckRole([UserRoles.ADMIN, UserRoles.MASTER])],  SystemController.updateConfig);
 
 
-router.post('/static-pages',
+router.post('/static-contents',
   [CheckToken, CheckRole([UserRoles.ADMIN, UserRoles.MASTER])],
   SystemController.updateStaticPageContent
 );

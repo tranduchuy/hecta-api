@@ -137,7 +137,7 @@ const getStaticPageContents = async (req, res, next) => {
 
     const result = {};
     fields.forEach(f => {
-      result[f] = config.staticPage[f];
+      result[f] = config.staticPage[f].slice(-1).pop();
     });
 
     return res.json({
