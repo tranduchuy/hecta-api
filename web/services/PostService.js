@@ -357,28 +357,35 @@ const generateStageQueryPostSale = req => {
     sortBy,
     sortDirection,
     dateFrom,
-    dateTo
+    dateTo,
+    code
   } = req.query;
   const pageCond = RequestUtils.extractPaginationCondition(req);
 
-  const stages = [
-    {
-      $match: {
-        postType: global.POST_TYPE_SALE
-      }
-    },
-    {
-      $lookup: {
-        from: "Sales",
-        localField: "contentId",
-        foreignField: "_id",
-        as: "saleInfo"
-      }
-    },
-    {
-      $unwind: "$saleInfo"
+  const stages = [];
+
+  // match
+  const stageMatch = {
+    $match: {
+      postType: global.POST_TYPE_SALE
     }
-  ];
+  };
+
+  stages.push(stageMatch);
+
+  // lookup
+  stages.push({
+    $lookup: {
+      from: "Sales",
+      localField: "contentId",
+      foreignField: "_id",
+      as: "saleInfo"
+    }
+  });
+  
+  stages.push({
+    $unwind: "$saleInfo"
+  });
 
   // filter
   const stageFilter = {};
@@ -404,6 +411,10 @@ const generateStageQueryPostSale = req => {
       $regex: title,
       $options: "i"
     };
+  }
+
+  if (code) {
+    stageFilter['saleInfo.code'] = code;
   }
 
   // filter date by query dateFrom and dateTo

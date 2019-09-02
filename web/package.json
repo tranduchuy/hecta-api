@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --inspect ./bin/www",
-    "start2": "nodemon --inspect ./bin/www"
+    "start": "nodemon --inspect ./bin/www"
   },
   "dependencies": {
     "ajv": "^5.5.2",
