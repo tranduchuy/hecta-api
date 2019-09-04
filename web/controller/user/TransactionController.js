@@ -312,8 +312,10 @@ const getTransactionsOfUser = async (req, res, next) => {
               let note = JSON.parse(transaction.note);
               const sale = await SaleModel.findOne({_id: note.saleId});
               if (sale) {
+                const post = await PostModel.findOne({contentId: sale._id});
                 transaction.info = {
-                  title: sale.title
+                  sale,
+                  post
                 };
               }
             }
@@ -322,21 +324,21 @@ const getTransactionsOfUser = async (req, res, next) => {
             }
           }
           
-          if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
-            transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
-            try {
-              let note = JSON.parse(transaction.note);
-              const lead = await LeadHistoryModel.findOne({_id: note.leadId});
-              if (lead) {
-                transaction.info = {
-                  title: lead.name
-                };
-              }
-            }
-            catch (e) {
-              logger.error('TransactionController::list', e);
-            }
-          }
+          // if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
+          //   transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
+          //   try {
+          //     let note = JSON.parse(transaction.note);
+          //     const lead = await LeadHistoryModel.findOne({_id: note.leadId});
+          //     if (lead) {
+          //       transaction.info = {
+          //         title: lead.name
+          //       };
+          //     }
+          //   }
+          //   catch (e) {
+          //     logger.error('TransactionController::list', e);
+          //   }
+          // }
           
           
           return transaction;
@@ -348,7 +350,8 @@ const getTransactionsOfUser = async (req, res, next) => {
           data: {
             items: transactions,
             total: _.ceil(r.data.meta.totalRecords / 20),
-            itemCount: r.data.meta.totalRecords
+            itemCount: r.data.meta.totalRecords,
+            totalInputtedBalance: r.data.meta.totalInputtedBalance
           }
         });
       })
