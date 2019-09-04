@@ -36,6 +36,7 @@ router.post('/sales/update/:id', AdminSaleController.update);
 
 router.post('/payments/add/:id', TransactionController.addMain);
 router.post('/promos/add/:id', TransactionController.addPromo);
+router.get('/transactions', TransactionController.getTransactionsOfUser);
 
 router.get('/users/list', AdminUserController.list);
 router.get('/users/rule-leads', AdminUserController.ruleGetInfoLead);

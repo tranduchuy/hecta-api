@@ -281,9 +281,90 @@ const list = async (req, res, next) => {
   }
 };
 
+const getTransactionsOfUser = async (req, res, next) => {
+  try {
+    const pagination = extractPaginationCondition(req);
+    const cond = {};
+    if (req.query.startDay) {
+      cond.startDay = req.query.startDay;
+    }
+
+    if (req.query.endDay) {
+      cond.endDay = req.query.endDay;
+    }
+
+    if (req.query.user) {
+      cond.user = req.query.user;
+    }
+
+    const queryStr = `?${request.convertObjectToQueryString(cond)}&${request.convertObjectToQueryString(pagination)}`;
+    const uri = `${CDP_APIS.TRANSACTION_HISTORY.BELONG_TO_USER}${queryStr}`;
+    
+    get(uri, req.user.token)
+      .then(async (r) => {
+        let transactions = await Promise.all(r.data.entries.map(async transaction => {
+          
+          if (transaction.type === global.TRANSACTION_TYPE_PAY_POST ||
+            transaction.type === global.TRANSACTION_TYPE_UP_NEW ||
+            transaction.type === global.TRANSACTION_TYPE_VIEW_POST_SALE) {
+            
+            try {
+              let note = JSON.parse(transaction.note);
+              const sale = await SaleModel.findOne({_id: note.saleId});
+              if (sale) {
+                transaction.info = {
+                  title: sale.title
+                };
+              }
+            }
+            catch (e) {
+              logger.error('TransactionController::list', e);
+            }
+          }
+          
+          if (transaction.type === global.TRANSACTION_TYPE_BUY_LEAD ||
+            transaction.type === global.TRANSACTION_TYPE_REFUND_LEAD) {
+            try {
+              let note = JSON.parse(transaction.note);
+              const lead = await LeadHistoryModel.findOne({_id: note.leadId});
+              if (lead) {
+                transaction.info = {
+                  title: lead.name
+                };
+              }
+            }
+            catch (e) {
+              logger.error('TransactionController::list', e);
+            }
+          }
+          
+          
+          return transaction;
+        }));
+        
+        return res.json({
+          status: HTTP_CODE.SUCCESS,
+          message: 'Success',
+          data: {
+            items: transactions,
+            total: _.ceil(r.data.meta.totalRecords / 20),
+            itemCount: r.data.meta.totalRecords
+          }
+        });
+      })
+      .catch((err) => {
+        return next(err)
+      });
+  } catch (e) {
+    logger.info('TransactionController::getTransactionsOfUser::error', e);
+    return next(e);
+  }
+}
+
 module.exports = {
   addMain,
   addPromo,
   childList,
-  list
+  list,
+  getTransactionsOfUser
 };

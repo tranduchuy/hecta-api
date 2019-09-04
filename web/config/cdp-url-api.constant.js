@@ -46,6 +46,7 @@ module.exports = {
   },
   TRANSACTION_HISTORY: {
     LIST_MY: `${host}/transaction-history/list-my`,
-    LIST_CHILD: `${host}/transaction-history/list-child`
+    LIST_CHILD: `${host}/transaction-history/list-child`,
+    BELONG_TO_USER: `${host}/transaction-history`
   }
 };
