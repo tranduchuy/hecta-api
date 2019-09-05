@@ -19,6 +19,7 @@ module.exports = {
     SALE_COST: `${host}/user/balance/sale-cost`,
     UP_NEW: `${host}/user/balance/up-news-cost`,
     BUY_LEAD: `${host}/user/balance/buy-lead`,
+    CHECK_BOUGHT_LEAD: `${host}/user/check-buy-lead`,
     REVERT_BUY_LEAD: `${host}/user/balance/revert-buy-lead`,
     LIST_USER: `${host}/user`,
     LIST_USER_INFO: `${host}/user/info-by-ids`,

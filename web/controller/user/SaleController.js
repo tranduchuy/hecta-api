@@ -664,6 +664,68 @@ const update = async function (req, res, next) {
   }
 };
 
+const buyContactOfSale = async (req, res, next) => {
+  logger.info('SaleController::buyContactOfSale::called');
+  const {saleId} = req.body;
+  try {
+    const sale = await SaleModel.findOne({_id: saleId});
+    if (!sale) {
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        message: 'Không tìm thấy tin đăng',
+        data: {}
+      });
+    }
+
+    const body = {
+      saleId,
+      cost: 1e5
+    };
+
+    await post(CDP_APIS.USER.BUY_LEAD, body, req.user.token);
+    logger.info('SaleController::buyContactOfSale::success', body);
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Thành công'
+    })
+  } catch (e) {
+    if (e === 'Balance expired') {
+      logger.info('SaleController::add::error. Balance expired when buy lead contact phone', {saleId});
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        message: 'Ví hết hạn sử dụng'
+      });
+    } else if (e === 'Not enough money') {
+      logger.info('SaleController::add::error. Not enough money when buy lead contact phone: ', {saleId});
+      return res.json({
+        status: HTTP_CODE.ERROR,
+        message: 'Không đủ số dư'
+      });
+    }
+
+    logger.error('SaleController::buyContactOfSale::error', e);
+    return next(e);
+  }
+};
+
+const checkBoughtContact = async (req, res, next) => {
+  logger.info('SaleController::checkBoughtContact::called', {saleId: req.query.saleId});
+  try {
+    const saleId = req.query.saleId;
+    const url = `${CDP_APIS.USER.CHECK_BOUGHT_LEAD}?saleId=${saleId}`;
+    const result = await get(url, req.user.token);
+
+    return res.json({
+      status: HTTP_CODE.SUCCESS,
+      message: 'Success',
+      data: result.data
+    });
+  } catch (e) {
+    logger.error('SaleController::checkBoughtContact::error', e);
+    return next(e);
+  }
+};
 
 const SaleController = {
   add,
@@ -671,6 +733,10 @@ const SaleController = {
   upNew,
 
   update,
+
+  buyContactOfSale,
+
+  checkBoughtContact,
 
   updateAdStatus: async function (req, res, next) {
     try {
