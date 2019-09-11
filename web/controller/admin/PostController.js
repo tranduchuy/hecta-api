@@ -10,6 +10,7 @@ const log4js = require('log4js');
 const logger = log4js.getLogger('Controllers');
 const PostService = require('../../services/PostService');
 const RoleService = require('../../services/RoleService');
+const UserUservice = require('../../services/UserService');
 
 const PostController = {
     updateUrl: async function (req, res, next) {
@@ -103,10 +104,21 @@ const PostController = {
 
             const results = await PostModel.aggregate(stages);
             const items = results[0].entries;
+
+            // load info of users when list post sales
+            if (postType === global.POST_TYPE_SALE) {
+                const userIds = items.map(item => item.user);
+                const users = await UserUservice.getListUsersByIds(userIds, req.user.token);
+
+                items.forEach((item, index) => {
+                    items[index].user = users.find(u => u.id === item.user);
+                });
+            }
+
             return res.json({
                 status: HttpCode.SUCCESS,
                 data: {
-                    entries: results[0].entries,
+                    entries: items,
                     meta: {
                         totalItems: results[0].entries.length > 0 ? results[0].meta[0].totalItems : 0
                     }

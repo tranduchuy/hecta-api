@@ -442,6 +442,20 @@ const generateStageQueryPostSale = req => {
     });
   }
 
+	// stage lookup priority
+	stages.push({
+		"$lookup": {
+			"from"        : "PostPriorities",
+			"localField"  : "priority",
+			"foreignField": "priority",
+			"as"          : "priorityInfo"
+		}
+	});
+
+	stages.push({
+		"$unwind": "$priorityInfo"
+	});
+
   // stage sort
   let stageSort = {
     $sort: {}
