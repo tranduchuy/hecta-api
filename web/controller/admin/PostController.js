@@ -147,7 +147,7 @@ const PostController = {
                 return next(new Error('Post id is required'));
             }
 
-            let post = await PostModel.findOne({_id: id});
+            let post = await PostModel.findOne({_id: id}).lean();
 
             if (!post) {
                 logger.error('PostController::detail::error. Post not found', id);
@@ -176,15 +176,22 @@ const PostController = {
                     break;
             }
 
-            let content = await model.findOne({_id: post.contentId});
+            let content = await model.findOne({_id: post.contentId}).lean();
             if (!content) {
                 logger.error('PostController::detail::error. ContentId not found detail', post.contentId);
                 return next(new Error('ContentId not found detail: ' + post.contentId));
             }
 
+            if (post.postType === global.POST_TYPE_SALE || post.postType === global.POST_TYPE_BUY) {
+                const users = await UserUservice.getListUsersByIds([post.user], req.user.token);
+                if (users && users.length > 0) {
+                    post.user = users[0];
+                }
+            }
+
             return res.json({
                 status: HttpCode.SUCCESS,
-                data: Object.assign({}, post.toObject(), content.toObject(), {id: post._id}),
+                data: Object.assign({}, post, content, {id: post._id}),
                 message: 'Success'
             });
         } catch (e) {
