@@ -96,7 +96,7 @@ const getNearestPost = async (req, res, next) => {
     const latitude = parseFloat(req.query.latitude);
     const longitude = parseFloat(req.query.longitude);
     const max = parseInt(req.query.radius);
-    const stages = PostService.generateStageQueryAllActiveSales({longitude, latitude}, max, req.query.formality);
+    const stages = PostService.generateStageQueryAllActiveSales({longitude, latitude}, max, req.query);
     logger.info('PostController::getNearestPost::stages', JSON.stringify(stages));
     const sales = await SaleModel.aggregate(stages);
 

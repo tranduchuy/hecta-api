@@ -157,7 +157,7 @@ const add = async (req, res, next) => {
 		sale.code = await postService.generateSaleCode();
 
 		sale.areaData = area;
-		sale.priceData = price;
+		sale.priceData = price * postService.detectMultiplesByUnit(unit);
 		sale.area = postService.convertValueAreaToID(area);
 		sale.price = postService.convertValueSalePriceToID(price, formality);
 
@@ -478,7 +478,7 @@ const update = async function (req, res, next) {
 			sale.area = postService.convertValueAreaToID(area);
 		}
 		if (price) {
-			sale.priceData = price;
+			sale.priceData = price * postService.detectMultiplesByUnit(sale.unit);
 			sale.price = postService.convertValueSalePriceToID(price, formality);
 		}
 
@@ -633,10 +633,6 @@ const SaleController = {
 
 	updateAdStatus: async function (req, res, next) {
 		try {
-			//TODO: implement check token user
-			// var token = req.user.token;
-			// var accessToken = await TokenModel.findOne({token: token});
-
 			let id = req.params.id;
 
 			if (!id || id.length == 0) {
@@ -709,10 +705,6 @@ const SaleController = {
 
 	updateAdStatus: async function (req, res, next) {
 		try {
-			//TODO: implement check token user
-			// var token = req.user.token;
-			// var accessToken = await TokenModel.findOne({token: token});
-
 			let id = req.params.id;
 
 			if (!id || id.length == 0) {
@@ -785,10 +777,6 @@ const SaleController = {
 
 	updateCPV: async function (req, res, next) {
 		try {
-			//TODO: implement check token user
-			// var token = req.user.token;
-			// var accessToken = await TokenModel.findOne({token: token});
-
 			let id = req.params.id;
 
 			if (!id || id.length == 0) {
@@ -865,10 +853,6 @@ const SaleController = {
 
 	updateBudgetPerDay: async function (req, res, next) {
 		try {
-			//TODO: implement check token user
-			// var token = req.user.token;
-			// var accessToken = await TokenModel.findOne({token: token});
-
 			let id = req.params.id;
 
 			if (!id || id.length == 0) {
