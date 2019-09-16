@@ -699,19 +699,30 @@ const generateStageQueryAllActiveSales = (loc, maxDistance, query) => {
 
 /**
  *
- * @param unit
+ * @param unit. from formality.prices
  * @return {number}
  */
 const detectMultiplesByUnit = (unit) => {
-	if (!unit) {
-		return 1;
+	switch (unit) {
+		case -1: // { name: "Thỏa thuận", id: "-1" },
+			return 1;
+		case 1: // { name: "Trăm nghìn / tháng", id: "1" },
+			return 1e5;
+		case 2: // { name: "Triệu / tháng", id: "2" },
+			return 1e6;
+		case 3: // { name: "Nghìn/m2/tháng", id: "3" },
+			return 1e3;
+		case 6: // { name: "Trăm nghìn/m2/tháng", id: "6" },
+			return 1e5;
+		case 7: // { name: "Triệu/m2/tháng", id: "7" },
+			return 1e6;
+		case 8: // { name: "Trăm nghìn / đêm", id: "8" },
+			return 1e5;
+		case 9: // { name: "Triệu / đêm", id: "9" }
+			return 1e6;
+		default:
+			return 1;
 	}
-
-	if (unit === -1) {
-		return 1;
-	}
-
-	return 1e6; // x 1 triệu
 };
 
 module.exports = {
