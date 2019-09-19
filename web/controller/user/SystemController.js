@@ -89,19 +89,21 @@ const getDefaultSystemConfig = async (req, res, next) => {
 const updateStaticPageContent = async (req, res, next) => {
   try {
     const fields = [
-      "hoTro",
-      "chinhSach",
-      "huongDanSuDung",
-      "lienHe",
-      "coCheGiaiQuyetTranhChap",
-      "dieuKhoanThoaThuan",
-      "baoGia",
-      "baoVeThongTinCaNhan"
+      'gioiThieu',
+      'huongDanSuDung',
+      'quyDinh',
+      'quyCheHoatDong',
+      'baoVeThongTinCaNhan',
+      'coCheGiaiQuyetTranhChap',
+      'lienHe',
+      'dieuKhoanThoaThuan',
+      'baoGia'
     ];
 
     const config = await SystemModel.findOne({});
     fields.forEach(f => {
       if (req.body[f] && req.body[f].trim() !== '') {
+        config.staticPage[f] = config.staticPage[f] || [];
         config.staticPage[f].push({
           createdAt: new Date,
           content: req.body[f].trim()
@@ -125,19 +127,20 @@ const getStaticPageContents = async (req, res, next) => {
   try {
     const config = await SystemModel.findOne({});
     const fields = [
-      "hoTro",
-      "chinhSach",
-      "huongDanSuDung",
-      "lienHe",
-      "coCheGiaiQuyetTranhChap",
-      "dieuKhoanThoaThuan",
-      "baoGia",
-      "baoVeThongTinCaNhan"
+      'gioiThieu',
+      'huongDanSuDung',
+      'quyDinh',
+      'quyCheHoatDong',
+      'baoVeThongTinCaNhan',
+      'coCheGiaiQuyetTranhChap',
+      'lienHe',
+      'dieuKhoanThoaThuan',
+      'baoGia'
     ];
 
     const result = {};
     fields.forEach(f => {
-      result[f] = config.staticPage[f].slice(-1).pop();
+      result[f] = (config.staticPage[f] || []).slice(-1).pop();
     });
 
     return res.json({
