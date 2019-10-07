@@ -3,7 +3,9 @@ const fs = require('fs');
 const db = require('./database/db');
 require('./models/index');
 const SubDomainModel = require('./models/SubDomainModel');
-const shell = require('shelljs')
+const shell = require('shelljs');
+const config = require('config');
+const postFix = config.get('subDomainPostFix');
 
 function makeid(length) {
 	let result = '';
@@ -35,7 +37,7 @@ async function createDomain(subDomainName) {
 	newDomain.status = global.STATUS.DOMAIN_ENABLE;
 
 	await newDomain.save();
-	createSubDomain(newDomain.name + '.web.hecta.vn');
+	createSubDomain(newDomain.name + postFix);
 }
 
 
