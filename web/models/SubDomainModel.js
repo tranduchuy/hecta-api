@@ -9,7 +9,7 @@ const subDomainSchema = new Schema({
 	},
 	status: {
 		type: Number,
-		default: global.DOMAIN_STATUS.DOMAIN_ENABLE
+		default: global.STATUS.DOMAIN_ENABLE
 	},
 }, {
 	timestamp: true

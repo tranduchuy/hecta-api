@@ -20,8 +20,7 @@ const websiteSchema = new Schema({
 		password: String
 	},
 	template: {
-		type: {type: Schema.Types.ObjectId, ref: 'Template'},
-		default: null
+		type: {type: Schema.Types.ObjectId, ref: 'Template'}
 	},
 	contactInfo: {
 		name: String,
