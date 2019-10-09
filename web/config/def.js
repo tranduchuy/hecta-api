@@ -116,4 +116,4 @@ global.REFERRER_TYPE = {
   FACEBOOK_ADS: 4,
   HECTA: 5,
   OTHER: 6
-}
+};

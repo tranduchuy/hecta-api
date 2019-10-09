@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const websiteSchema = new Schema({
-	userId: String,
+	user: {
+		type: {type: Schema.Types.ObjectId, ref: 'Users'}
+	},
 	projectId: String,
 	subDomain: {
 		type: Schema.Types.ObjectId,
