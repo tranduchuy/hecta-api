@@ -26,6 +26,10 @@ function createSubDomain(subDomainName, root = '/usr/share/nginx/html') {
 	fs.writeFileSync(`./shell-cmd/${subDomainName}.conf`, newConf);
 }
 
+/**
+ * Create sub domain by name
+ * @param {string} subDomainName 
+ */
 async function createDomain(subDomainName) {
 	const duplicatedName = await SubDomainModel.findOne({name: subDomainName});
 	if (duplicatedName) {
