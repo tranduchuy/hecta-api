@@ -55,9 +55,9 @@ const getStatByReferrerType = async (req, res, next) => {
     adStats.map(($) => {
       const hostname = URL.parse($.referrer).hostname;
       let logType = "other";
-      if ($.type == global.AD_STAT_VIEW) logType = "view";
-      if ($.type == global.AD_STAT_IMPRESSION) logType = "impression";
-      if ($.type == global.AD_STAT_CLICK) logType = "click";
+      if ($.type == global.AD_STAT_VIEW || $.type == "VIEW") logType = "view";
+      if ($.type == global.AD_STAT_IMPRESSION || $.type == "IMPRESSION") logType = "impression";
+      if ($.type == global.AD_STAT_CLICK || $.type == "CLICK") logType = "click";
 
       if (_.includes(hostname, "google")) {
         if (_.isNil($.utmSource)) result.data.statistic[logType][global.REFERRER_TYPE.GOOGLE_ORGANIC]++;
@@ -106,9 +106,9 @@ const getStatByTimeRange = async (req, res, next) => {
 
     adStats.map(($) => {
       let logType = "other";
-      if ($.type == global.AD_STAT_VIEW) logType = "view";
-      if ($.type == global.AD_STAT_IMPRESSION) logType = "impression";
-      if ($.type == global.AD_STAT_CLICK) logType = "click";
+      if ($.type == global.AD_STAT_VIEW || $.type == "VIEW") logType = "view";
+      if ($.type == global.AD_STAT_IMPRESSION || $.type == "IMPRESSION") logType = "impression";
+      if ($.type == global.AD_STAT_CLICK || $.type == "CLICK") logType = "click";
       const date = $.createdAt.toISOString().split('T')[0];
 
       if (!_.isNil(result.data.statistic[date])) result.data.statistic[date][logType]++;
