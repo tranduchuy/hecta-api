@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const templateTypes = require('../constants/template-types');
+const TemplateTypes = require('../constants/template-types');
 
 const templateSchema = new Schema({
 	name: String,
@@ -10,7 +10,7 @@ const templateSchema = new Schema({
 	}],
 	type: {
 		type: String,
-		default: templateTypes.SINGLE_PAGE
+		default: TemplateTypes.SINGLE_PAGE
 	},
 	sourcePath: {
 		require: true,
@@ -22,7 +22,15 @@ const templateSchema = new Schema({
 		database: String,
 		username: String,
 		password: String
-	}
+	},
+	contactInfo: {
+		name: String,
+		email: String,
+		phone: String
+	},
+	introImage: String,
+	cities: [String],
+	districts: [Number]
 }, {
 	timestamp: true
 });
